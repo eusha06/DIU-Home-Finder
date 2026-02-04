@@ -1,2 +1,2 @@
-# Project-
-This is Our team collaborative full stack capstone project.
+#DIU HOME FINDER
+DIU Student Smart Home Finder is a web-based platform that helps DIU students easily discover available rental homes near campus with verified listings, filters, and real-time availability. It streamlines the housing search process by connecting students with suitable accommodations quickly and securely.
