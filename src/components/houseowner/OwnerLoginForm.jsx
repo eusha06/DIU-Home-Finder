@@ -11,7 +11,7 @@ import { EmailIcon, LockIcon } from '../shared/Icons'
  * Props:
  *   onSwitchToSignup – callback to switch to the Sign Up tab
  */
-const OwnerLoginForm = ({ onSwitchToSignup }) => {
+const OwnerLoginForm = ({ onSwitchToSignup, onOwnerLogin }) => {
   // ── Form state ──────────────────────────────────────────────────────────
   const [formData, setFormData] = useState({ email: '', password: '' })
   const [errors, setErrors] = useState({})
@@ -44,6 +44,12 @@ const OwnerLoginForm = ({ onSwitchToSignup }) => {
     setErrors(errs)
     if (Object.keys(errs).length === 0) {
       console.log('Owner Login Data:', { role: 'owner', ...formData })
+      if (onOwnerLogin) {
+        onOwnerLogin({
+          fullName: formData.email.split('@')[0],
+          email: formData.email,
+        })
+      }
     }
   }
 

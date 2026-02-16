@@ -12,7 +12,7 @@ import { UserIcon, EmailIcon, PhoneIcon, IdIcon, BuildingIcon, LocationIcon, Loc
  * Props:
  *   onSwitchToLogin – callback to switch to the Login tab
  */
-const OwnerSignupForm = ({ onSwitchToLogin }) => {
+const OwnerSignupForm = ({ onSwitchToLogin, onOwnerLogin }) => {
   // ── Form state ──────────────────────────────────────────────────────────
   const [formData, setFormData] = useState({
     fullName: '',
@@ -83,6 +83,12 @@ const OwnerSignupForm = ({ onSwitchToLogin }) => {
     setErrors(errs)
     if (Object.keys(errs).length === 0) {
       console.log('Owner Signup Data:', { role: 'owner', ...formData })
+      if (onOwnerLogin) {
+        onOwnerLogin({
+          fullName: formData.fullName,
+          email: formData.email,
+        })
+      }
     }
   }
 
