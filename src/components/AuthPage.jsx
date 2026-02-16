@@ -23,7 +23,7 @@ import OwnerSignupForm from './houseowner/OwnerSignupForm'
  * All form logic and validation lives inside the respective
  * student/ and houseowner/ components.
  */
-const AuthPage = () => {
+const AuthPage = ({ onStudentLogin, onOwnerLogin }) => {
   // ── Active tab: 'login' | 'signup' ──────────────────────────────────────
   const [activeTab, setActiveTab] = useState('login')
 
@@ -119,9 +119,9 @@ const AuthPage = () => {
 
             {/* Render the appropriate login form based on role */}
             {loginRole === 'student' ? (
-              <StudentLoginForm onSwitchToSignup={() => switchTab('signup')} />
+              <StudentLoginForm onSwitchToSignup={() => switchTab('signup')} onStudentLogin={onStudentLogin} />
             ) : (
-              <OwnerLoginForm onSwitchToSignup={() => switchTab('signup')} />
+              <OwnerLoginForm onSwitchToSignup={() => switchTab('signup')} onOwnerLogin={onOwnerLogin} />
             )}
           </div>
 
@@ -202,9 +202,9 @@ const AuthPage = () => {
 
                 {/* Render the appropriate signup form based on role */}
                 {signupRole === 'student' ? (
-                  <StudentSignupForm onSwitchToLogin={() => switchTab('login')} />
+                  <StudentSignupForm onSwitchToLogin={() => switchTab('login')} onStudentLogin={onStudentLogin} />
                 ) : (
-                  <OwnerSignupForm onSwitchToLogin={() => switchTab('login')} />
+                  <OwnerSignupForm onSwitchToLogin={() => switchTab('login')} onOwnerLogin={onOwnerLogin} />
                 )}
               </div>
             )}
