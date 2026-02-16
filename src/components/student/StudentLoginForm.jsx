@@ -11,9 +11,9 @@ import { EmailIcon, LockIcon } from '../shared/Icons'
  * Props:
  *   onSwitchToSignup – callback to switch to the Sign Up tab
  */
-const StudentLoginForm = ({ onSwitchToSignup }) => {
+const StudentLoginForm = ({ onSwitchToSignup, onStudentLogin }) => {
   // ── Form state ──────────────────────────────────────────────────────────
-  const [formData, setFormData] = useState({ email: '', password: '' })
+  const [formData, setFormData] = useState({ email: '', password: '', gender: 'male' })
   const [errors, setErrors] = useState({})
 
   // ── Helpers ─────────────────────────────────────────────────────────────
@@ -44,6 +44,16 @@ const StudentLoginForm = ({ onSwitchToSignup }) => {
     setErrors(errs)
     if (Object.keys(errs).length === 0) {
       console.log('Student Login Data:', { role: 'student', ...formData })
+      // Simulate login – pass student data to homepage
+      if (onStudentLogin) {
+        onStudentLogin({
+          fullName: formData.email.split('@')[0].replace(/[._]/g, ' '),
+          email: formData.email,
+          phone: '01700000000',
+          studentId: 'N/A',
+          gender: formData.gender,
+        })
+      }
     }
   }
 
@@ -72,6 +82,28 @@ const StudentLoginForm = ({ onSwitchToSignup }) => {
           error={errors.password}
           icon={<LockIcon />}
         />
+
+        {/* Gender selector for filtering */}
+        <div className="mb-3.5">
+          <label className="block text-sm font-medium text-gray-700 mb-1">I am</label>
+          <div className="flex gap-3">
+            {['Male', 'Female'].map((g) => (
+              <button
+                key={g}
+                type="button"
+                onClick={() => setFormData((prev) => ({ ...prev, gender: g.toLowerCase() }))}
+                className={`
+                  flex-1 py-2 rounded-lg border text-sm font-medium transition-all duration-200
+                  ${formData.gender === g.toLowerCase()
+                    ? 'border-indigo-500 bg-indigo-50 text-indigo-700 shadow-sm'
+                    : 'border-gray-300 bg-gray-50 text-gray-600 hover:border-indigo-300'}
+                `}
+              >
+                {g === 'Male' ? '👨' : '👩'} {g}
+              </button>
+            ))}
+          </div>
+        </div>
 
         {/* Forgot password */}
         <div className="flex justify-end mb-4">
@@ -105,3 +137,5 @@ const StudentLoginForm = ({ onSwitchToSignup }) => {
 }
 
 export default StudentLoginForm
+
+// 

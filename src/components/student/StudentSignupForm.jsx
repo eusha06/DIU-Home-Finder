@@ -12,7 +12,7 @@ import { UserIcon, EmailIcon, PhoneIcon, IdIcon, LockIcon } from '../shared/Icon
  * Props:
  *   onSwitchToLogin – callback to switch to the Login tab
  */
-const StudentSignupForm = ({ onSwitchToLogin }) => {
+const StudentSignupForm = ({ onSwitchToLogin, onStudentLogin }) => {
   // ── Form state ──────────────────────────────────────────────────────────
   const [formData, setFormData] = useState({
     fullName: '',
@@ -79,6 +79,16 @@ const StudentSignupForm = ({ onSwitchToLogin }) => {
     setErrors(errs)
     if (Object.keys(errs).length === 0) {
       console.log('Student Signup Data:', { role: 'student', ...formData })
+      // Navigate to student homepage with profile data
+      if (onStudentLogin) {
+        onStudentLogin({
+          fullName: formData.fullName,
+          email: formData.email,
+          phone: formData.phone,
+          studentId: formData.studentId,
+          gender: formData.gender,
+        })
+      }
     }
   }
 
