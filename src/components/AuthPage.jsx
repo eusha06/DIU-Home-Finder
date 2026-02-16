@@ -62,7 +62,7 @@ const AuthPage = () => {
         {/* ── Header / branding ─────────────────────────────────────── */}
         <div className="px-8 pt-8 pb-2 text-center">
           <h1 className="text-2xl font-bold text-indigo-700 tracking-tight">
-            🏠 Student Home Finder
+            🏠 DIU Student Home Finder
           </h1>
           <p className="text-sm text-gray-500 mt-1">
             Find your perfect home near DIU campus
