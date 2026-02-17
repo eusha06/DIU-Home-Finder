@@ -214,7 +214,8 @@ const AuthPage = ({ onStudentLogin, onOwnerLogin }) => {
         {/* ── Footer ───────────────────────────────────────────────── */}
         <div className="px-8 pb-6 text-center">
           <p className="text-[11px] text-gray-300">
-            © 2026 Student Home Finder · DIU
+            © Copyright 2026. All rights reserved.
+            Made By @Eusha
           </p>
         </div>
       </div>
