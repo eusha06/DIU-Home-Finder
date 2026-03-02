@@ -2,32 +2,49 @@ import { useState, useEffect, useMemo } from 'react'
 
 // ── Student homepage components ───────────────────────────────────────────
 import Navbar from './Navbar'
+import CategorySelection from './CategorySelection'
 import SearchBar from './SearchBar'
 import FilterSidebar from './FilterSidebar'
 import PropertyCard from './PropertyCard'
 import PropertyDetailModal from './PropertyDetailModal'
 import BookingConfirmModal from './BookingConfirmModal'
 import dummyProperties from './data/dummyProperties'
+import dummyHostels from './data/dummyHostelData'
 
 /**
  * StudentHomePage
  * ───────────────
- * Main orchestrator for the student dashboard / property listing page.
+ * Main orchestrator for the student dashboard.
+ *
+ * Flow:
+ *   1. Category selection: "Rental Homes" or "Hostels"
+ *   2. Listing page for the chosen category with filters, search, modals
  *
  * Responsibilities:
+ *   • Show category selection cards on first load
+ *   • After selection → show listings for that category only
  *   • Auto-filter properties by student gender
  *   • Text search (title + location)
  *   • Price range filter
  *   • Sort (newest, price-low, price-high)
  *   • Sidebar filters (rooms, bathrooms, floor, availability)
- *   • Property detail modal
- *   • Booking confirmation flow
+ *   • Property detail modal with booking flow
  *
  * Props:
  *   student  - { fullName, email, phone, studentId, gender }
  *   onLogout - callback to return to auth page
  */
 const StudentHomePage = ({ student, onLogout }) => {
+  // ── Category state ──────────────────────────────────────────────────────
+  // null = show category selection view; 'home' | 'hostel' = show listings
+  const [selectedCategory, setSelectedCategory] = useState(null)
+
+  // ── Combine both data sources into one array ────────────────────────────
+  const allProperties = useMemo(
+    () => [...dummyProperties, ...dummyHostels],
+    []
+  )
+
   // ── Search & sort state ─────────────────────────────────────────────────
   const [searchQuery, setSearchQuery] = useState('')
   const [priceRange, setPriceRange] = useState('all')
@@ -57,7 +74,12 @@ const StudentHomePage = ({ student, onLogout }) => {
 
   // ── Derived filtered + sorted list ──────────────────────────────────────
   const filteredProperties = useMemo(() => {
-    let result = [...dummyProperties]
+    let result = [...allProperties]
+
+    // 0) Category filter — only show selected type
+    if (selectedCategory) {
+      result = result.filter((p) => p.type === selectedCategory)
+    }
 
     // 1) Gender filter (auto from student profile)
     result = result.filter((p) => p.gender === student.gender || p.gender === 'any')
@@ -124,11 +146,11 @@ const StudentHomePage = ({ student, onLogout }) => {
     }
 
     return result
-  }, [searchQuery, priceRange, sortBy, filters, student.gender])
+  }, [searchQuery, priceRange, sortBy, filters, student.gender, selectedCategory, allProperties])
 
   // ── Booking flow ────────────────────────────────────────────────────────
   const handleRequestBooking = (propertyId) => {
-    const prop = dummyProperties.find((p) => p.id === propertyId)
+    const prop = allProperties.find((p) => p.id === propertyId)
     if (prop) {
       setSelectedProperty(null) // close detail modal
       setBookingProperty(prop)   // open confirm modal
@@ -141,13 +163,60 @@ const StudentHomePage = ({ student, onLogout }) => {
     setTimeout(() => setBookingSuccess(false), 3000)
   }
 
+  // ── Handle going back to category selection ─────────────────────────────
+  const handleBackToCategories = () => {
+    setSelectedCategory(null)
+    // Reset filters & search when going back
+    setSearchQuery('')
+    setPriceRange('all')
+    setSortBy('newest')
+    setFilters({
+      gender: student.gender,
+      rooms: 'all',
+      bathrooms: 'all',
+      floor: 'all',
+      availableOnly: false,
+    })
+  }
+
   // ── Render ──────────────────────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-gray-50">
       {/* ── Navbar ──────────────────────────────────────────────────── */}
       <Navbar student={student} onLogout={onLogout} />
 
-      {/* ── Mobile filter toggle ────────────────────────────────────── */}
+      {/* ── Category selection view (initial) ──────────────────────── */}
+      {!selectedCategory && (
+        <CategorySelection onSelect={setSelectedCategory} />
+      )}
+
+      {/* ── Listing view (after category is selected) ──────────────── */}
+      {selectedCategory && (
+        <>
+          {/* Back button + category title bar */}
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-5">
+            <div className="flex items-center gap-3">
+              <button
+                onClick={handleBackToCategories}
+                className="flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-indigo-600 bg-white border border-gray-200 rounded-lg px-3 py-2 shadow-sm hover:border-indigo-300 transition-all duration-200"
+              >
+                <svg className="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                Back
+              </button>
+              <div>
+                <h2 className="text-lg font-bold text-gray-800">
+                  {selectedCategory === 'home' ? '🏠 Rental Homes' : '🏢 Hostels'}
+                </h2>
+                <p className="text-xs text-gray-400">
+                  Showing {selectedCategory === 'home' ? 'rental homes' : 'hostels'} for {student.gender} students
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* ── Mobile filter toggle ────────────────────────────────── */}
       <div className="lg:hidden px-4 pt-4">
         <button
           onClick={() => setSidebarOpen(true)}
@@ -203,9 +272,9 @@ const StudentHomePage = ({ student, onLogout }) => {
             ) : (
               <div className="text-center py-20">
                 <span className="text-5xl mb-4 block">🏚️</span>
-                <h3 className="text-lg font-semibold text-gray-600 mb-1">No properties found</h3>
+                <h3 className="text-lg font-semibold text-gray-600 mb-1">No {selectedCategory === 'hostel' ? 'hostels' : 'properties'} found</h3>
                 <p className="text-sm text-gray-400">
-                  Try adjusting your search or filters to find available homes.
+                  Try adjusting your search or filters to find available {selectedCategory === 'hostel' ? 'hostels' : 'homes'}.
                 </p>
               </div>
             )}
@@ -239,6 +308,8 @@ const StudentHomePage = ({ student, onLogout }) => {
           <span className="text-lg">✅</span>
           <span className="text-sm font-medium">Booking request sent successfully!</span>
         </div>
+      )}
+        </>
       )}
     </div>
   )
