@@ -143,7 +143,7 @@ const PropertyDetailModal = ({ property, onClose, onRequestBooking }) => {
               </div>
               <div>
                 <p className="text-sm font-semibold text-gray-800">{owner}</p>
-                <p className="text-xs text-gray-500">Property Owner</p>
+                <p className="text-xs text-gray-500">{property.type === 'hostel' ? 'Hostel Authority' : 'Property Owner'}</p>
               </div>
             </div>
             <div className="flex items-center gap-2 text-sm text-indigo-600 font-medium">
