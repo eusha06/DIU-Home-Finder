@@ -10,6 +10,7 @@ const dummyProperties = [
   {
     id: 1,
     title: 'Green View Mess (Male)',
+    type: 'home',
     location: 'Dhanmondi 27, Dhaka',
     description:
       'A clean and well-maintained male mess located just 5 minutes from DIU campus. Spacious rooms with natural ventilation, attached balcony, and 24/7 security. Ideal for students who value a quiet study environment.',
@@ -39,6 +40,7 @@ const dummyProperties = [
   {
     id: 2,
     title: 'Sunrise Girls Hostel',
+    type: 'home',
     location: 'Mirpur 10, Dhaka',
     description:
       'A safe and secure female hostel with warden supervision. Located near major bus stops and within 15 minutes of DIU by public transport. Includes meals and laundry services.',
@@ -68,6 +70,7 @@ const dummyProperties = [
   {
     id: 3,
     title: 'City Boys Mess',
+    type: 'home',
     location: 'Asad Gate, Mohammadpur',
     description:
       'Affordable male mess right beside the main road. Easy access to transport. Well-furnished rooms with AC and attached bathroom. Currently offering discounted first-month rent.',
@@ -97,6 +100,7 @@ const dummyProperties = [
   {
     id: 4,
     title: 'Pearl Ladies Residence',
+    type: 'home',
     location: 'Uttara Sector 7, Dhaka',
     description:
       'Premium female residence with modern amenities. Each room comes with personal wardrobe, study desk, and high-speed internet. Generator backup ensures uninterrupted power.',
@@ -126,6 +130,7 @@ const dummyProperties = [
   {
     id: 5,
     title: 'Brothers Nest',
+    type: 'home',
     location: 'Kallayanpur, Dhaka',
     description:
       'Budget-friendly male mess for DIU students. Shared rooms with basic amenities. Walking distance to local market and pharmacy. Friendly neighbourhood with other student messes.',
@@ -155,6 +160,7 @@ const dummyProperties = [
   {
     id: 6,
     title: 'Noor Female Hostel',
+    type: 'home',
     location: 'Dhanmondi 15, Dhaka',
     description:
       'A sophisticated female-only hostel with CCTV surveillance and professional management. Located in one of the safest residential areas of Dhaka. Free shuttle service to DIU campus every morning.',
@@ -184,6 +190,7 @@ const dummyProperties = [
   {
     id: 7,
     title: 'Campus Edge Mess (Male)',
+    type: 'home',
     location: 'Permanent Campus Rd, Ashulia',
     description:
       'Located literally steps away from the DIU permanent campus gate. Perfect for students who want zero commute. Rooftop common area with beautiful views.',
@@ -213,6 +220,7 @@ const dummyProperties = [
   {
     id: 8,
     title: 'Sisters Safe Home',
+    type: 'home',
     location: 'Permanent Campus Rd, Ashulia',
     description:
       'A family-run female hostel near DIU permanent campus. Homely atmosphere with home-cooked meals. The landlord family lives on the ground floor ensuring maximum safety.',
@@ -242,6 +250,7 @@ const dummyProperties = [
   {
     id: 9,
     title: 'Royal Boys Apartment',
+    type: 'home',
     location: 'Savar, Dhaka',
     description:
       'Semi-furnished apartment style accommodation for male students. Independent living with common kitchen. Each flat has a separate entrance for privacy.',
@@ -271,6 +280,7 @@ const dummyProperties = [
   {
     id: 10,
     title: 'Orchid Women Residence',
+    type: 'home',
     location: 'Savar, Dhaka',
     description:
       'Modern co-living space designed for female students and professionals. Gym access, rooftop garden, and study lounge included. Monthly community events to build connections.',
