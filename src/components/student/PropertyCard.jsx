@@ -12,6 +12,7 @@
 const PropertyCard = ({ property, onViewDetails }) => {
   const {
     title,
+    type,
     location,
     rent,
     rooms,
@@ -51,6 +52,16 @@ const PropertyCard = ({ property, onViewDetails }) => {
         `}>
           {gender === 'male' ? '👨 Male' : '👩 Female'}
         </span>
+
+        {/* Type badge (Home / Hostel) */}
+        {type && (
+          <span className={`
+            absolute bottom-3 left-3 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wide
+            ${type === 'hostel' ? 'bg-emerald-100 text-emerald-700' : 'bg-violet-100 text-violet-700'}
+          `}>
+            {type === 'hostel' ? '🏢 Hostel' : '🏠 Home'}
+          </span>
+        )}
 
         {/* Price overlay */}
         <div className="absolute bottom-3 right-3 bg-white/90 backdrop-blur-sm rounded-lg px-3 py-1.5 shadow">
