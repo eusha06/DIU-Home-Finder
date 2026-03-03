@@ -12,6 +12,10 @@ import StudentSignupForm from './student/StudentSignupForm'
 import OwnerLoginForm from './houseowner/OwnerLoginForm'
 import OwnerSignupForm from './houseowner/OwnerSignupForm'
 
+// ── Hostel Manager components ─────────────────────────────────────────────
+import ManagerLoginForm from './hostelmanager/ManagerLoginForm'
+import ManagerSignupForm from './hostelmanager/ManagerSignupForm'
+
 /**
  * AuthPage
  * ────────
@@ -23,16 +27,16 @@ import OwnerSignupForm from './houseowner/OwnerSignupForm'
  * All form logic and validation lives inside the respective
  * student/ and houseowner/ components.
  */
-const AuthPage = ({ onStudentLogin, onOwnerLogin }) => {
+const AuthPage = ({ onStudentLogin, onOwnerLogin, onManagerLogin }) => {
   // ── Active tab: 'login' | 'signup' ──────────────────────────────────────
   const [activeTab, setActiveTab] = useState('login')
 
   // ── Login role toggle ───────────────────────────────────────────────────
-  const [loginRole, setLoginRole] = useState('student') // 'student' | 'owner'
+  const [loginRole, setLoginRole] = useState('student') // 'student' | 'owner' | 'manager'
 
   // ── Signup step & role ──────────────────────────────────────────────────
   const [signupStep, setSignupStep] = useState(1)   // 1 = choose role, 2 = form
-  const [signupRole, setSignupRole] = useState('')   // 'student' | 'owner'
+  const [signupRole, setSignupRole] = useState('')   // 'student' | 'owner' | 'manager'
 
   // ── Tab switch handler (resets signup to step 1) ────────────────────────
   const switchTab = (tab) => {
@@ -99,7 +103,8 @@ const AuthPage = ({ onStudentLogin, onOwnerLogin }) => {
             <div className="flex rounded-lg bg-gray-100 p-1 mb-5">
               {[
                 { key: 'student', label: '🎓 Student' },
-                { key: 'owner',   label: '🏠 House Owner' },
+                { key: 'owner',   label: '🏠 Owner' },
+                { key: 'manager', label: '🏢 Manager' },
               ].map(({ key, label }) => (
                 <button
                   key={key}
@@ -118,10 +123,14 @@ const AuthPage = ({ onStudentLogin, onOwnerLogin }) => {
             </div>
 
             {/* Render the appropriate login form based on role */}
-            {loginRole === 'student' ? (
+            {loginRole === 'student' && (
               <StudentLoginForm onSwitchToSignup={() => switchTab('signup')} onStudentLogin={onStudentLogin} />
-            ) : (
+            )}
+            {loginRole === 'owner' && (
               <OwnerLoginForm onSwitchToSignup={() => switchTab('signup')} onOwnerLogin={onOwnerLogin} />
+            )}
+            {loginRole === 'manager' && (
+              <ManagerLoginForm onSwitchToSignup={() => switchTab('signup')} onManagerLogin={onManagerLogin} />
             )}
           </div>
 
@@ -151,6 +160,13 @@ const AuthPage = ({ onStudentLogin, onOwnerLogin }) => {
                     description="I own property near DIU and want to list it"
                     selected={signupRole === 'owner'}
                     onClick={() => setSignupRole('owner')}
+                  />
+                  <RoleCard
+                    emoji="🏢"
+                    title="Hostel Manager"
+                    description="I manage university hostel halls and student accommodations"
+                    selected={signupRole === 'manager'}
+                    onClick={() => setSignupRole('manager')}
                   />
                 </div>
 
@@ -194,17 +210,23 @@ const AuthPage = ({ onStudentLogin, onOwnerLogin }) => {
                     text-xs font-semibold px-3 py-1 rounded-full
                     ${signupRole === 'student'
                       ? 'bg-blue-100 text-blue-700'
-                      : 'bg-amber-100 text-amber-700'}
+                      : signupRole === 'owner'
+                      ? 'bg-amber-100 text-amber-700'
+                      : 'bg-teal-100 text-teal-700'}
                   `}>
-                    {signupRole === 'student' ? '🎓 Student' : '🏠 House Owner'}
+                    {signupRole === 'student' ? '🎓 Student' : signupRole === 'owner' ? '🏠 House Owner' : '🏢 Hostel Manager'}
                   </span>
                 </div>
 
                 {/* Render the appropriate signup form based on role */}
-                {signupRole === 'student' ? (
+                {signupRole === 'student' && (
                   <StudentSignupForm onSwitchToLogin={() => switchTab('login')} onStudentLogin={onStudentLogin} />
-                ) : (
+                )}
+                {signupRole === 'owner' && (
                   <OwnerSignupForm onSwitchToLogin={() => switchTab('login')} onOwnerLogin={onOwnerLogin} />
+                )}
+                {signupRole === 'manager' && (
+                  <ManagerSignupForm onSwitchToLogin={() => switchTab('login')} onManagerLogin={onManagerLogin} />
                 )}
               </div>
             )}
@@ -214,8 +236,7 @@ const AuthPage = ({ onStudentLogin, onOwnerLogin }) => {
         {/* ── Footer ───────────────────────────────────────────────── */}
         <div className="px-8 pb-6 text-center">
           <p className="text-[11px] text-gray-300">
-            © Copyright 2026. All rights reserved.
-            Made By @Eusha
+            © 2026 Student Home Finder · DIU
           </p>
         </div>
       </div>
