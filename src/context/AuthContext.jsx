@@ -39,9 +39,8 @@ const MOCK_USER = {
  */
 export const AuthProvider = ({ children }) => {
   // ── State ────────────────────────────────────────────────────────────────
-  // Initialise with the mock user so the app loads in an "authenticated" state.
-  // Replace with `null` and drive login through a real flow when ready.
-  const [user, setUser] = useState(MOCK_USER)
+  // Start unauthenticated – user must log in or sign up.
+  const [user, setUser] = useState(null)
 
   // ── Login handler ────────────────────────────────────────────────────────
   // Accepts a user object with at minimum { name, role, isAuthenticated }.

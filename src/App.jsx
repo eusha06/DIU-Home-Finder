@@ -14,6 +14,14 @@ import OwnerDashboard from './components/houseowner/OwnerDashboard'
 import AdminPanel from './components/admin/AdminPanel'
 import HostelManagerDashboard from './components/hostelmanager/HostelManagerDashboard'
 
+// ── Helper: redirect authenticated users to their dashboard ───────────────────
+const ROLE_HOME = {
+  student: '/student/home',
+  homeowner: '/owner/dashboard',
+  admin: '/admin',
+  hostel_manager: '/hostel-manager',
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // App – root component (React Router v6)
 // ─────────────────────────────────────────────────────────────────────────────
@@ -31,19 +39,24 @@ import HostelManagerDashboard from './components/hostelmanager/HostelManagerDash
 // ─────────────────────────────────────────────────────────────────────────────
 
 function App() {
-  const { user, logout } = useAuth()
+  const { user, isAuthenticated, logout } = useAuth()
 
   // ── Shared logout handler (clears context + redirects via Navigate) ─────
   const handleLogout = () => {
     logout()
-    // Navigation to /login happens automatically because ProtectedRoute
-    // detects isAuthenticated === false on the next render.
   }
 
   return (
     <Routes>
       {/* ── Public routes ──────────────────────────────────────────────── */}
-      <Route path="/login" element={<AuthPage />} />
+      <Route
+        path="/login"
+        element={
+          isAuthenticated
+            ? <Navigate to={ROLE_HOME[user?.role] || '/login'} replace />
+            : <AuthPage />
+        }
+      />
       <Route path="/unauthorized" element={<UnauthorizedPage />} />
 
       {/* ── Student routes ─────────────────────────────────────────────── */}

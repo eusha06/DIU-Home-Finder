@@ -1,4 +1,8 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+
+// ── Auth context ──────────────────────────────────────────────────────────
+import { useAuth } from '../context/AuthContext'
 
 // ── Shared components ─────────────────────────────────────────────────────
 import { BackIcon } from './shared/Icons'
@@ -27,7 +31,26 @@ import ManagerSignupForm from './hostelmanager/ManagerSignupForm'
  * All form logic and validation lives inside the respective
  * student/ and houseowner/ components.
  */
-const AuthPage = ({ onStudentLogin, onOwnerLogin, onManagerLogin }) => {
+const AuthPage = () => {
+  const { login } = useAuth()
+  const navigate = useNavigate()
+
+  // ── Login/signup callbacks that update auth context & navigate ──────────
+  const onStudentLogin = (userData) => {
+    login({ ...userData, name: userData.fullName || userData.email, role: 'student' })
+    navigate('/student/home', { replace: true })
+  }
+
+  const onOwnerLogin = (userData) => {
+    login({ ...userData, name: userData.fullName || userData.email, role: 'homeowner' })
+    navigate('/owner/dashboard', { replace: true })
+  }
+
+  const onManagerLogin = (userData) => {
+    login({ ...userData, name: userData.name || userData.fullName || userData.email, role: 'hostel_manager' })
+    navigate('/hostel-manager', { replace: true })
+  }
+
   // ── Active tab: 'login' | 'signup' ──────────────────────────────────────
   const [activeTab, setActiveTab] = useState('login')
 
