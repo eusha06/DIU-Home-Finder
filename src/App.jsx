@@ -1,112 +1,95 @@
-import { useState, useEffect } from 'react'
+import { Routes, Route, Navigate } from 'react-router-dom'
+
+// ── Auth context ──────────────────────────────────────────────────────────────
+import { useAuth } from './context/AuthContext'
+
+// ── Shared / routing components ───────────────────────────────────────────────
+import ProtectedRoute from './components/shared/ProtectedRoute'
+import UnauthorizedPage from './components/shared/UnauthorizedPage'
+
+// ── Page-level components ─────────────────────────────────────────────────────
 import AuthPage from './components/AuthPage'
 import StudentHomePage from './components/student/StudentHomePage'
 import OwnerDashboard from './components/houseowner/OwnerDashboard'
 import AdminPanel from './components/admin/AdminPanel'
 import HostelManagerDashboard from './components/hostelmanager/HostelManagerDashboard'
 
-/**
- * App – root component.
- * Manages simple state-based routing between Auth, Student Homepage,
- * Owner Dashboard, and a **hidden** Admin Panel.
- *
- * State:
- *   currentPage - 'auth' | 'studentHome' | 'ownerDashboard' | 'adminPanel' | 'hostelManager'
- *   student     - logged-in student data { fullName, email, phone, studentId, gender }
- *   owner       - logged-in owner data { fullName, email }
- *   manager     - logged-in manager data { name, email, role }
- *
- * Admin Panel Access:
- *   - NOT linked anywhere in public UI.
- *   - Accessible ONLY by navigating to  #/admin-panel  in the URL bar.
- *   - Uses a simulated admin user: { name: "Admin", role: "admin" }
- *   - If role !== "admin", a 403 page is shown.
- *
- * Hostel Manager Dashboard Access:
- *   - NOT linked anywhere in public UI.
- *   - Accessible ONLY by navigating to  #/hostel-manager  in the URL bar.
- *   - Uses a simulated manager user: { name: "Manager", role: "hostel_manager" }
- *   - If role !== "hostel_manager", a 403 page is shown.
- */
+// ─────────────────────────────────────────────────────────────────────────────
+// App – root component (React Router v6)
+// ─────────────────────────────────────────────────────────────────────────────
+// Route structure:
+//   /login                → AuthPage (public)
+//   /student/home         → StudentHomePage        (student only)
+//   /owner/dashboard      → OwnerDashboard         (homeowner only)
+//   /admin                → AdminPanel             (admin only)
+//   /hostel-manager       → HostelManagerDashboard (hostel_manager only)
+//   /unauthorized         → 403 page (public, for direct navigation)
+//   *                     → redirect to /login
+//
+// Every protected route is wrapped with <ProtectedRoute allowedRoles={[…]}>
+// which handles authentication & role checks automatically.
+// ─────────────────────────────────────────────────────────────────────────────
+
 function App() {
-  // ── Detect hidden admin route from URL hash on mount & hash change ─────
-  const getInitialPage = () => {
-    if (window.location.hash === '#/admin-panel') return 'adminPanel'
-    if (window.location.hash === '#/hostel-manager') return 'hostelManager'
-    return 'auth'
-  }
+  const { user, logout } = useAuth()
 
-  const [currentPage, setCurrentPage] = useState(getInitialPage)
-  const [student, setStudent] = useState(null)
-  const [owner, setOwner] = useState(null)
-  const [manager, setManager] = useState(null)
-
-  // Listen for hash changes so the admin panel can be reached at any time
-  useEffect(() => {
-    const onHashChange = () => {
-      if (window.location.hash === '#/admin-panel') {
-        setCurrentPage('adminPanel')
-      } else if (window.location.hash === '#/hostel-manager') {
-        setCurrentPage('hostelManager')
-      }
-    }
-    window.addEventListener('hashchange', onHashChange)
-    return () => window.removeEventListener('hashchange', onHashChange)
-  }, [])
-
-  // ── Auth callbacks ─────────────────────────────────────────────────────
-
-  // Called from AuthPage after successful student login/signup
-  const handleStudentLogin = (studentData) => {
-    setStudent(studentData)
-    setCurrentPage('studentHome')
-  }
-
-  // Called from AuthPage after successful owner login/signup
-  const handleOwnerLogin = (ownerData) => {
-    setOwner(ownerData)
-    setCurrentPage('ownerDashboard')
-  }
-
-  // Called from AuthPage after successful manager login/signup
-  const handleManagerLogin = (managerData) => {
-    setManager(managerData)
-    setCurrentPage('hostelManager')
-  }
-
-  // Called from any dashboard when user clicks logout
+  // ── Shared logout handler (clears context + redirects via Navigate) ─────
   const handleLogout = () => {
-    setStudent(null)
-    setOwner(null)
-    setManager(null)
-    window.location.hash = ''           // clear hash so admin route isn't sticky
-    setCurrentPage('auth')
+    logout()
+    // Navigation to /login happens automatically because ProtectedRoute
+    // detects isAuthenticated === false on the next render.
   }
 
-  // ── Render pages ───────────────────────────────────────────────────────
+  return (
+    <Routes>
+      {/* ── Public routes ──────────────────────────────────────────────── */}
+      <Route path="/login" element={<AuthPage />} />
+      <Route path="/unauthorized" element={<UnauthorizedPage />} />
 
-  // Hidden Admin Panel – simulated admin user
-  if (currentPage === 'adminPanel') {
-    const adminUser = { name: 'Admin', role: 'admin' }
-    return <AdminPanel admin={adminUser} onLogout={handleLogout} />
-  }
+      {/* ── Student routes ─────────────────────────────────────────────── */}
+      <Route
+        path="/student/home"
+        element={
+          <ProtectedRoute allowedRoles={['student']}>
+            <StudentHomePage student={user} onLogout={handleLogout} />
+          </ProtectedRoute>
+        }
+      />
 
-  // Hidden Hostel Manager Dashboard – via hash or auth login
-  if (currentPage === 'hostelManager') {
-    // Use real manager data if logged in, otherwise simulate
-    const managerUser = manager || { name: 'Manager', role: 'hostel_manager' }
-    return <HostelManagerDashboard user={managerUser} onLogout={handleLogout} />
-  }
+      {/* ── House-owner routes ─────────────────────────────────────────── */}
+      <Route
+        path="/owner/dashboard"
+        element={
+          <ProtectedRoute allowedRoles={['homeowner']}>
+            <OwnerDashboard owner={user} onLogout={handleLogout} />
+          </ProtectedRoute>
+        }
+      />
 
-  if (currentPage === 'studentHome' && student) {
-    return <StudentHomePage student={student} onLogout={handleLogout} />
-  }
+      {/* ── Admin routes ───────────────────────────────────────────────── */}
+      <Route
+        path="/admin"
+        element={
+          <ProtectedRoute allowedRoles={['admin']}>
+            <AdminPanel admin={user} onLogout={handleLogout} />
+          </ProtectedRoute>
+        }
+      />
 
-  if (currentPage === 'ownerDashboard' && owner) {
-    return <OwnerDashboard owner={owner} onLogout={handleLogout} />
-  }
+      {/* ── Hostel-manager routes ──────────────────────────────────────── */}
+      <Route
+        path="/hostel-manager"
+        element={
+          <ProtectedRoute allowedRoles={['hostel_manager']}>
+            <HostelManagerDashboard user={user} onLogout={handleLogout} />
+          </ProtectedRoute>
+        }
+      />
 
-  return <AuthPage onStudentLogin={handleStudentLogin} onOwnerLogin={handleOwnerLogin} onManagerLogin={handleManagerLogin} />
+      {/* ── Catch-all: redirect unknown paths to login ─────────────────── */}
+      <Route path="*" element={<Navigate to="/login" replace />} />
+    </Routes>
+  )
 }
 
 export default App
