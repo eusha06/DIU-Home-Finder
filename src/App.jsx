@@ -13,6 +13,7 @@ import StudentHomePage from './components/student/StudentHomePage'
 import OwnerDashboard from './components/houseowner/OwnerDashboard'
 import AdminPanel from './components/admin/AdminPanel'
 import HostelManagerDashboard from './components/hostelmanager/HostelManagerDashboard'
+import LandingPage from './components/LandingPage'
 
 // ── Helper: redirect authenticated users to their dashboard ───────────────────
 const ROLE_HOME = {
@@ -49,6 +50,14 @@ function App() {
   return (
     <Routes>
       {/* ── Public routes ──────────────────────────────────────────────── */}
+      <Route
+        path="/"
+        element={
+          isAuthenticated
+            ? <Navigate to={ROLE_HOME[user?.role] || '/login'} replace />
+            : <LandingPage />
+        }
+      />
       <Route
         path="/login"
         element={
@@ -100,7 +109,7 @@ function App() {
       />
 
       {/* ── Catch-all: redirect unknown paths to login ─────────────────── */}
-      <Route path="*" element={<Navigate to="/login" replace />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )
 }
