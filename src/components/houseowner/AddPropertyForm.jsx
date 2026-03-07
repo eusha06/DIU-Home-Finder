@@ -124,7 +124,7 @@ const AddPropertyForm = ({ onAddProperty }) => {
         value={value}
         onChange={handleChange}
         className={`w-full rounded-lg border bg-gray-50 px-4 py-2.5 text-sm outline-none transition-colors duration-200
-          ${error ? 'border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-200' : 'border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200'}`}
+          ${error ? 'border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-200' : 'border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-200'}`}
       />
       {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
     </div>
@@ -152,7 +152,7 @@ const AddPropertyForm = ({ onAddProperty }) => {
                   type="button"
                   onClick={() => setFormData((prev) => ({ ...prev, gender: key }))}
                   className={`flex-1 py-2.5 text-xs font-semibold rounded-md transition-all duration-200
-                    ${formData.gender === key ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                    ${formData.gender === key ? 'bg-white text-blue-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
                 >
                   {label}
                 </button>
@@ -179,7 +179,7 @@ const AddPropertyForm = ({ onAddProperty }) => {
             value={formData.description}
             onChange={handleChange}
             className={`w-full rounded-lg border bg-gray-50 px-4 py-2.5 text-sm outline-none resize-none transition-colors duration-200
-              ${errors.description ? 'border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-200' : 'border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200'}`}
+              ${errors.description ? 'border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-200' : 'border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-200'}`}
           />
           {errors.description && <p className="mt-1 text-xs text-red-500">{errors.description}</p>}
         </div>
@@ -195,7 +195,7 @@ const AddPropertyForm = ({ onAddProperty }) => {
                 onClick={() => handleFacilityToggle(key)}
                 className={`px-4 py-2 rounded-lg text-xs font-medium transition-all duration-200 border
                   ${formData.facilities.includes(key)
-                    ? 'bg-indigo-50 text-indigo-700 border-indigo-300 shadow-sm'
+                    ? 'bg-blue-50 text-blue-800 border-blue-300 shadow-sm'
                     : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'
                   }`}
               >
@@ -221,7 +221,7 @@ const AddPropertyForm = ({ onAddProperty }) => {
                 </button>
               </div>
             ))}
-            <label className="w-24 h-24 rounded-lg border-2 border-dashed border-gray-300 flex flex-col items-center justify-center cursor-pointer hover:border-indigo-400 hover:bg-indigo-50 transition-colors">
+            <label className="w-24 h-24 rounded-lg border-2 border-dashed border-gray-300 flex flex-col items-center justify-center cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-colors">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
               </svg>
@@ -254,7 +254,7 @@ const AddPropertyForm = ({ onAddProperty }) => {
         {/* Submit */}
         <button
           type="submit"
-          className="w-full py-3 rounded-xl bg-indigo-600 text-white font-semibold hover:bg-indigo-700 active:scale-[0.98] transition-all duration-200 shadow-md hover:shadow-lg"
+          className="w-full py-3 rounded-xl bg-blue-700 text-white font-semibold hover:bg-blue-800 active:scale-[0.98] transition-all duration-200 shadow-md hover:shadow-lg"
         >
           Add Property
         </button>

@@ -63,7 +63,7 @@ const SeatRequestModal = ({ bed, room, hostel, onClose, onConfirm }) => {
           </div>
           <div className="flex items-center justify-between">
             <span className="text-xs text-gray-500">Monthly Rent</span>
-            <span className="text-sm font-bold text-indigo-600">৳{hostel.rent.toLocaleString()}</span>
+            <span className="text-sm font-bold text-violet-600">৳{hostel.rent.toLocaleString()}</span>
           </div>
           <div className="flex items-center justify-between">
             <span className="text-xs text-gray-500">Facilities</span>

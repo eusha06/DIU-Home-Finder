@@ -14,8 +14,8 @@ const CategorySelection = ({ onSelect }) => {
       key: 'home',
       title: 'Rental Homes',
       description: 'Browse private rental apartments, messes, and residential homes near your campus.',
-      gradient: 'from-indigo-500 to-blue-600',
-      hoverGradient: 'hover:from-indigo-600 hover:to-blue-700',
+      gradient: 'from-violet-500 to-purple-600',
+      hoverGradient: 'hover:from-violet-600 hover:to-purple-700',
       icon: (
         <svg className="w-16 h-16 text-white/90" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
@@ -41,10 +41,10 @@ const CategorySelection = ({ onSelect }) => {
   ]
 
   return (
-    <div className="min-h-[70vh] flex flex-col items-center justify-center px-4 py-12">
+    <div className="min-h-[70vh] flex flex-col items-center justify-center px-4 py-12" style={{ fontFamily: "'Sora', sans-serif" }}>
       {/* Heading */}
       <div className="text-center mb-10">
-        <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2" style={{ fontFamily: "'DM Serif Display', serif" }}>
           What are you looking for?
         </h1>
         <p className="text-sm sm:text-base text-gray-500 max-w-md mx-auto">
@@ -61,7 +61,7 @@ const CategorySelection = ({ onSelect }) => {
             className={`group relative overflow-hidden rounded-2xl bg-gradient-to-br ${cat.gradient} ${cat.hoverGradient}
               p-8 sm:p-10 text-left text-white shadow-lg
               hover:shadow-2xl hover:scale-[1.03] active:scale-[0.98]
-              transition-all duration-300 ease-out focus:outline-none focus:ring-4 focus:ring-offset-2 focus:ring-indigo-300`}
+              transition-all duration-300 ease-out focus:outline-none focus:ring-4 focus:ring-offset-2 focus:ring-violet-300`}
           >
             {/* Background decorative circles */}
             <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-white/10 group-hover:scale-125 transition-transform duration-500" />

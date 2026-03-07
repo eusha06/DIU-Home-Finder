@@ -25,7 +25,7 @@ const UnauthorizedPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-amber-50/40 flex items-center justify-center px-4" style={{ fontFamily: "'Sora', sans-serif" }}>
       <div className="text-center max-w-md">
 
         {/* Lock icon */}

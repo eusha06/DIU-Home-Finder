@@ -147,14 +147,14 @@ const MyProperties = ({ properties, onUpdateProperty, onDeleteProperty }) => {
                       type="number"
                       value={newRent}
                       onChange={(e) => setNewRent(e.target.value)}
-                      className="w-20 px-2 py-1 text-xs border border-indigo-300 rounded-md outline-none focus:ring-1 focus:ring-indigo-200"
+                      className="w-20 px-2 py-1 text-xs border border-blue-300 rounded-md outline-none focus:ring-1 focus:ring-blue-200"
                       autoFocus
                     />
                     <button onClick={() => saveRent(property)} className="text-xs text-green-600 hover:text-green-700 font-medium">✓</button>
                     <button onClick={() => setEditingRent(null)} className="text-xs text-gray-400 hover:text-gray-600">✕</button>
                   </div>
                 ) : (
-                  <span className="text-sm font-bold text-indigo-600">৳{property.rent.toLocaleString()}/mo</span>
+                  <span className="text-sm font-bold text-blue-700">৳{property.rent.toLocaleString()}/mo</span>
                 )}
               </div>
 
@@ -167,7 +167,7 @@ const MyProperties = ({ properties, onUpdateProperty, onDeleteProperty }) => {
                       type="number"
                       value={newSeats}
                       onChange={(e) => setNewSeats(e.target.value)}
-                      className="w-20 px-2 py-1 text-xs border border-indigo-300 rounded-md outline-none focus:ring-1 focus:ring-indigo-200"
+                      className="w-20 px-2 py-1 text-xs border border-blue-300 rounded-md outline-none focus:ring-1 focus:ring-blue-200"
                       autoFocus
                     />
                     <button onClick={() => saveSeats(property)} className="text-xs text-green-600 hover:text-green-700 font-medium">✓</button>
@@ -193,7 +193,7 @@ const MyProperties = ({ properties, onUpdateProperty, onDeleteProperty }) => {
               <div className="grid grid-cols-2 gap-2">
                 <button
                   onClick={() => handleEditRent(property)}
-                  className="px-3 py-2 text-xs font-medium text-indigo-600 bg-indigo-50 rounded-lg hover:bg-indigo-100 transition-colors"
+                  className="px-3 py-2 text-xs font-medium text-blue-700 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
                 >
                   Edit Rent
                 </button>

@@ -172,8 +172,8 @@ const ManagerSignupForm = ({ onSwitchToLogin, onManagerLogin }) => {
         {/* Register button */}
         <button
           type="submit"
-          className="w-full py-2.5 rounded-lg bg-indigo-600 text-white font-semibold
-                     hover:bg-indigo-700 active:scale-[0.98] transition-all duration-200
+          className="w-full py-2.5 rounded-lg bg-emerald-600 text-white font-semibold
+                     hover:bg-emerald-700 active:scale-[0.98] transition-all duration-200
                      shadow-md hover:shadow-lg mt-1"
         >
           Create Account
@@ -182,7 +182,7 @@ const ManagerSignupForm = ({ onSwitchToLogin, onManagerLogin }) => {
 
       <p className="text-center text-xs text-gray-400 mt-5">
         Already have an account?{' '}
-        <button onClick={onSwitchToLogin} className="text-indigo-500 hover:underline font-medium">
+        <button onClick={onSwitchToLogin} className="text-emerald-600 hover:underline font-medium">
           Login
         </button>
       </p>

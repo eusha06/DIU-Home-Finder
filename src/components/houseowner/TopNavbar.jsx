@@ -31,7 +31,7 @@ const TopNavbar = ({ owner, pageTitle, onToggleSidebar, onLogout }) => {
           {/* Right: avatar + logout */}
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2">
-              <div className="w-9 h-9 rounded-full bg-indigo-500 flex items-center justify-center text-sm font-bold text-white shadow-sm">
+              <div className="w-9 h-9 rounded-full bg-blue-700 flex items-center justify-center text-sm font-bold text-white shadow-sm">
                 {owner.fullName ? owner.fullName.charAt(0).toUpperCase() : 'O'}
               </div>
               <div className="hidden sm:block">

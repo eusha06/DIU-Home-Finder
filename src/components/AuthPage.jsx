@@ -82,13 +82,17 @@ const AuthPage = () => {
   }
 
   // ── Render ──────────────────────────────────────────────────────────────
+  // Font helpers
+  const sora = { fontFamily: "'Sora', sans-serif" }
+  const serif = { fontFamily: "'DM Serif Display', serif" }
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-100 via-white to-cyan-100 px-4 py-8">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden transition-all duration-300">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-amber-50 via-white to-amber-50/40 px-4 py-8" style={sora}>
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden transition-all duration-300 border border-amber-100/60">
 
         {/* ── Header / branding ─────────────────────────────────────── */}
         <div className="px-8 pt-8 pb-2 text-center">
-          <h1 className="text-2xl font-bold text-indigo-700 tracking-tight">
+          <h1 className="text-2xl font-bold text-indigo-700 tracking-tight" style={serif}>
             🏠 DIU Student Home Finder
           </h1>
           <p className="text-sm text-gray-500 mt-1">
