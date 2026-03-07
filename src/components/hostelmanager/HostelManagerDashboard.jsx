@@ -1,33 +1,12 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import {
-  managerHalls as initialHalls,
+  managerHostels as initialHostels,
   managerBookings as initialBookings,
 } from './data/dummyHostelManagerData'
 
-/**
- * HostelManagerDashboard.jsx
- * ──────────────────────────
- * Complete Hostel Manager Dashboard — accessible only via "#/hostel-manager"
- * and ONLY when user.role === "hostel_manager".
- *
- * All sub-components are defined inside this single file:
- *   ✔ 403 Unauthorized page
- *   ✔ Dark sidebar (Dashboard, Halls, Bookings)
- *   ✔ Top navbar with page title + profile avatar
- *   ✔ Dashboard Overview — stats cards
- *   ✔ Halls Management — grid cards with seat update, toggle, edit
- *   ✔ Bookings Management — table with approve / reject
- *   ✔ Responsive, mobile-friendly sidebar collapse
- *   ✔ All state managed with React hooks (no backend)
- *
- * Props:
- *   user     – { name, role } (simulated)
- *   onLogout – callback to return to auth / main app
- */
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// ■  INLINE SVG ICON COMPONENTS
-// ═══════════════════════════════════════════════════════════════════════════════
+// 
+// INLINE SVG ICON COMPONENTS
+// 
 
 function DashboardIcon({ className }) {
   return (
@@ -89,57 +68,88 @@ function ArrowLeftIcon({ className }) {
   )
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// ■  FACILITY ICON MAP — small badge icons for hall cards
-// ═══════════════════════════════════════════════════════════════════════════════
-
-const facilityLabels = {
-  wifi: '📶 WiFi',
-  security: '🔒 Security',
-  water: '💧 Water',
-  electricity: '⚡ Electricity',
-  generator: '🔋 Generator',
-  lift: '🛗 Lift',
-  canteen: '🍽️ Canteen',
-  laundry: '👕 Laundry',
-  gym: '💪 Gym',
-}
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// ■  403 UNAUTHORIZED COMPONENT
-// ═══════════════════════════════════════════════════════════════════════════════
-
-/**
- * Shown when user.role !== "hostel_manager".
- */
-const Unauthorized = ({ onGoBack }) => {
+function ChevronDownIcon({ className }) {
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-      <div className="text-center max-w-md">
-        <div className="mx-auto w-20 h-20 rounded-full bg-red-50 flex items-center justify-center mb-6">
-          <LockIcon className="w-10 h-10 text-red-500" />
-        </div>
-        <h1 className="text-6xl font-extrabold text-gray-800 mb-2">403</h1>
-        <h2 className="text-xl font-semibold text-gray-700 mb-2">Unauthorized Access</h2>
-        <p className="text-sm text-gray-400 mb-8 leading-relaxed">
-          You do not have permission to access this page.<br />
-          Only Hostel Managers can view this dashboard.
-        </p>
-        <button
-          onClick={onGoBack}
-          className="inline-flex items-center gap-2 px-6 py-3 bg-teal-600 text-white text-sm font-medium rounded-lg hover:bg-teal-700 transition-colors duration-200 shadow-sm"
-        >
-          <ArrowLeftIcon className="w-4 h-4" />
-          Go Back
-        </button>
-      </div>
-    </div>
+    <svg className={className} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+    </svg>
   )
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// ■  SIDEBAR COMPONENT
-// ═══════════════════════════════════════════════════════════════════════════════
+// 
+// FACILITY ICON MAP
+// 
+
+const facilityLabels = {
+  wifi: ' WiFi', security: ' Security', water: ' Water',
+  electricity: ' Electricity', generator: ' Generator', elevator: ' Elevator',
+  meals: ' Meals', laundry: ' Laundry', cctv: ' CCTV',
+  shuttle: ' Shuttle', rooftop: ' Rooftop', ac: ' AC',
+}
+
+const roomFacilityIcons = {
+  'attached bathroom': '', 'shared bathroom': '', 'ceiling fan': '',
+  'ac': '', 'study desk': '', 'balcony': '', 'wardrobe': '',
+}
+
+// 
+// UTILITY: Compute stats from hierarchical hostel data
+// 
+
+function computeHostelStats(hostel) {
+  let totalRooms = 0, totalBeds = 0, availableBeds = 0, occupiedBeds = 0
+  hostel.floors.forEach((floor) => {
+    totalRooms += floor.rooms.length
+    floor.rooms.forEach((room) => {
+      totalBeds += room.beds.length
+      room.beds.forEach((bed) => {
+        if (bed.status === 'available') availableBeds++
+        else occupiedBeds++
+      })
+    })
+  })
+  return { totalFloors: hostel.floors.length, totalRooms, totalBeds, availableBeds, occupiedBeds }
+}
+
+function computeAllStats(hostels) {
+  let totalHostels = hostels.length, totalRooms = 0, totalBeds = 0, availableBeds = 0, occupiedBeds = 0
+  hostels.forEach((h) => {
+    const s = computeHostelStats(h)
+    totalRooms += s.totalRooms
+    totalBeds += s.totalBeds
+    availableBeds += s.availableBeds
+    occupiedBeds += s.occupiedBeds
+  })
+  return { totalHostels, totalRooms, totalBeds, availableBeds, occupiedBeds }
+}
+
+// 
+// 403 UNAUTHORIZED COMPONENT
+// 
+
+const Unauthorized = ({ onGoBack }) => (
+  <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+    <div className="text-center max-w-md">
+      <div className="mx-auto w-20 h-20 rounded-full bg-red-50 flex items-center justify-center mb-6">
+        <LockIcon className="w-10 h-10 text-red-500" />
+      </div>
+      <h1 className="text-6xl font-extrabold text-gray-800 mb-2">403</h1>
+      <h2 className="text-xl font-semibold text-gray-700 mb-2">Unauthorized Access</h2>
+      <p className="text-sm text-gray-400 mb-8 leading-relaxed">
+        You do not have permission to access this page.<br />
+        Only Hostel Managers can view this dashboard.
+      </p>
+      <button onClick={onGoBack}
+        className="inline-flex items-center gap-2 px-6 py-3 bg-teal-600 text-white text-sm font-medium rounded-lg hover:bg-teal-700 transition-colors shadow-sm">
+        <ArrowLeftIcon className="w-4 h-4" /> Go Back
+      </button>
+    </div>
+  </div>
+)
+
+// 
+// SIDEBAR COMPONENT
+// 
 
 const navItems = [
   { key: 'dashboard', label: 'Dashboard', icon: DashboardIcon },
@@ -147,39 +157,16 @@ const navItems = [
   { key: 'bookings', label: 'Bookings', icon: BookingsIcon },
 ]
 
-/**
- * Dark-themed sidebar with responsive mobile overlay.
- */
 const ManagerSidebar = ({ activePage, onNavigate, isOpen, onClose }) => {
-  const handleNav = (key) => {
-    onNavigate(key)
-    onClose()
-  }
-
+  const handleNav = (key) => { onNavigate(key); onClose() }
   return (
     <>
-      {/* Mobile overlay backdrop */}
-      {isOpen && (
-        <div
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
-          onClick={onClose}
-        />
-      )}
-
-      {/* Sidebar */}
-      <aside
-        className={`fixed top-0 left-0 h-full w-64 bg-gray-900 text-gray-300 z-50 flex flex-col transition-transform duration-300 ease-in-out
-          lg:translate-x-0 lg:static lg:z-auto
-          ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}
-      >
-        {/* Brand */}
+      {isOpen && <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={onClose} />}
+      <aside className={`fixed top-0 left-0 h-full w-64 bg-gray-900 text-gray-300 z-50 flex flex-col transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:z-auto ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="px-6 py-5 border-b border-gray-700/50">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-lg bg-teal-600 flex items-center justify-center">
-              <svg className="w-5 h-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                  d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-              </svg>
+              <HallsIcon className="w-5 h-5 text-white" />
             </div>
             <div>
               <h1 className="text-sm font-bold text-white tracking-tight leading-tight">Hostel Manager</h1>
@@ -187,238 +174,130 @@ const ManagerSidebar = ({ activePage, onNavigate, isOpen, onClose }) => {
             </div>
           </div>
         </div>
-
-        {/* Close button (mobile only) */}
-        <button
-          onClick={onClose}
-          className="lg:hidden absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-lg text-gray-500 hover:text-gray-300 hover:bg-gray-800 transition-colors"
-        >
+        <button onClick={onClose} className="lg:hidden absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-lg text-gray-500 hover:text-gray-300 hover:bg-gray-800 transition-colors">
           <CloseIcon className="h-5 w-5" />
         </button>
-
-        {/* Navigation items */}
         <nav className="flex-1 px-3 py-6 space-y-1">
-          {navItems.map(({ key, label, icon: Icon }) => {
-            const isActive = activePage === key
-            return (
-              <button
-                key={key}
-                onClick={() => handleNav(key)}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200
-                  ${isActive
-                    ? 'bg-teal-600/20 text-teal-400 shadow-sm'
-                    : 'text-gray-400 hover:bg-gray-800 hover:text-gray-200'
-                  }`}
-              >
-                <Icon className="w-5 h-5 flex-shrink-0" />
-                {label}
-              </button>
-            )
-          })}
+          {navItems.map(({ key, label, icon: Icon }) => (
+            <button key={key} onClick={() => handleNav(key)}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${activePage === key ? 'bg-teal-600/20 text-teal-400 shadow-sm' : 'text-gray-400 hover:bg-gray-800 hover:text-gray-200'}`}>
+              <Icon className="w-5 h-5 flex-shrink-0" /> {label}
+            </button>
+          ))}
         </nav>
-
-        {/* Footer */}
         <div className="px-4 py-4 border-t border-gray-700/50">
-          <p className="text-[10px] text-gray-600 text-center">© 2026 Student Home Finder</p>
+          <p className="text-[10px] text-gray-600 text-center"> 2026 Student Home Finder</p>
         </div>
       </aside>
     </>
   )
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// ■  TOP NAVBAR COMPONENT
-// ═══════════════════════════════════════════════════════════════════════════════
+// 
+// TOP NAVBAR COMPONENT
+// 
 
-/**
- * Top bar with hamburger, page title, user avatar, and logout.
- */
-const ManagerTopbar = ({ user, pageTitle, onToggleSidebar, onLogout }) => {
-  return (
-    <header className="bg-white border-b border-gray-200 sticky top-0 z-30">
-      <div className="px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          {/* Left: hamburger + page title */}
-          <div className="flex items-center gap-3">
-            <button
-              onClick={onToggleSidebar}
-              className="lg:hidden w-10 h-10 flex items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors"
-            >
-              <MenuIcon className="h-6 w-6" />
-            </button>
-            <h2 className="text-lg font-semibold text-gray-800">{pageTitle}</h2>
-          </div>
-
-          {/* Right: user info + logout */}
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2">
-              <div className="w-9 h-9 rounded-full bg-teal-600 flex items-center justify-center text-sm font-bold text-white shadow-sm">
-                {user.name ? user.name.charAt(0).toUpperCase() : 'M'}
-              </div>
-              <div className="hidden sm:block">
-                <p className="text-sm font-medium text-gray-700 leading-tight">{user.name}</p>
-                <p className="text-[11px] text-teal-600 leading-tight font-medium uppercase tracking-wide">Hostel Manager</p>
-              </div>
+const ManagerTopbar = ({ user, pageTitle, onToggleSidebar, onLogout }) => (
+  <header className="bg-white border-b border-gray-200 sticky top-0 z-30">
+    <div className="px-4 sm:px-6 lg:px-8">
+      <div className="flex items-center justify-between h-16">
+        <div className="flex items-center gap-3">
+          <button onClick={onToggleSidebar} className="lg:hidden w-10 h-10 flex items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors">
+            <MenuIcon className="h-6 w-6" />
+          </button>
+          <h2 className="text-lg font-semibold text-gray-800">{pageTitle}</h2>
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <div className="w-9 h-9 rounded-full bg-teal-600 flex items-center justify-center text-sm font-bold text-white shadow-sm">
+              {user.name ? user.name.charAt(0).toUpperCase() : 'M'}
             </div>
-            <button
-              onClick={onLogout}
-              className="ml-2 text-xs text-gray-400 hover:text-red-500 transition-colors font-medium"
-            >
-              Logout
-            </button>
+            <div className="hidden sm:block">
+              <p className="text-sm font-medium text-gray-700 leading-tight">{user.name}</p>
+              <p className="text-[11px] text-teal-600 leading-tight font-medium uppercase tracking-wide">Hostel Manager</p>
+            </div>
           </div>
+          <button onClick={onLogout} className="ml-2 text-xs text-gray-400 hover:text-red-500 transition-colors font-medium">Logout</button>
         </div>
       </div>
-    </header>
-  )
-}
+    </div>
+  </header>
+)
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// ■  DASHBOARD OVERVIEW — STATS CARDS
-// ═══════════════════════════════════════════════════════════════════════════════
+// 
+// DASHBOARD OVERVIEW
+// 
 
-/**
- * Shows computed statistics from halls and bookings data.
- * Cards: Total Halls, Total Seats, Available Seats, Pending Requests, Approved Bookings
- */
-const DashboardStats = ({ halls, bookings }) => {
-  // ── Computed statistics from current state ───────────────────────────────
-  const totalHalls = halls.length
-  const totalSeats = halls.reduce((sum, h) => sum + h.totalSeats, 0)
-  const availableSeats = halls.reduce((sum, h) => sum + h.availableSeats, 0)
+const DashboardStats = ({ hostels, bookings }) => {
+  const allStats = useMemo(() => computeAllStats(hostels), [hostels])
   const pendingRequests = bookings.filter((b) => b.status === 'pending').length
   const approvedBookings = bookings.filter((b) => b.status === 'approved').length
 
   const stats = [
-    {
-      label: 'Total Halls',
-      value: totalHalls,
-      color: 'bg-blue-500',
-      lightBg: 'bg-blue-50',
-      textColor: 'text-blue-600',
-      icon: (
-        <svg className="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-            d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-        </svg>
-      ),
-    },
-    {
-      label: 'Total Seats',
-      value: totalSeats,
-      color: 'bg-emerald-500',
-      lightBg: 'bg-emerald-50',
-      textColor: 'text-emerald-600',
-      icon: (
-        <svg className="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-            d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m9-4a4 4 0 10-8 0 4 4 0 008 0zm6 4a4 4 0 10-8 0h8z" />
-        </svg>
-      ),
-    },
-    {
-      label: 'Available Seats',
-      value: availableSeats,
-      color: 'bg-teal-500',
-      lightBg: 'bg-teal-50',
-      textColor: 'text-teal-600',
-      icon: (
-        <svg className="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-            d="M9 12l2 2 4-4m5 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-      ),
-    },
-    {
-      label: 'Pending Requests',
-      value: pendingRequests,
-      color: 'bg-amber-500',
-      lightBg: 'bg-amber-50',
-      textColor: 'text-amber-600',
-      icon: (
-        <svg className="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-      ),
-    },
-    {
-      label: 'Approved Bookings',
-      value: approvedBookings,
-      color: 'bg-indigo-500',
-      lightBg: 'bg-indigo-50',
-      textColor: 'text-indigo-600',
-      icon: (
-        <svg className="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-            d="M5 13l4 4L19 7" />
-        </svg>
-      ),
-    },
+    { label: 'Total Hostels', value: allStats.totalHostels, lightBg: 'bg-blue-50', textColor: 'text-blue-600', barColor: 'bg-blue-500',
+      icon: <HallsIcon className="w-6 h-6" /> },
+    { label: 'Total Beds', value: allStats.totalBeds, lightBg: 'bg-emerald-50', textColor: 'text-emerald-600', barColor: 'bg-emerald-500',
+      icon: <svg className="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m9-4a4 4 0 10-8 0 4 4 0 008 0zm6 4a4 4 0 10-8 0h8z" /></svg> },
+    { label: 'Available Beds', value: allStats.availableBeds, lightBg: 'bg-teal-50', textColor: 'text-teal-600', barColor: 'bg-teal-500',
+      icon: <svg className="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg> },
+    { label: 'Pending Requests', value: pendingRequests, lightBg: 'bg-amber-50', textColor: 'text-amber-600', barColor: 'bg-amber-500',
+      icon: <svg className="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg> },
+    { label: 'Approved', value: approvedBookings, lightBg: 'bg-indigo-50', textColor: 'text-indigo-600', barColor: 'bg-indigo-500',
+      icon: <svg className="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg> },
   ]
 
   return (
     <div>
       {/* Stats grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-5 mb-8">
-        {stats.map((stat) => (
-          <div
-            key={stat.label}
-            className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 hover:shadow-md transition-shadow duration-200"
-          >
+        {stats.map((s) => (
+          <div key={s.label} className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 hover:shadow-md transition-shadow">
             <div className="flex items-center justify-between">
-              <div className={`w-12 h-12 rounded-lg ${stat.lightBg} ${stat.textColor} flex items-center justify-center`}>
-                {stat.icon}
-              </div>
+              <div className={`w-12 h-12 rounded-lg ${s.lightBg} ${s.textColor} flex items-center justify-center`}>{s.icon}</div>
               <div className="text-right">
-                <p className="text-2xl font-bold text-gray-800">{stat.value}</p>
-                <p className="text-xs text-gray-400 mt-0.5">{stat.label}</p>
+                <p className="text-2xl font-bold text-gray-800">{s.value}</p>
+                <p className="text-xs text-gray-400 mt-0.5">{s.label}</p>
               </div>
             </div>
-            <div className={`mt-4 h-1 rounded-full ${stat.color} opacity-60`} />
+            <div className={`mt-4 h-1 rounded-full ${s.barColor} opacity-60`} />
           </div>
         ))}
       </div>
 
-      {/* Quick summary section */}
+      {/* Quick summary */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Open vs Closed halls */}
+        {/* Hostel availability */}
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
-          <h3 className="text-sm font-semibold text-gray-700 mb-4">Hall Availability</h3>
+          <h3 className="text-sm font-semibold text-gray-700 mb-4">Hostel Availability</h3>
           <div className="space-y-3">
-            {halls.map((hall) => (
-              <div key={hall.id} className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">{hall.name}</span>
-                <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${
-                  hall.isOpen
-                    ? 'bg-green-50 text-green-700'
-                    : 'bg-red-50 text-red-700'
-                }`}>
-                  {hall.isOpen ? 'Open' : 'Closed'}
-                </span>
-              </div>
-            ))}
+            {hostels.map((h) => {
+              const st = computeHostelStats(h)
+              return (
+                <div key={h.id} className="flex items-center justify-between">
+                  <div>
+                    <span className="text-sm text-gray-600">{h.name}</span>
+                    <span className="text-xs text-gray-400 ml-2">{st.availableBeds}/{st.totalBeds} beds</span>
+                  </div>
+                  <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${h.isOpen ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
+                    {h.isOpen ? 'Open' : 'Closed'}
+                  </span>
+                </div>
+              )
+            })}
           </div>
         </div>
-
         {/* Recent bookings */}
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
           <h3 className="text-sm font-semibold text-gray-700 mb-4">Recent Booking Requests</h3>
           <div className="space-y-3">
-            {bookings.slice(0, 5).map((booking) => (
-              <div key={booking.id} className="flex items-center justify-between">
+            {bookings.slice(0, 5).map((bk) => (
+              <div key={bk.id} className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-700 font-medium">{booking.studentName}</p>
-                  <p className="text-xs text-gray-400">Room {booking.roomNumber} · {booking.date}</p>
+                  <p className="text-sm text-gray-700 font-medium">{bk.studentName}</p>
+                  <p className="text-xs text-gray-400">Room {bk.roomNumber}  Bed {bk.bedId}  {bk.date}</p>
                 </div>
-                <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${
-                  booking.status === 'pending'
-                    ? 'bg-amber-50 text-amber-700'
-                    : booking.status === 'approved'
-                    ? 'bg-green-50 text-green-700'
-                    : 'bg-red-50 text-red-700'
-                }`}>
-                  {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
+                <span className={`text-xs px-2.5 py-1 rounded-full font-medium capitalize ${bk.status === 'pending' ? 'bg-amber-50 text-amber-700' : bk.status === 'approved' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
+                  {bk.status}
                 </span>
               </div>
             ))}
@@ -429,332 +308,457 @@ const DashboardStats = ({ halls, bookings }) => {
   )
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// ■  HALLS MANAGEMENT — GRID CARDS
-// ═══════════════════════════════════════════════════════════════════════════════
+// 
+// HALLS MANAGEMENT  Hostel -> Floor -> Room -> Bed drill-down
+// 
 
-/**
- * Displays hall cards with Update Seat Count, Toggle Availability, Edit Hall Info.
- */
-const HallsManagement = ({ halls, setHalls }) => {
-  // ── Modal state for editing seat count ───────────────────────────────────
-  const [editingSeatId, setEditingSeatId] = useState(null)
-  const [seatInput, setSeatInput] = useState('')
+const HallsManagement = ({ hostels, setHostels }) => {
+  // View modes: 'list' | 'detail'
+  const [selectedHostelId, setSelectedHostelId] = useState(null)
+  const [activeFloor, setActiveFloor] = useState(0)
+  const [expandedRooms, setExpandedRooms] = useState({})
+  const [editModal, setEditModal] = useState(null) // { hostelId } for editing hostel info
+  const [toast, setToast] = useState(null)
 
-  // ── Modal state for editing hall info ────────────────────────────────────
-  const [editingHallId, setEditingHallId] = useState(null)
-  const [editForm, setEditForm] = useState({ name: '', wardenName: '', gender: '' })
+  const selectedHostel = hostels.find((h) => h.id === selectedHostelId)
 
-  // ── Update seat count handler ────────────────────────────────────────────
-  const openSeatEditor = (hall) => {
-    setEditingSeatId(hall.id)
-    setSeatInput(String(hall.availableSeats))
+  const showToast = (msg) => {
+    setToast(msg)
+    setTimeout(() => setToast(null), 2500)
   }
 
-  const saveSeatCount = () => {
-    const newCount = parseInt(seatInput, 10)
-    if (isNaN(newCount) || newCount < 0) return
-    setHalls((prev) =>
-      prev.map((h) =>
-        h.id === editingSeatId
-          ? { ...h, availableSeats: Math.min(newCount, h.totalSeats) }
-          : h
-      )
+  // Toggle hostel open/closed
+  const toggleHostelStatus = (hostelId) => {
+    setHostels((prev) => prev.map((h) => h.id === hostelId ? { ...h, isOpen: !h.isOpen } : h))
+    const hostel = hostels.find((h) => h.id === hostelId)
+    showToast(`${hostel?.name} is now ${hostel?.isOpen ? 'Closed' : 'Open'}`)
+  }
+
+  // Toggle bed status between available/occupied
+  const toggleBedStatus = (hostelId, floorIdx, roomIdx, bedIdx) => {
+    setHostels((prev) => prev.map((h) => {
+      if (h.id !== hostelId) return h
+      const newFloors = h.floors.map((floor, fi) => {
+        if (fi !== floorIdx) return floor
+        return {
+          ...floor,
+          rooms: floor.rooms.map((room, ri) => {
+            if (ri !== roomIdx) return room
+            return {
+              ...room,
+              beds: room.beds.map((bed, bi) => {
+                if (bi !== bedIdx) return bed
+                const newStatus = bed.status === 'available' ? 'occupied' : 'available'
+                return { ...bed, status: newStatus, studentName: newStatus === 'available' ? undefined : bed.studentName, studentId: newStatus === 'available' ? undefined : bed.studentId }
+              })
+            }
+          })
+        }
+      })
+      return { ...h, floors: newFloors }
+    }))
+  }
+
+  // Edit hostel info
+  const openEditModal = (hostel) => {
+    setEditModal({ hostelId: hostel.id, name: hostel.name, wardenName: hostel.wardenName, wardenPhone: hostel.wardenPhone, rent: hostel.rent })
+  }
+
+  const saveEditModal = () => {
+    if (!editModal || !editModal.name.trim()) return
+    setHostels((prev) => prev.map((h) =>
+      h.id === editModal.hostelId
+        ? { ...h, name: editModal.name, wardenName: editModal.wardenName, wardenPhone: editModal.wardenPhone, rent: Number(editModal.rent) }
+        : h
+    ))
+    showToast('Hostel info updated successfully!')
+    setEditModal(null)
+  }
+
+  const toggleRoom = (roomNumber) => {
+    setExpandedRooms((prev) => ({ ...prev, [roomNumber]: !prev[roomNumber] }))
+  }
+
+  //  HOSTEL LIST VIEW 
+  if (!selectedHostel) {
+    return (
+      <div>
+        {toast && (
+          <div className="fixed top-20 right-6 z-50 bg-teal-600 text-white px-5 py-3 rounded-lg shadow-lg text-sm font-medium animate-[fadeIn_0.2s_ease-out]">
+            {toast}
+          </div>
+        )}
+
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h3 className="text-lg font-semibold text-gray-800">Managed Hostels</h3>
+            <p className="text-xs text-gray-400 mt-0.5">{hostels.length} hostels under management</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          {hostels.map((hostel) => {
+            const stats = computeHostelStats(hostel)
+            return (
+              <div key={hostel.id} className="bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden group">
+                {/* Color strip */}
+                <div className={`h-2 ${hostel.isOpen ? 'bg-teal-500' : 'bg-red-400'}`} />
+
+                {/* Image */}
+                <div className="relative h-40 overflow-hidden">
+                  <img src={hostel.image} alt={hostel.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                  <div className="absolute top-2 right-2 flex gap-1.5">
+                    <span className={`text-[11px] px-2.5 py-1 rounded-full font-semibold backdrop-blur-sm ${hostel.isOpen ? 'bg-green-500/90 text-white' : 'bg-red-500/90 text-white'}`}>
+                      {hostel.isOpen ? 'Open' : 'Closed'}
+                    </span>
+                    <span className={`text-[11px] px-2.5 py-1 rounded-full font-semibold backdrop-blur-sm ${hostel.gender === 'male' ? 'bg-blue-500/90 text-white' : 'bg-pink-500/90 text-white'}`}>
+                      {hostel.gender === 'male' ? 'Male' : 'Female'}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="p-5">
+                  <h4 className="text-base font-bold text-gray-800 leading-tight mb-1">{hostel.name}</h4>
+                  <p className="text-xs text-gray-400 mb-3">{hostel.location}</p>
+
+                  {/* Stats grid */}
+                  <div className="grid grid-cols-2 gap-y-2 gap-x-4 text-sm mb-3">
+                    <div>
+                      <p className="text-[11px] text-gray-400 uppercase tracking-wide">Floors</p>
+                      <p className="font-semibold text-gray-700">{stats.totalFloors}</p>
+                    </div>
+                    <div>
+                      <p className="text-[11px] text-gray-400 uppercase tracking-wide">Rooms</p>
+                      <p className="font-semibold text-gray-700">{stats.totalRooms}</p>
+                    </div>
+                    <div>
+                      <p className="text-[11px] text-gray-400 uppercase tracking-wide">Total Beds</p>
+                      <p className="font-semibold text-gray-700">{stats.totalBeds}</p>
+                    </div>
+                    <div>
+                      <p className="text-[11px] text-gray-400 uppercase tracking-wide">Available</p>
+                      <p className={`font-semibold ${stats.availableBeds > 0 ? 'text-teal-600' : 'text-red-500'}`}>{stats.availableBeds}</p>
+                    </div>
+                  </div>
+
+                  {/* Warden + rent */}
+                  <div className="flex items-center justify-between text-xs text-gray-500 mb-3">
+                    <span>Warden: {hostel.wardenName}</span>
+                    <span className="font-bold text-teal-600">{hostel.rent}/mo</span>
+                  </div>
+
+                  {/* Facilities */}
+                  <div className="flex flex-wrap gap-1.5 mb-4">
+                    {hostel.facilities.slice(0, 5).map((f) => (
+                      <span key={f} className="text-[11px] bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">{facilityLabels[f] || f}</span>
+                    ))}
+                    {hostel.facilities.length > 5 && (
+                      <span className="text-[11px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">+{hostel.facilities.length - 5}</span>
+                    )}
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex flex-wrap gap-2 pt-3 border-t border-gray-100">
+                    <button onClick={() => { setSelectedHostelId(hostel.id); setActiveFloor(0); setExpandedRooms({}) }}
+                      className="flex-1 min-w-[80px] text-xs font-medium px-3 py-2 rounded-lg bg-teal-50 text-teal-700 hover:bg-teal-100 transition-colors">
+                      Manage
+                    </button>
+                    <button onClick={() => toggleHostelStatus(hostel.id)}
+                      className={`flex-1 min-w-[80px] text-xs font-medium px-3 py-2 rounded-lg transition-colors ${hostel.isOpen ? 'bg-red-50 text-red-600 hover:bg-red-100' : 'bg-green-50 text-green-600 hover:bg-green-100'}`}>
+                      {hostel.isOpen ? 'Close' : 'Open'}
+                    </button>
+                    <button onClick={() => openEditModal(hostel)}
+                      className="flex-1 min-w-[80px] text-xs font-medium px-3 py-2 rounded-lg bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition-colors">
+                      Edit Info
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+
+        {/* Edit Modal */}
+        {editModal && (
+          <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center px-4">
+            <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6 animate-[fadeIn_0.2s_ease-out]">
+              <h3 className="text-base font-semibold text-gray-800 mb-4">Edit Hostel Information</h3>
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-xs font-medium text-gray-500 mb-1">Hostel Name</label>
+                  <input type="text" value={editModal.name} onChange={(e) => setEditModal((f) => ({ ...f, name: e.target.value }))}
+                    className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-500 mb-1">Warden Name</label>
+                  <input type="text" value={editModal.wardenName} onChange={(e) => setEditModal((f) => ({ ...f, wardenName: e.target.value }))}
+                    className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-500 mb-1">Warden Phone</label>
+                  <input type="text" value={editModal.wardenPhone} onChange={(e) => setEditModal((f) => ({ ...f, wardenPhone: e.target.value }))}
+                    className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-500 mb-1">Monthly Rent ()</label>
+                  <input type="number" value={editModal.rent} onChange={(e) => setEditModal((f) => ({ ...f, rent: e.target.value }))}
+                    className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent" />
+                </div>
+              </div>
+              <div className="flex gap-3 mt-5">
+                <button onClick={() => setEditModal(null)} className="flex-1 px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">Cancel</button>
+                <button onClick={saveEditModal} className="flex-1 px-4 py-2 text-sm font-medium text-white bg-teal-600 rounded-lg hover:bg-teal-700 transition-colors">Save Changes</button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     )
-    setEditingSeatId(null)
-    setSeatInput('')
   }
 
-  // ── Toggle hall availability ─────────────────────────────────────────────
-  const toggleAvailability = (hallId) => {
-    setHalls((prev) =>
-      prev.map((h) =>
-        h.id === hallId ? { ...h, isOpen: !h.isOpen } : h
-      )
-    )
-  }
+  //  HOSTEL DETAIL VIEW (Floor -> Room -> Bed) 
+  const currentFloor = selectedHostel.floors[activeFloor]
+  const hostelStats = computeHostelStats(selectedHostel)
 
-  // ── Edit hall info handler ───────────────────────────────────────────────
-  const openHallEditor = (hall) => {
-    setEditingHallId(hall.id)
-    setEditForm({
-      name: hall.name,
-      wardenName: hall.wardenName,
-      gender: hall.gender,
+  // Floor-level stats
+  const floorStats = selectedHostel.floors.map((floor) => {
+    let beds = 0, available = 0
+    floor.rooms.forEach((room) => {
+      beds += room.beds.length
+      available += room.beds.filter((b) => b.status === 'available').length
     })
-  }
-
-  const saveHallInfo = () => {
-    if (!editForm.name.trim() || !editForm.wardenName.trim()) return
-    setHalls((prev) =>
-      prev.map((h) =>
-        h.id === editingHallId
-          ? { ...h, name: editForm.name, wardenName: editForm.wardenName, gender: editForm.gender }
-          : h
-      )
-    )
-    setEditingHallId(null)
-  }
+    return { rooms: floor.rooms.length, beds, available }
+  })
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h3 className="text-lg font-semibold text-gray-800">Managed Halls</h3>
-          <p className="text-xs text-gray-400 mt-0.5">{halls.length} halls under management</p>
+    <div className="animate-[fadeIn_0.2s_ease-out]">
+      {toast && (
+        <div className="fixed top-20 right-6 z-50 bg-teal-600 text-white px-5 py-3 rounded-lg shadow-lg text-sm font-medium animate-[fadeIn_0.2s_ease-out]">
+          {toast}
+        </div>
+      )}
+
+      {/* Hostel Header */}
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-6">
+        <div className="relative h-48 sm:h-56 overflow-hidden">
+          <img src={selectedHostel.image} alt={selectedHostel.name} className="w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+          <button onClick={() => { setSelectedHostelId(null); setExpandedRooms({}) }}
+            className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm text-gray-700 px-3 py-2 rounded-lg text-sm font-medium hover:bg-white transition-colors shadow-sm flex items-center gap-1.5">
+            <ArrowLeftIcon className="w-4 h-4" /> Back to List
+          </button>
+          <div className="absolute bottom-4 left-4 right-4">
+            <div className="flex gap-2 mb-2">
+              <span className={`text-xs px-2.5 py-1 rounded-full font-semibold ${selectedHostel.gender === 'male' ? 'bg-blue-500 text-white' : 'bg-pink-500 text-white'}`}>
+                {selectedHostel.gender === 'male' ? 'Male' : 'Female'}
+              </span>
+              <span className={`text-xs px-2.5 py-1 rounded-full font-semibold ${selectedHostel.isOpen ? 'bg-green-500 text-white' : 'bg-red-500 text-white'}`}>
+                {selectedHostel.isOpen ? 'Open' : 'Closed'}
+              </span>
+            </div>
+            <h2 className="text-xl sm:text-2xl font-bold text-white">{selectedHostel.name}</h2>
+            <p className="text-sm text-white/80">{selectedHostel.location}</p>
+          </div>
+        </div>
+
+        {/* Info bar */}
+        <div className="p-5">
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-4 mb-4">
+            <div className="text-center">
+              <p className="text-2xl font-bold text-gray-800">{hostelStats.totalFloors}</p>
+              <p className="text-[11px] text-gray-400 uppercase tracking-wide">Floors</p>
+            </div>
+            <div className="text-center">
+              <p className="text-2xl font-bold text-gray-800">{hostelStats.totalRooms}</p>
+              <p className="text-[11px] text-gray-400 uppercase tracking-wide">Rooms</p>
+            </div>
+            <div className="text-center">
+              <p className="text-2xl font-bold text-gray-800">{hostelStats.totalBeds}</p>
+              <p className="text-[11px] text-gray-400 uppercase tracking-wide">Total Beds</p>
+            </div>
+            <div className="text-center">
+              <p className="text-2xl font-bold text-teal-600">{hostelStats.availableBeds}</p>
+              <p className="text-[11px] text-gray-400 uppercase tracking-wide">Available</p>
+            </div>
+            <div className="text-center">
+              <p className="text-2xl font-bold text-gray-800">{hostelStats.occupiedBeds}</p>
+              <p className="text-[11px] text-gray-400 uppercase tracking-wide">Occupied</p>
+            </div>
+            <div className="text-center">
+              <p className="text-2xl font-bold text-teal-600">{selectedHostel.rent}</p>
+              <p className="text-[11px] text-gray-400 uppercase tracking-wide">Per Month</p>
+            </div>
+          </div>
+          {/* Warden info */}
+          <div className="flex flex-wrap gap-4 items-center mb-3 text-sm text-gray-600">
+            <span> Warden: <strong>{selectedHostel.wardenName}</strong></span>
+            <span> {selectedHostel.wardenPhone}</span>
+          </div>
+          {/* Facilities */}
+          <div className="flex flex-wrap gap-2">
+            {selectedHostel.facilities.map((f) => (
+              <span key={f} className="text-xs bg-gray-100 text-gray-600 px-2.5 py-1 rounded-full">{facilityLabels[f] || f}</span>
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* Hall cards grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-        {halls.map((hall) => (
-          <div
-            key={hall.id}
-            className="bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden group"
-          >
-            {/* Header strip */}
-            <div className={`h-2 ${hall.isOpen ? 'bg-teal-500' : 'bg-red-400'}`} />
-
-            <div className="p-5">
-              {/* Hall name & status */}
-              <div className="flex items-start justify-between mb-3">
-                <div>
-                  <h4 className="text-base font-bold text-gray-800 leading-tight">{hall.name}</h4>
-                  <span className={`inline-block mt-1 text-[11px] px-2 py-0.5 rounded-full font-medium ${
-                    hall.gender === 'Male'
-                      ? 'bg-blue-50 text-blue-600'
-                      : 'bg-pink-50 text-pink-600'
-                  }`}>
-                    {hall.gender}
-                  </span>
-                </div>
-                <span className={`text-[11px] px-2.5 py-1 rounded-full font-semibold ${
-                  hall.isOpen
-                    ? 'bg-green-50 text-green-700'
-                    : 'bg-red-50 text-red-700'
-                }`}>
-                  {hall.isOpen ? 'Open' : 'Closed'}
+      {/* Floor Tabs */}
+      <div className="mb-6">
+        <h3 className="text-sm font-semibold text-gray-700 mb-3">Select Floor</h3>
+        <div className="flex flex-wrap gap-2">
+          {selectedHostel.floors.map((floor, idx) => {
+            const fs = floorStats[idx]
+            const isActive = idx === activeFloor
+            return (
+              <button key={floor.floorNumber} onClick={() => { setActiveFloor(idx); setExpandedRooms({}) }}
+                className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 border ${isActive ? 'bg-teal-600 text-white border-teal-600 shadow-md' : 'bg-white text-gray-600 border-gray-200 hover:border-teal-300 hover:bg-teal-50'}`}>
+                Floor {floor.floorNumber}
+                <span className={`ml-2 text-xs ${isActive ? 'text-teal-100' : 'text-gray-400'}`}>
+                  {fs.available}/{fs.beds}
                 </span>
-              </div>
-
-              {/* Info grid */}
-              <div className="grid grid-cols-2 gap-y-2.5 gap-x-4 text-sm mb-4">
-                <div>
-                  <p className="text-[11px] text-gray-400 uppercase tracking-wide">Total Rooms</p>
-                  <p className="font-semibold text-gray-700">{hall.totalRooms}</p>
-                </div>
-                <div>
-                  <p className="text-[11px] text-gray-400 uppercase tracking-wide">Total Seats</p>
-                  <p className="font-semibold text-gray-700">{hall.totalSeats}</p>
-                </div>
-                <div>
-                  <p className="text-[11px] text-gray-400 uppercase tracking-wide">Available</p>
-                  <p className={`font-semibold ${hall.availableSeats > 0 ? 'text-teal-600' : 'text-red-500'}`}>
-                    {hall.availableSeats}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-[11px] text-gray-400 uppercase tracking-wide">Floors</p>
-                  <p className="font-semibold text-gray-700">{hall.floors}</p>
-                </div>
-              </div>
-
-              {/* Warden */}
-              <div className="mb-3">
-                <p className="text-[11px] text-gray-400 uppercase tracking-wide">Warden</p>
-                <p className="text-sm font-medium text-gray-700">{hall.wardenName}</p>
-              </div>
-
-              {/* Facilities */}
-              <div className="mb-4">
-                <p className="text-[11px] text-gray-400 uppercase tracking-wide mb-1.5">Facilities</p>
-                <div className="flex flex-wrap gap-1.5">
-                  {hall.facilities.map((f) => (
-                    <span
-                      key={f}
-                      className="text-[11px] bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full"
-                    >
-                      {facilityLabels[f] || f}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              {/* Action buttons */}
-              <div className="flex flex-wrap gap-2 pt-3 border-t border-gray-100">
-                <button
-                  onClick={() => openSeatEditor(hall)}
-                  className="flex-1 min-w-[100px] text-xs font-medium px-3 py-2 rounded-lg bg-teal-50 text-teal-700 hover:bg-teal-100 transition-colors"
-                >
-                  Update Seats
-                </button>
-                <button
-                  onClick={() => toggleAvailability(hall.id)}
-                  className={`flex-1 min-w-[100px] text-xs font-medium px-3 py-2 rounded-lg transition-colors ${
-                    hall.isOpen
-                      ? 'bg-red-50 text-red-600 hover:bg-red-100'
-                      : 'bg-green-50 text-green-600 hover:bg-green-100'
-                  }`}
-                >
-                  {hall.isOpen ? 'Close Hall' : 'Open Hall'}
-                </button>
-                <button
-                  onClick={() => openHallEditor(hall)}
-                  className="flex-1 min-w-[100px] text-xs font-medium px-3 py-2 rounded-lg bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition-colors"
-                >
-                  Edit Info
-                </button>
-              </div>
-            </div>
-          </div>
-        ))}
+              </button>
+            )
+          })}
+        </div>
       </div>
 
-      {/* ── MODAL: Update Seat Count ───────────────────────────────────────── */}
-      {editingSeatId !== null && (
-        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center px-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-sm p-6 animate-[fadeIn_0.2s_ease-out]">
-            <h3 className="text-base font-semibold text-gray-800 mb-1">Update Available Seats</h3>
-            <p className="text-xs text-gray-400 mb-4">
-              Hall: {halls.find((h) => h.id === editingSeatId)?.name}
-            </p>
-            <input
-              type="number"
-              min="0"
-              max={halls.find((h) => h.id === editingSeatId)?.totalSeats || 999}
-              value={seatInput}
-              onChange={(e) => setSeatInput(e.target.value)}
-              className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent mb-4"
-              placeholder="Enter new available seat count"
-            />
-            <div className="flex gap-3">
-              <button
-                onClick={() => setEditingSeatId(null)}
-                className="flex-1 px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={saveSeatCount}
-                className="flex-1 px-4 py-2 text-sm font-medium text-white bg-teal-600 rounded-lg hover:bg-teal-700 transition-colors"
-              >
-                Save
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Room Cards */}
+      <div className="space-y-4">
+        {currentFloor.rooms.map((room, roomIdx) => {
+          const availBeds = room.beds.filter((b) => b.status === 'available').length
+          const isExpanded = expandedRooms[room.roomNumber]
 
-      {/* ── MODAL: Edit Hall Info ──────────────────────────────────────────── */}
-      {editingHallId !== null && (
-        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center px-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6 animate-[fadeIn_0.2s_ease-out]">
-            <h3 className="text-base font-semibold text-gray-800 mb-4">Edit Hall Information</h3>
-
-            <div className="space-y-3">
-              <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">Hall Name</label>
-                <input
-                  type="text"
-                  value={editForm.name}
-                  onChange={(e) => setEditForm((f) => ({ ...f, name: e.target.value }))}
-                  className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">Warden Name</label>
-                <input
-                  type="text"
-                  value={editForm.wardenName}
-                  onChange={(e) => setEditForm((f) => ({ ...f, wardenName: e.target.value }))}
-                  className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">Gender</label>
-                <select
-                  value={editForm.gender}
-                  onChange={(e) => setEditForm((f) => ({ ...f, gender: e.target.value }))}
-                  className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent"
-                >
-                  <option value="Male">Male</option>
-                  <option value="Female">Female</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="flex gap-3 mt-5">
-              <button
-                onClick={() => setEditingHallId(null)}
-                className="flex-1 px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-              >
-                Cancel
+          return (
+            <div key={room.roomNumber} className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+              {/* Room header (clickable) */}
+              <button onClick={() => toggleRoom(room.roomNumber)}
+                className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors text-left">
+                <div className="flex items-center gap-3">
+                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-sm font-bold ${availBeds > 0 ? 'bg-teal-50 text-teal-700' : 'bg-red-50 text-red-600'}`}>
+                    {room.roomNumber}
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-semibold text-gray-800">Room {room.roomNumber}</span>
+                      <span className="text-[11px] px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 font-medium">{room.type}</span>
+                    </div>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      {room.facilities.map((f) => (
+                        <span key={f} className="text-[11px] text-gray-400">{roomFacilityIcons[f] || ''} {f}</span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${availBeds > 0 ? 'bg-teal-50 text-teal-700' : 'bg-red-50 text-red-600'}`}>
+                    {availBeds}/{room.beds.length} available
+                  </span>
+                  <ChevronDownIcon className={`w-5 h-5 text-gray-400 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
+                </div>
               </button>
-              <button
-                onClick={saveHallInfo}
-                className="flex-1 px-4 py-2 text-sm font-medium text-white bg-teal-600 rounded-lg hover:bg-teal-700 transition-colors"
-              >
-                Save Changes
-              </button>
+
+              {/* Expanded: Bed grid */}
+              {isExpanded && (
+                <div className="px-4 pb-4 border-t border-gray-100 pt-3">
+                  <div className="flex items-center gap-4 mb-3">
+                    <span className="text-xs text-gray-500 font-medium">Beds:</span>
+                    <div className="flex items-center gap-3 text-[11px] text-gray-400">
+                      <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-teal-100 border border-teal-400 inline-block" /> Available</span>
+                      <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-red-100 border border-red-400 inline-block" /> Occupied</span>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                    {room.beds.map((bed, bedIdx) => {
+                      const isAvailable = bed.status === 'available'
+                      return (
+                        <div key={bed.bedId}
+                          className={`rounded-lg border-2 p-3 transition-all ${isAvailable
+                            ? 'border-teal-200 bg-teal-50/50'
+                            : 'border-red-200 bg-red-50/50'
+                          }`}>
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-sm font-bold text-gray-700"> {bed.bedId}</span>
+                            <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold uppercase ${isAvailable ? 'bg-teal-100 text-teal-700' : 'bg-red-100 text-red-600'}`}>
+                              {bed.status}
+                            </span>
+                          </div>
+                          {!isAvailable && bed.studentName && (
+                            <div className="mb-2">
+                              <p className="text-xs text-gray-600"> {bed.studentName}</p>
+                              <p className="text-[11px] text-gray-400">{bed.studentId}</p>
+                            </div>
+                          )}
+                          <button
+                            onClick={() => toggleBedStatus(selectedHostel.id, activeFloor, roomIdx, bedIdx)}
+                            className={`w-full text-xs font-medium px-3 py-1.5 rounded-lg transition-colors ${isAvailable
+                              ? 'bg-red-50 text-red-600 hover:bg-red-100'
+                              : 'bg-teal-50 text-teal-700 hover:bg-teal-100'
+                            }`}>
+                            {isAvailable ? 'Mark Occupied' : 'Mark Available'}
+                          </button>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
-          </div>
-        </div>
-      )}
+          )
+        })}
+      </div>
     </div>
   )
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// ■  BOOKINGS MANAGEMENT — TABLE
-// ═══════════════════════════════════════════════════════════════════════════════
+// 
+// BOOKINGS MANAGEMENT
+// 
 
-/**
- * Booking requests table with Approve / Reject actions.
- * Approving a booking decreases available seats for that hall.
- * Rejecting keeps seats unchanged.
- */
-const BookingsManagement = ({ bookings, setBookings, halls, setHalls }) => {
-  // ── Filter state ─────────────────────────────────────────────────────────
+const BookingsManagement = ({ bookings, setBookings, hostels, setHostels }) => {
   const [statusFilter, setStatusFilter] = useState('all')
 
   const filteredBookings = statusFilter === 'all'
     ? bookings
     : bookings.filter((b) => b.status === statusFilter)
 
-  // ── Approve booking → decrease available seats ───────────────────────────
+  // Approve  mark bed as occupied in hostel data
   const handleApprove = (bookingId) => {
     const booking = bookings.find((b) => b.id === bookingId)
     if (!booking) return
 
-    // Update booking status
-    setBookings((prev) =>
-      prev.map((b) => (b.id === bookingId ? { ...b, status: 'approved' } : b))
-    )
+    setBookings((prev) => prev.map((b) => (b.id === bookingId ? { ...b, status: 'approved' } : b)))
 
-    // Decrease available seats for the corresponding hall
-    setHalls((prev) =>
-      prev.map((h) =>
-        h.id === booking.hallId && h.availableSeats > 0
-          ? { ...h, availableSeats: h.availableSeats - 1 }
-          : h
-      )
-    )
+    // Mark the specific bed as occupied
+    setHostels((prev) => prev.map((h) => {
+      if (h.id !== booking.hostelId) return h
+      return {
+        ...h,
+        floors: h.floors.map((floor) => ({
+          ...floor,
+          rooms: floor.rooms.map((room) => {
+            if (room.roomNumber !== booking.roomNumber) return room
+            return {
+              ...room,
+              beds: room.beds.map((bed) =>
+                bed.bedId === booking.bedId ? { ...bed, status: 'occupied', studentName: booking.studentName, studentId: booking.studentId } : bed
+              )
+            }
+          })
+        }))
+      }
+    }))
   }
 
-  // ── Reject booking → no seat change ──────────────────────────────────────
   const handleReject = (bookingId) => {
-    setBookings((prev) =>
-      prev.map((b) => (b.id === bookingId ? { ...b, status: 'rejected' } : b))
-    )
+    setBookings((prev) => prev.map((b) => (b.id === bookingId ? { ...b, status: 'rejected' } : b)))
   }
 
-  // ── Helper: get hall name by id ──────────────────────────────────────────
-  const getHallName = (hallId) => {
-    const hall = halls.find((h) => h.id === hallId)
-    return hall ? hall.name : `Hall #${hallId}`
+  const getHostelName = (hostelId) => {
+    const hostel = hostels.find((h) => h.id === hostelId)
+    return hostel ? hostel.name : `Hostel #${hostelId}`
   }
 
-  // ── Status badge styling ─────────────────────────────────────────────────
   const statusStyles = {
     pending: 'bg-amber-50 text-amber-700',
     approved: 'bg-green-50 text-green-700',
@@ -768,34 +772,25 @@ const BookingsManagement = ({ bookings, setBookings, halls, setHalls }) => {
           <h3 className="text-lg font-semibold text-gray-800">Booking Requests</h3>
           <p className="text-xs text-gray-400 mt-0.5">{bookings.length} total bookings</p>
         </div>
-
-        {/* Status filter */}
         <div className="flex gap-2">
           {['all', 'pending', 'approved', 'rejected'].map((status) => (
-            <button
-              key={status}
-              onClick={() => setStatusFilter(status)}
-              className={`text-xs font-medium px-3 py-1.5 rounded-lg transition-colors capitalize ${
-                statusFilter === status
-                  ? 'bg-teal-600 text-white'
-                  : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
-              }`}
-            >
+            <button key={status} onClick={() => setStatusFilter(status)}
+              className={`text-xs font-medium px-3 py-1.5 rounded-lg transition-colors capitalize ${statusFilter === status ? 'bg-teal-600 text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}>
               {status}
             </button>
           ))}
         </div>
       </div>
 
-      {/* Bookings table */}
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
               <tr className="bg-gray-50 border-b border-gray-100">
-                <th className="text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider px-5 py-3">Student Name</th>
-                <th className="text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider px-5 py-3">Hall Name</th>
-                <th className="text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider px-5 py-3">Room No.</th>
+                <th className="text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider px-5 py-3">Student</th>
+                <th className="text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider px-5 py-3">Hostel</th>
+                <th className="text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider px-5 py-3">Room</th>
+                <th className="text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider px-5 py-3">Bed</th>
                 <th className="text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider px-5 py-3">Date</th>
                 <th className="text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider px-5 py-3">Status</th>
                 <th className="text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider px-5 py-3">Actions</th>
@@ -804,24 +799,23 @@ const BookingsManagement = ({ bookings, setBookings, halls, setHalls }) => {
             <tbody className="divide-y divide-gray-50">
               {filteredBookings.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="text-center text-sm text-gray-400 py-12">
-                    No bookings found for this filter.
-                  </td>
+                  <td colSpan={7} className="text-center text-sm text-gray-400 py-12">No bookings found for this filter.</td>
                 </tr>
               ) : (
                 filteredBookings.map((booking) => (
-                  <tr
-                    key={booking.id}
-                    className="hover:bg-gray-50/50 transition-colors"
-                  >
+                  <tr key={booking.id} className="hover:bg-gray-50/50 transition-colors">
                     <td className="px-5 py-3.5">
                       <p className="text-sm font-medium text-gray-700">{booking.studentName}</p>
+                      <p className="text-[11px] text-gray-400">{booking.studentId}</p>
                     </td>
                     <td className="px-5 py-3.5">
-                      <p className="text-sm text-gray-600">{getHallName(booking.hallId)}</p>
+                      <p className="text-sm text-gray-600">{getHostelName(booking.hostelId)}</p>
                     </td>
                     <td className="px-5 py-3.5">
                       <span className="text-sm text-gray-600 font-mono">{booking.roomNumber}</span>
+                    </td>
+                    <td className="px-5 py-3.5">
+                      <span className="text-sm text-gray-600 font-mono">{booking.bedId}</span>
                     </td>
                     <td className="px-5 py-3.5">
                       <span className="text-sm text-gray-500">{booking.date}</span>
@@ -834,21 +828,11 @@ const BookingsManagement = ({ bookings, setBookings, halls, setHalls }) => {
                     <td className="px-5 py-3.5">
                       {booking.status === 'pending' ? (
                         <div className="flex gap-2">
-                          <button
-                            onClick={() => handleApprove(booking.id)}
-                            className="text-xs font-medium px-3 py-1.5 rounded-lg bg-green-50 text-green-700 hover:bg-green-100 transition-colors"
-                          >
-                            Approve
-                          </button>
-                          <button
-                            onClick={() => handleReject(booking.id)}
-                            className="text-xs font-medium px-3 py-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
-                          >
-                            Reject
-                          </button>
+                          <button onClick={() => handleApprove(booking.id)} className="text-xs font-medium px-3 py-1.5 rounded-lg bg-green-50 text-green-700 hover:bg-green-100 transition-colors">Approve</button>
+                          <button onClick={() => handleReject(booking.id)} className="text-xs font-medium px-3 py-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors">Reject</button>
                         </div>
                       ) : (
-                        <span className="text-xs text-gray-400 italic">—</span>
+                        <span className="text-xs text-gray-400 italic"></span>
                       )}
                     </td>
                   </tr>
@@ -862,9 +846,9 @@ const BookingsManagement = ({ bookings, setBookings, halls, setHalls }) => {
   )
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// ■  MAIN DASHBOARD COMPONENT (Default Export)
-// ═══════════════════════════════════════════════════════════════════════════════
+// 
+// MAIN DASHBOARD COMPONENT
+// 
 
 const pageTitles = {
   dashboard: 'Dashboard',
@@ -873,69 +857,39 @@ const pageTitles = {
 }
 
 const HostelManagerDashboard = ({ user, onLogout }) => {
-  // ── Access control: role must be "hostel_manager" ────────────────────────
   if (!user || user.role !== 'hostel_manager') {
     return <Unauthorized onGoBack={onLogout} />
   }
 
-  // ── Navigation state ─────────────────────────────────────────────────────
   const [activePage, setActivePage] = useState('dashboard')
   const [sidebarOpen, setSidebarOpen] = useState(false)
-
-  // ── Data state (dummy, no backend) ───────────────────────────────────────
-  const [halls, setHalls] = useState(initialHalls)
+  const [hostels, setHostels] = useState(initialHostels)
   const [bookings, setBookings] = useState(initialBookings)
 
-  // Close sidebar on window resize to desktop
   useEffect(() => {
-    const onResize = () => {
-      if (window.innerWidth >= 1024) setSidebarOpen(false)
-    }
+    const onResize = () => { if (window.innerWidth >= 1024) setSidebarOpen(false) }
     window.addEventListener('resize', onResize)
     return () => window.removeEventListener('resize', onResize)
   }, [])
 
-  // ── Render active section ────────────────────────────────────────────────
   const renderContent = () => {
     switch (activePage) {
       case 'dashboard':
-        return <DashboardStats halls={halls} bookings={bookings} />
+        return <DashboardStats hostels={hostels} bookings={bookings} />
       case 'halls':
-        return <HallsManagement halls={halls} setHalls={setHalls} />
+        return <HallsManagement hostels={hostels} setHostels={setHostels} />
       case 'bookings':
-        return (
-          <BookingsManagement
-            bookings={bookings}
-            setBookings={setBookings}
-            halls={halls}
-            setHalls={setHalls}
-          />
-        )
+        return <BookingsManagement bookings={bookings} setBookings={setBookings} hostels={hostels} setHostels={setHostels} />
       default:
-        return <DashboardStats halls={halls} bookings={bookings} />
+        return <DashboardStats hostels={hostels} bookings={bookings} />
     }
   }
 
-  // ── Layout: dark sidebar + light content ─────────────────────────────────
   return (
     <div className="min-h-screen bg-gray-100 flex">
-      {/* Sidebar */}
-      <ManagerSidebar
-        activePage={activePage}
-        onNavigate={setActivePage}
-        isOpen={sidebarOpen}
-        onClose={() => setSidebarOpen(false)}
-      />
-
-      {/* Main content */}
+      <ManagerSidebar activePage={activePage} onNavigate={setActivePage} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="flex-1 flex flex-col min-w-0">
-        <ManagerTopbar
-          user={user}
-          pageTitle={pageTitles[activePage] || 'Dashboard'}
-          onToggleSidebar={() => setSidebarOpen(true)}
-          onLogout={onLogout}
-        />
-
+        <ManagerTopbar user={user} pageTitle={pageTitles[activePage] || 'Dashboard'} onToggleSidebar={() => setSidebarOpen(true)} onLogout={onLogout} />
         <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-auto">
           <div className="max-w-7xl mx-auto animate-[fadeIn_0.3s_ease-out]">
             {renderContent()}
