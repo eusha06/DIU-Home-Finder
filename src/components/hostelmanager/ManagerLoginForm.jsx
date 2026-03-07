@@ -86,7 +86,7 @@ const ManagerLoginForm = ({ onSwitchToSignup, onManagerLogin }) => {
         <div className="flex justify-end mb-4">
           <button
             type="button"
-            className="text-xs text-indigo-500 hover:text-indigo-700 transition-colors"
+            className="text-xs text-emerald-600 hover:text-emerald-700 transition-colors"
             onClick={() => console.log('Manager forgot password clicked')}
           >
             Forgot Password?
@@ -95,8 +95,8 @@ const ManagerLoginForm = ({ onSwitchToSignup, onManagerLogin }) => {
 
         <button
           type="submit"
-          className="w-full py-2.5 rounded-lg bg-indigo-600 text-white font-semibold
-                     hover:bg-indigo-700 active:scale-[0.98] transition-all duration-200
+          className="w-full py-2.5 rounded-lg bg-emerald-600 text-white font-semibold
+                     hover:bg-emerald-700 active:scale-[0.98] transition-all duration-200
                      shadow-md hover:shadow-lg"
         >
           Login
@@ -105,7 +105,7 @@ const ManagerLoginForm = ({ onSwitchToSignup, onManagerLogin }) => {
 
       <p className="text-center text-xs text-gray-400 mt-5">
         Don&apos;t have an account?{' '}
-        <button onClick={onSwitchToSignup} className="text-indigo-500 hover:underline font-medium">
+        <button onClick={onSwitchToSignup} className="text-emerald-600 hover:underline font-medium">
           Sign Up
         </button>
       </p>

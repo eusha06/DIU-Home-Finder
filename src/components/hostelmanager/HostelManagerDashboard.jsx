@@ -140,7 +140,7 @@ const Unauthorized = ({ onGoBack }) => (
         Only Hostel Managers can view this dashboard.
       </p>
       <button onClick={onGoBack}
-        className="inline-flex items-center gap-2 px-6 py-3 bg-teal-600 text-white text-sm font-medium rounded-lg hover:bg-teal-700 transition-colors shadow-sm">
+        className="inline-flex items-center gap-2 px-6 py-3 bg-emerald-600 text-white text-sm font-medium rounded-lg hover:bg-emerald-700 transition-colors shadow-sm">
         <ArrowLeftIcon className="w-4 h-4" /> Go Back
       </button>
     </div>
@@ -165,7 +165,7 @@ const ManagerSidebar = ({ activePage, onNavigate, isOpen, onClose }) => {
       <aside className={`fixed top-0 left-0 h-full w-64 bg-gray-900 text-gray-300 z-50 flex flex-col transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:z-auto ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="px-6 py-5 border-b border-gray-700/50">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-teal-600 flex items-center justify-center">
+            <div className="w-9 h-9 rounded-lg bg-emerald-600 flex items-center justify-center">
               <HallsIcon className="w-5 h-5 text-white" />
             </div>
             <div>
@@ -180,7 +180,7 @@ const ManagerSidebar = ({ activePage, onNavigate, isOpen, onClose }) => {
         <nav className="flex-1 px-3 py-6 space-y-1">
           {navItems.map(({ key, label, icon: Icon }) => (
             <button key={key} onClick={() => handleNav(key)}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${activePage === key ? 'bg-teal-600/20 text-teal-400 shadow-sm' : 'text-gray-400 hover:bg-gray-800 hover:text-gray-200'}`}>
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${activePage === key ? 'bg-emerald-600/20 text-emerald-400 shadow-sm' : 'text-gray-400 hover:bg-gray-800 hover:text-gray-200'}`}>
               <Icon className="w-5 h-5 flex-shrink-0" /> {label}
             </button>
           ))}
@@ -209,12 +209,12 @@ const ManagerTopbar = ({ user, pageTitle, onToggleSidebar, onLogout }) => (
         </div>
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
-            <div className="w-9 h-9 rounded-full bg-teal-600 flex items-center justify-center text-sm font-bold text-white shadow-sm">
+            <div className="w-9 h-9 rounded-full bg-emerald-600 flex items-center justify-center text-sm font-bold text-white shadow-sm">
               {user.name ? user.name.charAt(0).toUpperCase() : 'M'}
             </div>
             <div className="hidden sm:block">
               <p className="text-sm font-medium text-gray-700 leading-tight">{user.name}</p>
-              <p className="text-[11px] text-teal-600 leading-tight font-medium uppercase tracking-wide">Hostel Manager</p>
+              <p className="text-[11px] text-emerald-600 leading-tight font-medium uppercase tracking-wide">Hostel Manager</p>
             </div>
           </div>
           <button onClick={onLogout} className="ml-2 text-xs text-gray-400 hover:text-red-500 transition-colors font-medium">Logout</button>
@@ -238,11 +238,11 @@ const DashboardStats = ({ hostels, bookings }) => {
       icon: <HallsIcon className="w-6 h-6" /> },
     { label: 'Total Beds', value: allStats.totalBeds, lightBg: 'bg-emerald-50', textColor: 'text-emerald-600', barColor: 'bg-emerald-500',
       icon: <svg className="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m9-4a4 4 0 10-8 0 4 4 0 008 0zm6 4a4 4 0 10-8 0h8z" /></svg> },
-    { label: 'Available Beds', value: allStats.availableBeds, lightBg: 'bg-teal-50', textColor: 'text-teal-600', barColor: 'bg-teal-500',
+    { label: 'Available Beds', value: allStats.availableBeds, lightBg: 'bg-emerald-50', textColor: 'text-emerald-600', barColor: 'bg-emerald-500',
       icon: <svg className="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg> },
     { label: 'Pending Requests', value: pendingRequests, lightBg: 'bg-amber-50', textColor: 'text-amber-600', barColor: 'bg-amber-500',
       icon: <svg className="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg> },
-    { label: 'Approved', value: approvedBookings, lightBg: 'bg-indigo-50', textColor: 'text-indigo-600', barColor: 'bg-indigo-500',
+    { label: 'Approved', value: approvedBookings, lightBg: 'bg-emerald-50', textColor: 'text-emerald-600', barColor: 'bg-emerald-500',
       icon: <svg className="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg> },
   ]
 
@@ -384,7 +384,7 @@ const HallsManagement = ({ hostels, setHostels }) => {
     return (
       <div>
         {toast && (
-          <div className="fixed top-20 right-6 z-50 bg-teal-600 text-white px-5 py-3 rounded-lg shadow-lg text-sm font-medium animate-[fadeIn_0.2s_ease-out]">
+          <div className="fixed top-20 right-6 z-50 bg-emerald-600 text-white px-5 py-3 rounded-lg shadow-lg text-sm font-medium animate-[fadeIn_0.2s_ease-out]">
             {toast}
           </div>
         )}
@@ -402,7 +402,7 @@ const HallsManagement = ({ hostels, setHostels }) => {
             return (
               <div key={hostel.id} className="bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden group">
                 {/* Color strip */}
-                <div className={`h-2 ${hostel.isOpen ? 'bg-teal-500' : 'bg-red-400'}`} />
+                <div className={`h-2 ${hostel.isOpen ? 'bg-emerald-500' : 'bg-red-400'}`} />
 
                 {/* Image */}
                 <div className="relative h-40 overflow-hidden">
@@ -437,14 +437,14 @@ const HallsManagement = ({ hostels, setHostels }) => {
                     </div>
                     <div>
                       <p className="text-[11px] text-gray-400 uppercase tracking-wide">Available</p>
-                      <p className={`font-semibold ${stats.availableBeds > 0 ? 'text-teal-600' : 'text-red-500'}`}>{stats.availableBeds}</p>
+                      <p className={`font-semibold ${stats.availableBeds > 0 ? 'text-emerald-600' : 'text-red-500'}`}>{stats.availableBeds}</p>
                     </div>
                   </div>
 
                   {/* Warden + rent */}
                   <div className="flex items-center justify-between text-xs text-gray-500 mb-3">
                     <span>Warden: {hostel.wardenName}</span>
-                    <span className="font-bold text-teal-600">{hostel.rent}/mo</span>
+                    <span className="font-bold text-emerald-600">{hostel.rent}/mo</span>
                   </div>
 
                   {/* Facilities */}
@@ -460,7 +460,7 @@ const HallsManagement = ({ hostels, setHostels }) => {
                   {/* Actions */}
                   <div className="flex flex-wrap gap-2 pt-3 border-t border-gray-100">
                     <button onClick={() => { setSelectedHostelId(hostel.id); setActiveFloor(0); setExpandedRooms({}) }}
-                      className="flex-1 min-w-[80px] text-xs font-medium px-3 py-2 rounded-lg bg-teal-50 text-teal-700 hover:bg-teal-100 transition-colors">
+                      className="flex-1 min-w-[80px] text-xs font-medium px-3 py-2 rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-colors">
                       Manage
                     </button>
                     <button onClick={() => toggleHostelStatus(hostel.id)}
@@ -468,7 +468,7 @@ const HallsManagement = ({ hostels, setHostels }) => {
                       {hostel.isOpen ? 'Close' : 'Open'}
                     </button>
                     <button onClick={() => openEditModal(hostel)}
-                      className="flex-1 min-w-[80px] text-xs font-medium px-3 py-2 rounded-lg bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition-colors">
+                      className="flex-1 min-w-[80px] text-xs font-medium px-3 py-2 rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-colors">
                       Edit Info
                     </button>
                   </div>
@@ -487,27 +487,27 @@ const HallsManagement = ({ hostels, setHostels }) => {
                 <div>
                   <label className="block text-xs font-medium text-gray-500 mb-1">Hostel Name</label>
                   <input type="text" value={editModal.name} onChange={(e) => setEditModal((f) => ({ ...f, name: e.target.value }))}
-                    className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent" />
+                    className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent" />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-gray-500 mb-1">Warden Name</label>
                   <input type="text" value={editModal.wardenName} onChange={(e) => setEditModal((f) => ({ ...f, wardenName: e.target.value }))}
-                    className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent" />
+                    className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent" />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-gray-500 mb-1">Warden Phone</label>
                   <input type="text" value={editModal.wardenPhone} onChange={(e) => setEditModal((f) => ({ ...f, wardenPhone: e.target.value }))}
-                    className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent" />
+                    className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent" />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-gray-500 mb-1">Monthly Rent ()</label>
                   <input type="number" value={editModal.rent} onChange={(e) => setEditModal((f) => ({ ...f, rent: e.target.value }))}
-                    className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent" />
+                    className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent" />
                 </div>
               </div>
               <div className="flex gap-3 mt-5">
                 <button onClick={() => setEditModal(null)} className="flex-1 px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">Cancel</button>
-                <button onClick={saveEditModal} className="flex-1 px-4 py-2 text-sm font-medium text-white bg-teal-600 rounded-lg hover:bg-teal-700 transition-colors">Save Changes</button>
+                <button onClick={saveEditModal} className="flex-1 px-4 py-2 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition-colors">Save Changes</button>
               </div>
             </div>
           </div>
@@ -533,7 +533,7 @@ const HallsManagement = ({ hostels, setHostels }) => {
   return (
     <div className="animate-[fadeIn_0.2s_ease-out]">
       {toast && (
-        <div className="fixed top-20 right-6 z-50 bg-teal-600 text-white px-5 py-3 rounded-lg shadow-lg text-sm font-medium animate-[fadeIn_0.2s_ease-out]">
+        <div className="fixed top-20 right-6 z-50 bg-emerald-600 text-white px-5 py-3 rounded-lg shadow-lg text-sm font-medium animate-[fadeIn_0.2s_ease-out]">
           {toast}
         </div>
       )}
@@ -577,7 +577,7 @@ const HallsManagement = ({ hostels, setHostels }) => {
               <p className="text-[11px] text-gray-400 uppercase tracking-wide">Total Beds</p>
             </div>
             <div className="text-center">
-              <p className="text-2xl font-bold text-teal-600">{hostelStats.availableBeds}</p>
+              <p className="text-2xl font-bold text-emerald-600">{hostelStats.availableBeds}</p>
               <p className="text-[11px] text-gray-400 uppercase tracking-wide">Available</p>
             </div>
             <div className="text-center">
@@ -585,7 +585,7 @@ const HallsManagement = ({ hostels, setHostels }) => {
               <p className="text-[11px] text-gray-400 uppercase tracking-wide">Occupied</p>
             </div>
             <div className="text-center">
-              <p className="text-2xl font-bold text-teal-600">{selectedHostel.rent}</p>
+              <p className="text-2xl font-bold text-emerald-600">{selectedHostel.rent}</p>
               <p className="text-[11px] text-gray-400 uppercase tracking-wide">Per Month</p>
             </div>
           </div>
@@ -612,9 +612,9 @@ const HallsManagement = ({ hostels, setHostels }) => {
             const isActive = idx === activeFloor
             return (
               <button key={floor.floorNumber} onClick={() => { setActiveFloor(idx); setExpandedRooms({}) }}
-                className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 border ${isActive ? 'bg-teal-600 text-white border-teal-600 shadow-md' : 'bg-white text-gray-600 border-gray-200 hover:border-teal-300 hover:bg-teal-50'}`}>
+                className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 border ${isActive ? 'bg-emerald-600 text-white border-emerald-600 shadow-md' : 'bg-white text-gray-600 border-gray-200 hover:border-emerald-300 hover:bg-emerald-50'}`}>
                 Floor {floor.floorNumber}
-                <span className={`ml-2 text-xs ${isActive ? 'text-teal-100' : 'text-gray-400'}`}>
+                <span className={`ml-2 text-xs ${isActive ? 'text-emerald-100' : 'text-gray-400'}`}>
                   {fs.available}/{fs.beds}
                 </span>
               </button>
@@ -635,7 +635,7 @@ const HallsManagement = ({ hostels, setHostels }) => {
               <button onClick={() => toggleRoom(room.roomNumber)}
                 className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors text-left">
                 <div className="flex items-center gap-3">
-                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-sm font-bold ${availBeds > 0 ? 'bg-teal-50 text-teal-700' : 'bg-red-50 text-red-600'}`}>
+                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-sm font-bold ${availBeds > 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-600'}`}>
                     {room.roomNumber}
                   </div>
                   <div>
@@ -651,7 +651,7 @@ const HallsManagement = ({ hostels, setHostels }) => {
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${availBeds > 0 ? 'bg-teal-50 text-teal-700' : 'bg-red-50 text-red-600'}`}>
+                  <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${availBeds > 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-600'}`}>
                     {availBeds}/{room.beds.length} available
                   </span>
                   <ChevronDownIcon className={`w-5 h-5 text-gray-400 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
@@ -664,7 +664,7 @@ const HallsManagement = ({ hostels, setHostels }) => {
                   <div className="flex items-center gap-4 mb-3">
                     <span className="text-xs text-gray-500 font-medium">Beds:</span>
                     <div className="flex items-center gap-3 text-[11px] text-gray-400">
-                      <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-teal-100 border border-teal-400 inline-block" /> Available</span>
+                      <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-emerald-100 border border-emerald-400 inline-block" /> Available</span>
                       <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-red-100 border border-red-400 inline-block" /> Occupied</span>
                     </div>
                   </div>
@@ -674,12 +674,12 @@ const HallsManagement = ({ hostels, setHostels }) => {
                       return (
                         <div key={bed.bedId}
                           className={`rounded-lg border-2 p-3 transition-all ${isAvailable
-                            ? 'border-teal-200 bg-teal-50/50'
+                            ? 'border-emerald-200 bg-emerald-50/50'
                             : 'border-red-200 bg-red-50/50'
                           }`}>
                           <div className="flex items-center justify-between mb-2">
                             <span className="text-sm font-bold text-gray-700"> {bed.bedId}</span>
-                            <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold uppercase ${isAvailable ? 'bg-teal-100 text-teal-700' : 'bg-red-100 text-red-600'}`}>
+                            <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold uppercase ${isAvailable ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-600'}`}>
                               {bed.status}
                             </span>
                           </div>
@@ -693,7 +693,7 @@ const HallsManagement = ({ hostels, setHostels }) => {
                             onClick={() => toggleBedStatus(selectedHostel.id, activeFloor, roomIdx, bedIdx)}
                             className={`w-full text-xs font-medium px-3 py-1.5 rounded-lg transition-colors ${isAvailable
                               ? 'bg-red-50 text-red-600 hover:bg-red-100'
-                              : 'bg-teal-50 text-teal-700 hover:bg-teal-100'
+                              : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
                             }`}>
                             {isAvailable ? 'Mark Occupied' : 'Mark Available'}
                           </button>
@@ -775,7 +775,7 @@ const BookingsManagement = ({ bookings, setBookings, hostels, setHostels }) => {
         <div className="flex gap-2">
           {['all', 'pending', 'approved', 'rejected'].map((status) => (
             <button key={status} onClick={() => setStatusFilter(status)}
-              className={`text-xs font-medium px-3 py-1.5 rounded-lg transition-colors capitalize ${statusFilter === status ? 'bg-teal-600 text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}>
+              className={`text-xs font-medium px-3 py-1.5 rounded-lg transition-colors capitalize ${statusFilter === status ? 'bg-emerald-600 text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}>
               {status}
             </button>
           ))}
@@ -885,8 +885,10 @@ const HostelManagerDashboard = ({ user, onLogout }) => {
     }
   }
 
+  const sora = { fontFamily: "'Sora', sans-serif" }
+
   return (
-    <div className="min-h-screen bg-gray-100 flex">
+    <div className="min-h-screen bg-amber-50/30 flex" style={sora}>
       <ManagerSidebar activePage={activePage} onNavigate={setActivePage} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="flex-1 flex flex-col min-w-0">
         <ManagerTopbar user={user} pageTitle={pageTitles[activePage] || 'Dashboard'} onToggleSidebar={() => setSidebarOpen(true)} onLogout={onLogout} />
