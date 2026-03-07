@@ -10,18 +10,20 @@
  */
 
 const Navbar = ({ student, onLogout }) => {
+  const sora = { fontFamily: "'Sora', sans-serif" }
+  const serif = { fontFamily: "'DM Serif Display', serif" }
   return (
-    <nav className="bg-white shadow-sm border-b border-gray-100 sticky top-0 z-40">
+    <nav className="bg-white/90 backdrop-blur-sm shadow-sm border-b border-violet-100/60 sticky top-0 z-40" style={sora}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
 
           {/* ── Logo / Brand ──────────────────────────────────────── */}
           <div className="flex items-center gap-2">
             <span className="text-2xl">🏠</span>
-            <h1 className="text-lg font-bold text-indigo-700 tracking-tight hidden sm:block">
+            <h1 className="text-lg font-bold text-violet-700 tracking-tight hidden sm:block" style={serif}>
               Student Home Finder
             </h1>
-            <h1 className="text-lg font-bold text-indigo-700 tracking-tight sm:hidden">
+            <h1 className="text-lg font-bold text-violet-700 tracking-tight sm:hidden" style={serif}>
               SHF
             </h1>
           </div>

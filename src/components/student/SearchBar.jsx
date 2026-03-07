@@ -45,7 +45,7 @@ const SearchBar = ({
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
             className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 bg-gray-50
-                       text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200
+                       text-sm outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-200
                        transition-colors"
           />
         </div>
@@ -55,7 +55,7 @@ const SearchBar = ({
           value={priceRange}
           onChange={(e) => onPriceChange(e.target.value)}
           className="px-4 py-2.5 rounded-lg border border-gray-300 bg-gray-50 text-sm
-                     outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200
+                     outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-200
                      transition-colors cursor-pointer min-w-[160px]"
         >
           <option value="all">All Prices</option>
@@ -70,7 +70,7 @@ const SearchBar = ({
           value={sortBy}
           onChange={(e) => onSortChange(e.target.value)}
           className="px-4 py-2.5 rounded-lg border border-gray-300 bg-gray-50 text-sm
-                     outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200
+                     outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-200
                      transition-colors cursor-pointer min-w-[160px]"
         >
           <option value="newest">Newest First</option>
@@ -81,7 +81,7 @@ const SearchBar = ({
 
       {/* Result count badge */}
       <div className="mt-3 text-xs text-gray-500">
-        Showing <span className="font-semibold text-indigo-600">{resultCount}</span> properties
+        Showing <span className="font-semibold text-violet-600">{resultCount}</span> properties
       </div>
     </div>
   )

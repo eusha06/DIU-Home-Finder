@@ -36,7 +36,7 @@ const BookingConfirmModal = ({ property, student, onClose, onConfirm }) => {
       <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 text-center
                       animate-[fadeIn_0.15s_ease-out]">
         {/* Icon */}
-        <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-indigo-100 flex items-center justify-center
+        <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-violet-100 flex items-center justify-center
                        text-3xl">
           🏠
         </div>
@@ -52,7 +52,7 @@ const BookingConfirmModal = ({ property, student, onClose, onConfirm }) => {
           <p className="text-xs text-gray-500 mt-0.5">{property.location}</p>
           <div className="flex items-center justify-between mt-2">
             <span className="text-xs text-gray-500">Monthly Rent</span>
-            <span className="text-sm font-bold text-indigo-600">৳{property.rent.toLocaleString()}</span>
+            <span className="text-sm font-bold text-violet-600">৳{property.rent.toLocaleString()}</span>
           </div>
           <div className="flex items-center justify-between mt-1">
             <span className="text-xs text-gray-500">Owner</span>
@@ -71,8 +71,8 @@ const BookingConfirmModal = ({ property, student, onClose, onConfirm }) => {
           </button>
           <button
             onClick={handleConfirm}
-            className="flex-1 py-2.5 rounded-xl bg-indigo-600 text-sm font-semibold text-white
-                       hover:bg-indigo-700 active:scale-[0.98] transition-all shadow-md"
+            className="flex-1 py-2.5 rounded-xl bg-violet-600 text-sm font-semibold text-white
+                       hover:bg-violet-700 active:scale-[0.98] transition-all shadow-md"
           >
             Confirm
           </button>

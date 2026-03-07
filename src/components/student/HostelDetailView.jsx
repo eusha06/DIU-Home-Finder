@@ -128,7 +128,7 @@ const HostelDetailView = ({ hostel, onBack, onRequestBed }) => {
                 </div>
               </div>
               <div className="bg-white/95 backdrop-blur-sm rounded-xl px-4 py-2 shadow-lg shrink-0">
-                <p className="text-lg font-bold text-indigo-700">
+                <p className="text-lg font-bold text-violet-700">
                   ৳{hostel.rent.toLocaleString()}
                   <span className="text-[10px] text-gray-400 font-normal">/mo</span>
                 </p>
@@ -166,8 +166,8 @@ const HostelDetailView = ({ hostel, onBack, onRequestBed }) => {
             {hostel.facilities.map((f) => {
               const info = facilityLabels[f] || { icon: '✅', label: f }
               return (
-                <span key={f} className="flex items-center gap-1.5 bg-indigo-50 border border-indigo-100
-                                        rounded-lg px-3 py-1.5 text-xs text-indigo-700 font-medium">
+                <span key={f} className="flex items-center gap-1.5 bg-violet-50 border border-violet-100
+                                        rounded-lg px-3 py-1.5 text-xs text-violet-700 font-medium">
                   <span>{info.icon}</span> {info.label}
                 </span>
               )
@@ -196,17 +196,17 @@ const HostelDetailView = ({ hostel, onBack, onRequestBed }) => {
                   relative flex flex-col items-center min-w-[90px] px-4 py-3 rounded-xl border-2 text-sm
                   font-semibold transition-all duration-200
                   ${isActive
-                    ? 'border-indigo-500 bg-indigo-50 text-indigo-700 shadow-md shadow-indigo-100'
-                    : 'border-gray-200 bg-white text-gray-600 hover:border-indigo-300 hover:bg-indigo-50/50'}
+                    ? 'border-violet-500 bg-violet-50 text-violet-700 shadow-md shadow-violet-100'
+                    : 'border-gray-200 bg-white text-gray-600 hover:border-violet-300 hover:bg-violet-50/50'}
                 `}
               >
                 <span className="text-xs font-bold">Floor {floor.floorNumber}</span>
-                <span className={`text-[10px] mt-0.5 ${isActive ? 'text-indigo-500' : 'text-gray-400'}`}>
+                <span className={`text-[10px] mt-0.5 ${isActive ? 'text-violet-500' : 'text-gray-400'}`}>
                   {fs.rooms} rooms · {fs.available} free
                 </span>
                 {/* Active indicator dot */}
                 {isActive && (
-                  <span className="absolute -top-1 -right-1 w-3 h-3 bg-indigo-500 rounded-full border-2 border-white" />
+                  <span className="absolute -top-1 -right-1 w-3 h-3 bg-violet-500 rounded-full border-2 border-white" />
                 )}
               </button>
             )
@@ -269,8 +269,8 @@ const HostelDetailView = ({ hostel, onBack, onRequestBed }) => {
                         flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold
                         transition-all duration-200 shrink-0
                         ${isExpanded
-                          ? 'bg-indigo-100 text-indigo-700 border border-indigo-200'
-                          : 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm hover:shadow'}
+                          ? 'bg-violet-100 text-violet-700 border border-violet-200'
+                          : 'bg-violet-600 text-white hover:bg-violet-700 shadow-sm hover:shadow'}
                       `}
                     >
                       {isExpanded ? 'Hide Beds' : 'View Beds'}

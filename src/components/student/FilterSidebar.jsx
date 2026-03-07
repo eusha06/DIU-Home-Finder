@@ -31,8 +31,8 @@ const FilterSidebar = ({ filters, onChange, studentGender, isOpen, onClose }) =>
         px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 border
         ${disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'}
         ${active
-          ? 'bg-indigo-100 text-indigo-700 border-indigo-300'
-          : 'bg-gray-50 text-gray-600 border-gray-200 hover:border-indigo-200'}
+          ? 'bg-violet-100 text-violet-700 border-violet-300'
+          : 'bg-gray-50 text-gray-600 border-gray-200 hover:border-violet-200'}
       `}
     >
       {label}
@@ -104,7 +104,7 @@ const FilterSidebar = ({ filters, onChange, studentGender, isOpen, onClose }) =>
               onChange={(e) => onChange('availableOnly', e.target.checked)}
               className="sr-only peer"
             />
-            <div className="w-10 h-5 bg-gray-300 rounded-full peer-checked:bg-indigo-500 transition-colors" />
+            <div className="w-10 h-5 bg-gray-300 rounded-full peer-checked:bg-violet-500 transition-colors" />
             <div className="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full shadow
                             peer-checked:translate-x-5 transition-transform" />
           </div>
@@ -124,7 +124,7 @@ const FilterSidebar = ({ filters, onChange, studentGender, isOpen, onClose }) =>
           onChange('availableOnly', false)
         }}
         className="w-full py-2 rounded-lg border border-gray-300 text-xs font-medium
-                   text-gray-500 hover:text-indigo-600 hover:border-indigo-300 transition-all"
+                   text-gray-500 hover:text-violet-600 hover:border-violet-300 transition-all"
       >
         Reset Filters
       </button>
@@ -137,7 +137,7 @@ const FilterSidebar = ({ filters, onChange, studentGender, isOpen, onClose }) =>
       <aside className="hidden lg:block w-64 shrink-0">
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 sticky top-20">
           <h3 className="text-sm font-bold text-gray-800 mb-4 flex items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-indigo-500" fill="none"
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-violet-500" fill="none"
               viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                 d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
@@ -158,7 +158,7 @@ const FilterSidebar = ({ filters, onChange, studentGender, isOpen, onClose }) =>
                           animate-[slideIn_0.2s_ease-out]">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-indigo-500" fill="none"
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-violet-500" fill="none"
                   viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                     d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />

@@ -71,7 +71,7 @@ const HostelCard = ({ hostel, onViewHostel }) => {
 
         {/* Price overlay */}
         <div className="absolute bottom-3 right-3 bg-white/95 backdrop-blur-sm rounded-xl px-3.5 py-2 shadow-lg">
-          <p className="text-sm font-bold text-indigo-700">
+          <p className="text-sm font-bold text-violet-700">
             ৳{hostel.rent.toLocaleString()}
             <span className="text-[10px] text-gray-400 font-normal">/mo</span>
           </p>
@@ -81,7 +81,7 @@ const HostelCard = ({ hostel, onViewHostel }) => {
       {/* Card body */}
       <div className="p-5">
         {/* Name */}
-        <h3 className="font-bold text-gray-800 text-base mb-1 truncate group-hover:text-indigo-700 transition-colors">
+        <h3 className="font-bold text-gray-800 text-base mb-1 truncate group-hover:text-violet-700 transition-colors">
           {hostel.name}
         </h3>
 
@@ -116,7 +116,7 @@ const HostelCard = ({ hostel, onViewHostel }) => {
         {/* Facilities row */}
         <div className="flex flex-wrap gap-1.5 mb-4">
           {hostel.facilities.slice(0, 5).map((f) => (
-            <span key={f} className="text-[10px] bg-indigo-50 text-indigo-600 font-medium px-2 py-1 rounded-md">
+            <span key={f} className="text-[10px] bg-violet-50 text-violet-600 font-medium px-2 py-1 rounded-md">
               {facilityIcons[f] || '✅'} {f}
             </span>
           ))}
@@ -135,7 +135,7 @@ const HostelCard = ({ hostel, onViewHostel }) => {
             w-full py-2.5 rounded-xl text-sm font-semibold transition-all duration-200
             flex items-center justify-center gap-2
             ${stats.availableBeds > 0
-              ? 'bg-indigo-600 text-white hover:bg-indigo-700 active:scale-[0.98] shadow-md hover:shadow-lg'
+              ? 'bg-violet-600 text-white hover:bg-violet-700 active:scale-[0.98] shadow-md hover:shadow-lg'
               : 'bg-gray-200 text-gray-400 cursor-not-allowed'}
           `}
         >
