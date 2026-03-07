@@ -27,7 +27,7 @@ const DashboardOverview = ({ properties = [], bookings = [] }) => {
     <div className="space-y-8">
       {/* Stat cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="Total Properties" value={totalProperties} color="text-indigo-600" />
+        <StatCard label="Total Properties" value={totalProperties} color="text-blue-700" />
         <StatCard label="Available" value={availableProperties} color="text-green-600" />
         <StatCard label="Total Bookings" value={totalBookings} color="text-blue-600" />
         <StatCard label="Pending Bookings" value={pendingBookings} color="text-yellow-600" />

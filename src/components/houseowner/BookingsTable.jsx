@@ -59,7 +59,7 @@ const BookingsTable = ({ bookings, onUpdateBooking }) => {
                 {/* Student */}
                 <td className="px-5 py-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-xs font-bold text-indigo-600">
+                    <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-xs font-bold text-blue-700">
                       {booking.studentName.charAt(0)}
                     </div>
                     <div>
@@ -115,7 +115,7 @@ const BookingsTable = ({ bookings, onUpdateBooking }) => {
           <div key={booking.id} className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
             <div className="flex items-start justify-between mb-3">
               <div className="flex items-center gap-2">
-                <div className="w-9 h-9 rounded-full bg-indigo-100 flex items-center justify-center text-xs font-bold text-indigo-600">
+                <div className="w-9 h-9 rounded-full bg-blue-100 flex items-center justify-center text-xs font-bold text-blue-700">
                   {booking.studentName.charAt(0)}
                 </div>
                 <div>

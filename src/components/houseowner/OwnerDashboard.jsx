@@ -90,7 +90,7 @@ const OwnerDashboard = ({ owner, onLogout }) => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="min-h-screen bg-amber-50/30 flex" style={{ fontFamily: "'Sora', sans-serif" }}>
       {/* Sidebar */}
       <Sidebar
         activePage={activePage}
