@@ -11,6 +11,11 @@ import BookingConfirmModal from './BookingConfirmModal'
 import dummyProperties from './data/dummyProperties'
 import dummyHostels from './data/dummyHostelData'
 
+// ── Hostel browsing components ────────────────────────────────────────────
+import HostelCard from './HostelCard'
+import HostelDetailView from './HostelDetailView'
+import SeatRequestModal from './SeatRequestModal'
+
 // ── Constants ─────────────────────────────────────────────────────────────
 const ITEMS_PER_PAGE = 6
 const LOADING_DELAY_MS = 1500
@@ -242,8 +247,9 @@ const StudentHomePage = ({ student, onLogout }) => {
   const [selectedCategory, setSelectedCategory] = useState(null)
 
   // ── Combine both data sources into one array ────────────────────────────
+  // (used only for rental homes now; hostels use their own hierarchical data)
   const allProperties = useMemo(
-    () => [...dummyProperties, ...dummyHostels],
+    () => [...dummyProperties],
     []
   )
 
@@ -274,6 +280,24 @@ const StudentHomePage = ({ student, onLogout }) => {
   const [selectedProperty, setSelectedProperty] = useState(null)   // for detail modal
   const [bookingProperty, setBookingProperty] = useState(null)     // for confirm modal
   const [bookingSuccess, setBookingSuccess] = useState(false)      // show success toast
+
+  // ── Hostel browsing state ───────────────────────────────────────────────
+  const [selectedHostel, setSelectedHostel] = useState(null)       // currently viewed hostel
+  const [seatRequest, setSeatRequest] = useState(null)             // { bed, room, hostel } for modal
+  const [hostelSearchQuery, setHostelSearchQuery] = useState('')   // search within hostels
+
+  // ── Hostels filtered by student gender ──────────────────────────────────
+  const filteredHostels = useMemo(() => {
+    let result = dummyHostels.filter((h) => h.gender === student.gender)
+    // Text search on hostel name and location
+    if (hostelSearchQuery.trim()) {
+      const q = hostelSearchQuery.toLowerCase()
+      result = result.filter(
+        (h) => h.name.toLowerCase().includes(q) || h.location.toLowerCase().includes(q)
+      )
+    }
+    return result
+  }, [student.gender, hostelSearchQuery])
 
   // ── Simulate loading whenever category changes ──────────────────────────
   // This gives a realistic skeleton-card experience while "fetching" data.
@@ -423,6 +447,10 @@ const StudentHomePage = ({ student, onLogout }) => {
     // Reset filters, search & pagination when going back
     resetAllFilters()
     setCurrentPage(1)
+    // Reset hostel state
+    setSelectedHostel(null)
+    setSeatRequest(null)
+    setHostelSearchQuery('')
   }
 
   // ── Render ──────────────────────────────────────────────────────────────
@@ -443,26 +471,112 @@ const StudentHomePage = ({ student, onLogout }) => {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-5">
             <div className="flex items-center gap-3">
               <button
-                onClick={handleBackToCategories}
+                onClick={selectedCategory === 'hostel' && selectedHostel
+                  ? () => setSelectedHostel(null)
+                  : handleBackToCategories}
                 className="flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-indigo-600 bg-white border border-gray-200 rounded-lg px-3 py-2 shadow-sm hover:border-indigo-300 transition-all duration-200"
               >
                 <svg className="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                 </svg>
-                Back
+                {selectedCategory === 'hostel' && selectedHostel ? 'All Hostels' : 'Back'}
               </button>
               <div>
                 <h2 className="text-lg font-bold text-gray-800">
-                  {selectedCategory === 'home' ? '🏠 Rental Homes' : '🏢 Hostels'}
+                  {selectedCategory === 'home'
+                    ? '🏠 Rental Homes'
+                    : selectedHostel
+                      ? `🏢 ${selectedHostel.name}`
+                      : '🏢 Hostels'}
                 </h2>
                 <p className="text-xs text-gray-400">
-                  Showing {selectedCategory === 'home' ? 'rental homes' : 'hostels'} for {student.gender} students
+                  {selectedCategory === 'home'
+                    ? `Showing rental homes for ${student.gender} students`
+                    : selectedHostel
+                      ? `${selectedHostel.location}`
+                      : `Showing hostels for ${student.gender} students`}
                 </p>
               </div>
             </div>
           </div>
 
-          {/* ── Mobile filter toggle ────────────────────────────────── */}
+          {/* ═══════════════════════════════════════════════════════════ */}
+          {/* HOSTEL CATEGORY — new hierarchical browsing flow           */}
+          {/* ═══════════════════════════════════════════════════════════ */}
+          {selectedCategory === 'hostel' && (
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+              {isLoading ? (
+                /* Hostel loading skeletons */
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <SkeletonCard key={i} />
+                  ))}
+                </div>
+              ) : selectedHostel ? (
+                /* ── Single Hostel Detail: floor → room → bed ────── */
+                <HostelDetailView
+                  hostel={selectedHostel}
+                  onBack={() => setSelectedHostel(null)}
+                  onRequestBed={(bed, room, hostel) => setSeatRequest({ bed, room, hostel })}
+                />
+              ) : (
+                /* ── Hostel List ──────────────────────────────────── */
+                <>
+                  {/* Search bar for hostels */}
+                  <div className="mb-6">
+                    <div className="relative max-w-md">
+                      <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                      </svg>
+                      <input
+                        type="text"
+                        placeholder="Search hostels by name or location..."
+                        value={hostelSearchQuery}
+                        onChange={(e) => setHostelSearchQuery(e.target.value)}
+                        className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 bg-white text-sm
+                                   focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:border-indigo-400
+                                   placeholder:text-gray-400 transition-all"
+                      />
+                      {hostelSearchQuery && (
+                        <button
+                          onClick={() => setHostelSearchQuery('')}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                        >
+                          <svg className="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      )}
+                    </div>
+                    <p className="text-xs text-gray-400 mt-2">
+                      {filteredHostels.length} hostel{filteredHostels.length !== 1 ? 's' : ''} found
+                    </p>
+                  </div>
+
+                  {filteredHostels.length === 0 ? (
+                    <EmptyState category="hostel" onResetFilters={() => setHostelSearchQuery('')} />
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {filteredHostels.map((hostel) => (
+                        <HostelCard
+                          key={hostel.id}
+                          hostel={hostel}
+                          onViewHostel={(h) => setSelectedHostel(h)}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          )}
+
+          {/* ═══════════════════════════════════════════════════════════ */}
+          {/* RENTAL HOME CATEGORY — existing property card flow         */}
+          {/* ═══════════════════════════════════════════════════════════ */}
+          {selectedCategory === 'home' && (
+            <>
+              {/* ── Mobile filter toggle ────────────────────────────────── */}
       <div className="lg:hidden px-4 pt-4">
         <button
           onClick={() => setSidebarOpen(true)}
@@ -506,20 +620,17 @@ const StudentHomePage = ({ student, onLogout }) => {
 
             {/* Property grid — skeleton / empty / listing + pagination */}
             {isLoading ? (
-              /* ── Loading skeletons ────────────────────────────────── */
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
                 {Array.from({ length: ITEMS_PER_PAGE }).map((_, i) => (
                   <SkeletonCard key={i} />
                 ))}
               </div>
             ) : filteredProperties.length === 0 ? (
-              /* ── Empty state ──────────────────────────────────────── */
               <EmptyState
                 category={selectedCategory}
                 onResetFilters={resetAllFilters}
               />
             ) : (
-              /* ── Property cards + pagination ──────────────────────── */
               <>
                 <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
                   {paginatedProperties.map((property) => (
@@ -531,7 +642,6 @@ const StudentHomePage = ({ student, onLogout }) => {
                   ))}
                 </div>
 
-                {/* Showing X-Y of Z indicator */}
                 <div className="text-center mt-4 text-xs text-gray-400">
                   Showing{' '}
                   <span className="font-semibold text-gray-600">
@@ -545,7 +655,6 @@ const StudentHomePage = ({ student, onLogout }) => {
                   properties
                 </div>
 
-                {/* Pagination controls */}
                 <Pagination
                   currentPage={currentPage}
                   totalPages={totalPages}
@@ -575,13 +684,32 @@ const StudentHomePage = ({ student, onLogout }) => {
           onConfirm={handleBookingConfirm}
         />
       )}
+            </>
+          )}
+
+      {/* ── Seat request modal (hostel beds) ───────────────────────── */}
+      {seatRequest && (
+        <SeatRequestModal
+          bed={seatRequest.bed}
+          room={seatRequest.room}
+          hostel={seatRequest.hostel}
+          onClose={() => setSeatRequest(null)}
+          onConfirm={() => {
+            setSeatRequest(null)
+            setBookingSuccess(true)
+            setTimeout(() => setBookingSuccess(false), 3000)
+          }}
+        />
+      )}
 
       {/* ── Success toast ──────────────────────────────────────────── */}
       {bookingSuccess && (
         <div className="fixed bottom-6 right-6 z-[70] bg-green-600 text-white px-5 py-3 rounded-xl
                        shadow-lg flex items-center gap-2 animate-[fadeIn_0.2s_ease-out]">
           <span className="text-lg">✅</span>
-          <span className="text-sm font-medium">Booking request sent successfully!</span>
+          <span className="text-sm font-medium">
+            {selectedCategory === 'hostel' ? 'Seat request sent successfully!' : 'Booking request sent successfully!'}
+          </span>
         </div>
       )}
         </>
