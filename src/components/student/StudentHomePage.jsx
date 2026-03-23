@@ -58,9 +58,9 @@ const SkeletonCard = () => (
 const EmptyState = ({ category, onResetFilters }) => (
   <div className="flex flex-col items-center justify-center py-20 px-4">
     {/* Icon */}
-    <div className="w-20 h-20 rounded-full bg-violet-50 flex items-center justify-center mb-5">
+    <div className="w-20 h-20 rounded-full bg-[#F3F4F8] flex items-center justify-center mb-5">
       <svg
-        className="w-10 h-10 text-violet-400"
+        className="w-10 h-10 text-[#4A408A]"
         xmlns="http://www.w3.org/2000/svg"
         fill="none"
         viewBox="0 0 24 24"
@@ -89,8 +89,8 @@ const EmptyState = ({ category, onResetFilters }) => (
     {/* Reset button */}
     <button
       onClick={onResetFilters}
-      className="inline-flex items-center gap-2 px-5 py-2.5 bg-violet-600 text-white text-sm
-                 font-medium rounded-lg hover:bg-violet-700 active:scale-[0.98]
+      className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#4A408A] text-white text-sm
+                 font-medium rounded-lg hover:bg-[#3C327B] active:scale-[0.98]
                  transition-all duration-200 shadow-sm hover:shadow"
     >
       <svg
@@ -164,7 +164,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
           border transition-all duration-200
           ${currentPage === 1
             ? 'border-gray-200 text-gray-300 cursor-not-allowed bg-gray-50'
-            : 'border-gray-300 text-gray-600 hover:border-violet-300 hover:text-violet-600 bg-white shadow-sm hover:shadow'}
+            : 'border-gray-300 text-gray-600 hover:border-[#3C327B] hover:text-[#3C327B] bg-white shadow-sm hover:shadow'}
         `}
       >
         <svg className="w-3.5 h-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -186,8 +186,8 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
             className={`
               w-9 h-9 rounded-lg text-xs font-semibold transition-all duration-200 border
               ${page === currentPage
-                ? 'bg-violet-600 text-white border-violet-600 shadow-md shadow-violet-200'
-                : 'bg-white text-gray-600 border-gray-200 hover:border-violet-300 hover:text-violet-600 shadow-sm hover:shadow'}
+                ? 'bg-[#4A408A] text-white border-[#4A408A] shadow-md shadow-indigo-200/50'
+                : 'bg-white text-gray-600 border-gray-200 hover:border-[#3C327B] hover:text-[#3C327B] shadow-sm hover:shadow'}
             `}
           >
             {page}
@@ -204,7 +204,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
           border transition-all duration-200
           ${currentPage === totalPages
             ? 'border-gray-200 text-gray-300 cursor-not-allowed bg-gray-50'
-            : 'border-gray-300 text-gray-600 hover:border-violet-300 hover:text-violet-600 bg-white shadow-sm hover:shadow'}
+            : 'border-gray-300 text-gray-600 hover:border-[#3C327B] hover:text-[#3C327B] bg-white shadow-sm hover:shadow'}
         `}
       >
         Next
@@ -455,7 +455,7 @@ const StudentHomePage = ({ student, onLogout }) => {
 
   // ── Render ──────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-amber-50/30" style={{ fontFamily: "'Sora', sans-serif" }}>
+    <div className="min-h-screen bg-[#F3F4F8]" style={{ fontFamily: "'Sora', sans-serif" }}>
       {/* ── Navbar ──────────────────────────────────────────────────── */}
       <Navbar student={student} onLogout={onLogout} />
 
@@ -468,13 +468,13 @@ const StudentHomePage = ({ student, onLogout }) => {
       {selectedCategory && (
         <>
           {/* Back button + category title bar */}
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-5">
+          <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 pt-5">
             <div className="flex items-center gap-3">
               <button
                 onClick={selectedCategory === 'hostel' && selectedHostel
                   ? () => setSelectedHostel(null)
                   : handleBackToCategories}
-                className="flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-violet-600 bg-white border border-gray-200 rounded-lg px-3 py-2 shadow-sm hover:border-violet-300 transition-all duration-200"
+                className="flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-[#4A408A] bg-white border border-gray-200 rounded-lg px-3 py-2 shadow-sm hover:border-violet-300 transition-all duration-200"
               >
                 <svg className="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -504,7 +504,7 @@ const StudentHomePage = ({ student, onLogout }) => {
           {/* HOSTEL CATEGORY — new hierarchical browsing flow           */}
           {/* ═══════════════════════════════════════════════════════════ */}
           {selectedCategory === 'hostel' && (
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
               {isLoading ? (
                 /* Hostel loading skeletons */
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -580,8 +580,8 @@ const StudentHomePage = ({ student, onLogout }) => {
       <div className="lg:hidden px-4 pt-4">
         <button
           onClick={() => setSidebarOpen(true)}
-          className="flex items-center gap-2 text-sm font-medium text-violet-600 bg-white
-                     border border-violet-200 rounded-lg px-4 py-2 shadow-sm hover:bg-violet-50
+          className="flex items-center gap-2 text-sm font-medium text-[#4A408A] bg-white
+                     border border-violet-200 rounded-lg px-4 py-2 shadow-sm hover:bg-[#F3F4F8]
                      transition-colors"
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none"
@@ -594,7 +594,7 @@ const StudentHomePage = ({ student, onLogout }) => {
       </div>
 
       {/* ── Main content area ──────────────────────────────────────── */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="flex gap-6">
           {/* Sidebar */}
           <FilterSidebar
@@ -620,7 +620,7 @@ const StudentHomePage = ({ student, onLogout }) => {
 
             {/* Property grid — skeleton / empty / listing + pagination */}
             {isLoading ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {Array.from({ length: ITEMS_PER_PAGE }).map((_, i) => (
                   <SkeletonCard key={i} />
                 ))}
@@ -632,7 +632,7 @@ const StudentHomePage = ({ student, onLogout }) => {
               />
             ) : (
               <>
-                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                   {paginatedProperties.map((property) => (
                     <PropertyCard
                       key={property.id}

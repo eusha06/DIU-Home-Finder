@@ -1,65 +1,27 @@
-/**
- * Navbar.jsx
- * ──────────
- * Top navigation bar for the student homepage.
- * Shows the app logo/name, student info, and a profile avatar.
- *
- * Props:
- *   student - { fullName, gender } object of the logged-in student
- *   onLogout - callback when the user clicks logout
- */
+﻿import { useState } from 'react'
 
 const Navbar = ({ student, onLogout }) => {
-  const sora = { fontFamily: "'Sora', sans-serif" }
-  const serif = { fontFamily: "'DM Serif Display', serif" }
   return (
-    <nav className="bg-white/90 backdrop-blur-sm shadow-sm border-b border-violet-100/60 sticky top-0 z-40" style={sora}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <nav className="bg-[#312783] text-[#F3F4F8] shadow-sm sticky top-0 z-40" style={{ fontFamily: "'Sora', sans-serif" }}>
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-
-          {/* ── Logo / Brand ──────────────────────────────────────── */}
           <div className="flex items-center gap-2">
-            <span className="text-2xl">🏠</span>
-            <h1 className="text-lg font-bold text-violet-700 tracking-tight hidden sm:block" style={serif}>
-              Student Home Finder
-            </h1>
-            <h1 className="text-lg font-bold text-violet-700 tracking-tight sm:hidden" style={serif}>
-              SHF
-            </h1>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-6 h-6 text-white">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
+            </svg>
+            <h1 className="text-xl font-bold tracking-tight text-white hidden sm:block">StudentHomeFinder</h1>
           </div>
-
-          {/* ── Right side: user info + logout ─────────────────────── */}
-          <div className="flex items-center gap-3">
-            {/* Gender badge */}
-            <span className={`
-              text-xs font-semibold px-2.5 py-1 rounded-full hidden sm:inline-block
-              ${student.gender === 'male'
-                ? 'bg-blue-100 text-blue-700'
-                : 'bg-pink-100 text-pink-700'}
-            `}>
-              {student.gender === 'male' ? '👨 Male' : '👩 Female'}
-            </span>
-
-            {/* Profile avatar + name */}
-            <div className="flex items-center gap-2">
-              <div className={`
-                w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-white
-                ${student.gender === 'male' ? 'bg-blue-500' : 'bg-pink-500'}
-              `}>
-                {student.fullName.charAt(0).toUpperCase()}
-              </div>
-              <span className="text-sm font-medium text-gray-700 hidden md:block">
-                {student.fullName}
-              </span>
+          <div className="hidden md:flex items-center gap-8 text-[15px] font-medium text-[#D1D5DB]">
+            <a href="#" className="hover:text-white transition-colors">Home</a>
+            <div className="relative">
+              <a href="#" className="text-white pb-1">Search</a>
+              <div className="absolute -bottom-[21px] left-0 w-full h-[3px] bg-white rounded-t-sm"></div>
             </div>
-
-            {/* Logout button */}
-            <button
-              onClick={onLogout}
-              className="ml-2 text-xs text-gray-400 hover:text-red-500 transition-colors font-medium"
-            >
-              Logout
-            </button>
+            <a href="#" className="hover:text-white transition-colors">Favorites</a>
+            <a href="#" className="hover:text-white transition-colors">Profile</a>
+          </div>
+          <div className="flex items-center gap-3">
+             <button onClick={onLogout} className="bg-[#5D529B] hover:bg-[#4A408A] text-white px-5 py-2 rounded-full text-sm font-medium transition-colors">Log In / Sign Up</button>
           </div>
         </div>
       </div>
