@@ -1,0 +1,169 @@
+const formatDate = (dateString) => {
+  const parsed = new Date(dateString)
+  if (Number.isNaN(parsed.getTime())) {
+    return dateString
+  }
+
+  return parsed.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  })
+}
+
+const StatCard = ({ label, value, trend, trendTone }) => (
+  <div className="relative rounded-[20px] border border-[#6677df] bg-[linear-gradient(135deg,#273487_0%,#3445a9_46%,#4157c3_100%)] shadow-[0_20px_30px_-24px_rgba(18,28,102,0.95)] p-3 overflow-hidden">
+    <div className="absolute inset-0 bg-[radial-gradient(circle_at_58%_46%,rgba(147,165,255,0.28),transparent_54%)]" />
+    <div className="relative z-10 rounded-[16px] border border-white/45 bg-[linear-gradient(138deg,rgba(255,255,255,0.23)_0%,rgba(255,255,255,0.08)_100%)] backdrop-blur-sm px-5 py-4">
+      <div className="flex items-center justify-between">
+        <p className="text-[33px] font-medium text-white/95">{label}</p>
+        <span className="text-[30px] bg-white/25 text-white/90 rounded-full px-3 py-1 leading-none">Soft-UI</span>
+      </div>
+      <div className="mt-5 flex items-end justify-between gap-3">
+        <p className="text-4xl lg:text-[57px] leading-none font-bold text-white tracking-[-0.02em]">{value}</p>
+        <p
+          className={`text-[30px] rounded-full px-4 py-2 border leading-none ${
+            trendTone === 'green'
+              ? 'bg-[#c8f1d4]/95 text-[#285f3a] border-[#a8e6be]'
+              : 'bg-[#ffe9bb]/95 text-[#986f1f] border-[#f7d78e]'
+          }`}
+        >
+          {trend}
+        </p>
+      </div>
+    </div>
+  </div>
+)
+
+const statusStyles = {
+  Pending: 'bg-[#f8e4b8] text-[#956a1f]',
+  Approved: 'bg-[#cfeccc] text-[#2f6e38]',
+  'In Progress': 'bg-[#cde4f8] text-[#2f6d9c]',
+  Completed: 'bg-[#c6e8ca] text-[#296b35]',
+}
+
+const DashboardOverview = ({ properties = [], bookings = [] }) => {
+  const totalProperties = properties.length
+  const approvedBookings = bookings.filter((b) => b.status === 'approved')
+  const totalRevenue = approvedBookings.reduce((sum, booking) => {
+    const property = properties.find((item) => item.id === booking.propertyId)
+    return sum + (property?.rent || 0)
+  }, 0)
+
+  const fallbackRows = [
+    {
+      id: 'f1',
+      date: '2024-10-26',
+      property: 'Sunrise Apartments, Unit 3B',
+      action: 'Application Submitted by Liam C.',
+      status: 'Pending',
+    },
+    {
+      id: 'f2',
+      date: '2024-10-25',
+      property: 'University Lofts, Apt 101',
+      action: 'Lease Signed by Emma R.',
+      status: 'Approved',
+    },
+    {
+      id: 'f3',
+      date: '2024-10-24',
+      property: 'The Commons, Room 2A',
+      action: 'Booking Request from Noah K.',
+      status: 'Pending',
+    },
+    {
+      id: 'f4',
+      date: '2024-10-23',
+      property: 'Oakwood Residence, Unit 5C',
+      action: 'Maintenance Request: Plumbing',
+      status: 'In Progress',
+    },
+    {
+      id: 'f5',
+      date: '2024-10-22',
+      property: 'The Lofts, Apt 404',
+      action: 'Rent Payment Received',
+      status: 'Completed',
+    },
+  ]
+
+  const generatedRows = bookings.slice(0, 5).map((booking, index) => {
+    const statusLookup = {
+      pending: 'Pending',
+      approved: index === 1 ? 'Approved' : 'Completed',
+      rejected: 'In Progress',
+    }
+
+    const actionLookup = {
+      pending: `Application Submitted by ${booking.studentName}`,
+      approved: `Lease Signed by ${booking.studentName}`,
+      rejected: `Follow Up Required with ${booking.studentName}`,
+    }
+
+    return {
+      id: booking.id,
+      date: booking.date,
+      property: booking.propertyTitle,
+      action: actionLookup[booking.status] || `Activity from ${booking.studentName}`,
+      status: statusLookup[booking.status] || 'Pending',
+    }
+  })
+
+  const rows = generatedRows.length > 0 ? generatedRows : fallbackRows
+
+  const approvedBookingsCount = bookings.filter((b) => b.status === 'approved').length
+
+  return (
+    <div className="space-y-7 pb-2">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+        <StatCard label="Active Listings" value={totalProperties} trend="↑ +2 this month" trendTone="green" />
+        <StatCard
+          label="Total Revenue (YTD)"
+          value={`$${totalRevenue.toLocaleString('en-US')}`}
+          trend={`↑ +${approvedBookingsCount * 5 || 15}% from last year`}
+          trendTone="green"
+        />
+      </div>
+
+      <section className="bg-[#f7f8ff] border border-[#b6a6e0] rounded-2xl p-5 shadow-[0_20px_40px_-34px_rgba(86,61,171,0.65)]">
+        <h3 className="text-3xl sm:text-4xl lg:text-[44px] font-bold text-[#141734] tracking-[-0.02em] mb-4">Recent Activity</h3>
+
+        <div className="rounded-2xl border border-[#b9addd] bg-white/55 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[860px] text-left text-lg text-[#1a1f3e]">
+              <thead className="bg-[linear-gradient(180deg,#f8f8ff_0%,#f0f1fb_100%)] text-[#202447]">
+                <tr>
+                  <th className="px-6 py-4 font-bold">Date</th>
+                  <th className="px-6 py-4 font-bold">Property</th>
+                  <th className="px-6 py-4 font-bold">Action</th>
+                  <th className="px-6 py-4 font-bold">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((row) => (
+                  <tr key={row.id} className="border-t border-[#c8b9e8]">
+                    <td className="px-6 py-4 whitespace-nowrap">{formatDate(row.date)}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{row.property}</td>
+                    <td className="px-6 py-4">{row.action}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span
+                        className={`inline-flex items-center rounded-full px-4 py-1.5 text-base font-medium ${
+                          statusStyles[row.status] || statusStyles.Pending
+                        }`}
+                      >
+                        {row.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </div>
+  )
+}
+
+export default DashboardOverview
