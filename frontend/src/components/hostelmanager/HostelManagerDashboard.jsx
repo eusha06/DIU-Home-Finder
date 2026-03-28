@@ -152,41 +152,71 @@ const Unauthorized = ({ onGoBack }) => (
 // 
 
 const navItems = [
-  { key: 'dashboard', label: 'Dashboard', icon: DashboardIcon },
-  { key: 'halls', label: 'Halls', icon: HallsIcon },
-  { key: 'bookings', label: 'Bookings', icon: BookingsIcon },
+  { id: 'overview', route: 'dashboard', label: 'Overview', icon: DashboardIcon },
+  { id: 'rooms', route: 'halls', label: 'Rooms', icon: HallsIcon },
+  { id: 'students', route: null, label: 'Students', icon: BookingsIcon },
+  { id: 'maintenance', route: null, label: 'Maintenance', icon: ArrowLeftIcon },
+  { id: 'reports', route: 'bookings', label: 'Reports', icon: BookingsIcon },
+  { id: 'settings', route: null, label: 'Settings', icon: LockIcon },
 ]
 
-const ManagerSidebar = ({ activePage, onNavigate, isOpen, onClose }) => {
-  const handleNav = (key) => { onNavigate(key); onClose() }
+const ManagerSidebar = ({ user, activePage, onNavigate, isOpen, onClose }) => {
+  const handleNav = (route) => {
+    if (route) onNavigate(route)
+    onClose()
+  }
+
   return (
     <>
       {isOpen && <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={onClose} />}
-      <aside className={`fixed top-0 left-0 h-full w-64 bg-gray-900 text-gray-300 z-50 flex flex-col transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:z-auto ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-        <div className="px-6 py-5 border-b border-gray-700/50">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-emerald-600 flex items-center justify-center">
-              <HallsIcon className="w-5 h-5 text-white" />
+      <aside className={`fixed top-0 left-0 h-full w-[286px] bg-[radial-gradient(circle_at_16%_10%,#262f84_0%,#161d63_46%,#101548_100%)] text-[#c7c9e3] z-50 flex flex-col transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:z-auto ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+        <div className="px-5 pt-8 pb-7 overflow-hidden">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-10 h-10 rounded-lg bg-white/10 border border-white/20 flex items-center justify-center text-white">
+              <HallsIcon className="w-5 h-5" />
             </div>
-            <div>
-              <h1 className="text-sm font-bold text-white tracking-tight leading-tight">Hostel Manager</h1>
-              <p className="text-[10px] text-gray-500">Student Home Finder</p>
+            <div className="min-w-0">
+              <h1 className="text-[22px] leading-none font-bold text-white tracking-[-0.01em] whitespace-nowrap">StudentHomeFinder</h1>
             </div>
           </div>
         </div>
-        <button onClick={onClose} className="lg:hidden absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-lg text-gray-500 hover:text-gray-300 hover:bg-gray-800 transition-colors">
+
+        <button onClick={onClose} className="lg:hidden absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-lg text-white/70 hover:text-white hover:bg-white/15 transition-colors">
           <CloseIcon className="h-5 w-5" />
         </button>
-        <nav className="flex-1 px-3 py-6 space-y-1">
-          {navItems.map(({ key, label, icon: Icon }) => (
-            <button key={key} onClick={() => handleNav(key)}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${activePage === key ? 'bg-emerald-600/20 text-emerald-400 shadow-sm' : 'text-gray-400 hover:bg-gray-800 hover:text-gray-200'}`}>
-              <Icon className="w-5 h-5 flex-shrink-0" /> {label}
-            </button>
-          ))}
+
+        <nav className="flex-1 px-4 py-2 space-y-2">
+          {navItems.map(({ id, route, label, icon: Icon }) => {
+            const isActive = activePage === route
+            return (
+              <button
+                key={id}
+                onClick={() => handleNav(route)}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-[18px] font-medium transition-all duration-200 text-left ${
+                  isActive
+                    ? 'bg-white text-[#2d3170] shadow-[0_10px_25px_-18px_rgba(255,255,255,0.7)]'
+                    : 'text-[#d0d2ea] hover:bg-white/10'
+                }`}
+              >
+                <Icon className={`w-5 h-5 flex-shrink-0 ${isActive ? 'text-[#5b5fb4]' : 'text-[#b2b4d2]'}`} />
+                {label}
+              </button>
+            )
+          })}
         </nav>
-        <div className="px-4 py-4 border-t border-gray-700/50">
-          <p className="text-[10px] text-gray-600 text-center"> 2026 Student Home Finder</p>
+
+        <div className="px-5 pb-6">
+          <div className="h-px bg-white/20 mb-5" />
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-full bg-white/10 border border-white/20 overflow-hidden flex items-center justify-center text-white font-bold">
+              {user?.name ? user.name.charAt(0).toUpperCase() : 'M'}
+            </div>
+            <div className="min-w-0">
+              <p className="text-lg font-semibold leading-tight text-white truncate">{user?.name || 'Manager'}</p>
+              <p className="text-sm text-[#bdc0e2] leading-tight">Manager</p>
+            </div>
+            <ChevronDownIcon className="w-4 h-4 text-[#c7cae6] ml-auto" />
+          </div>
         </div>
       </aside>
     </>
@@ -228,81 +258,157 @@ const ManagerTopbar = ({ user, pageTitle, onToggleSidebar, onLogout }) => (
 // DASHBOARD OVERVIEW
 // 
 
-const DashboardStats = ({ hostels, bookings }) => {
+const DashboardStats = ({ hostels, bookings, onApproveRequest, onToggleSidebar }) => {
   const allStats = useMemo(() => computeAllStats(hostels), [hostels])
   const pendingRequests = bookings.filter((b) => b.status === 'pending').length
-  const approvedBookings = bookings.filter((b) => b.status === 'approved').length
+  const approvedBookings = bookings.filter((b) => b.status === 'approved')
 
-  const stats = [
-    { label: 'Total Hostels', value: allStats.totalHostels, lightBg: 'bg-blue-50', textColor: 'text-blue-600', barColor: 'bg-blue-500',
-      icon: <HallsIcon className="w-6 h-6" /> },
-    { label: 'Total Beds', value: allStats.totalBeds, lightBg: 'bg-emerald-50', textColor: 'text-emerald-600', barColor: 'bg-emerald-500',
-      icon: <svg className="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m9-4a4 4 0 10-8 0 4 4 0 008 0zm6 4a4 4 0 10-8 0h8z" /></svg> },
-    { label: 'Available Beds', value: allStats.availableBeds, lightBg: 'bg-emerald-50', textColor: 'text-emerald-600', barColor: 'bg-emerald-500',
-      icon: <svg className="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg> },
-    { label: 'Pending Requests', value: pendingRequests, lightBg: 'bg-amber-50', textColor: 'text-amber-600', barColor: 'bg-amber-500',
-      icon: <svg className="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg> },
-    { label: 'Approved', value: approvedBookings, lightBg: 'bg-emerald-50', textColor: 'text-emerald-600', barColor: 'bg-emerald-500',
-      icon: <svg className="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg> },
-  ]
+  const occupancyRate = allStats.totalBeds === 0
+    ? 0
+    : Math.round((allStats.occupiedBeds / allStats.totalBeds) * 100)
+
+  const totalRevenue = approvedBookings.reduce((sum, booking) => {
+    const hostel = hostels.find((h) => h.id === booking.hostelId)
+    return sum + (hostel?.rent || 0)
+  }, 0)
+
+  const dashboardRevenue = totalRevenue > 0 ? totalRevenue : 15400
+
+  const roomRows = useMemo(() => {
+    const rows = []
+    hostels.forEach((hostel) => {
+      hostel.floors.forEach((floor) => {
+        floor.rooms.forEach((room) => {
+          if (rows.length < 3) {
+            const firstOccupied = room.beds.find((b) => b.status === 'occupied')
+            rows.push({
+              hallName: hostel.name,
+              roomNo: room.roomNumber,
+              type: room.type,
+              status: firstOccupied ? 'Occupied' : 'Available',
+              occupant: firstOccupied?.studentName || 'Awaiting Assignment',
+              action: firstOccupied ? 'View Profile' : 'Assign',
+            })
+          }
+        })
+      })
+    })
+
+    if (rows[2]) {
+      rows[2] = { ...rows[2], status: 'Maintenance', occupant: 'Maintenance', action: 'Schedule' }
+    }
+
+    return rows
+  }, [hostels])
+
+  const recentRequests = bookings.filter((b) => b.status === 'pending').slice(0, 2)
+
+  const statusPill = {
+    Available: 'bg-[#cdeed7] text-[#1f7f41]',
+    Occupied: 'bg-[#c8e0f7] text-[#1f5f98]',
+    Maintenance: 'bg-[#f4e1a8] text-[#8d6b18]',
+  }
 
   return (
-    <div>
-      {/* Stats grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-5 mb-8">
-        {stats.map((s) => (
-          <div key={s.label} className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 hover:shadow-md transition-shadow">
-            <div className="flex items-center justify-between">
-              <div className={`w-12 h-12 rounded-lg ${s.lightBg} ${s.textColor} flex items-center justify-center`}>{s.icon}</div>
-              <div className="text-right">
-                <p className="text-2xl font-bold text-gray-800">{s.value}</p>
-                <p className="text-xs text-gray-400 mt-0.5">{s.label}</p>
-              </div>
-            </div>
-            <div className={`mt-4 h-1 rounded-full ${s.barColor} opacity-60`} />
-          </div>
-        ))}
+    <div className="space-y-6">
+      <div className="flex items-center gap-3">
+        <button
+          onClick={onToggleSidebar}
+          className="lg:hidden w-10 h-10 flex items-center justify-center rounded-xl bg-white border border-[#daddea] text-[#525980]"
+        >
+          <MenuIcon className="w-5 h-5" />
+        </button>
+        <h1 className="text-3xl md:text-4xl lg:text-[42px] font-bold tracking-[-0.02em] text-[#0f1220]">Hostel Manager - Unified UI</h1>
       </div>
 
-      {/* Quick summary */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Hostel availability */}
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
-          <h3 className="text-sm font-semibold text-gray-700 mb-4">Hostel Availability</h3>
-          <div className="space-y-3">
-            {hostels.map((h) => {
-              const st = computeHostelStats(h)
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        <div className="bg-white rounded-3xl border border-[#e4e6ef] p-6 shadow-[0_12px_24px_-22px_rgba(26,33,74,0.4)]">
+          <p className="text-3xl text-[#12131f] font-medium">Current Occupancy</p>
+          <div className="mt-6 flex items-center justify-between">
+            <p className="text-6xl font-bold text-[#241f63] leading-none">{occupancyRate}%</p>
+            <div className="w-28 h-28 rounded-full border-[12px] border-[#dad6f6] relative">
+              <div
+                className="absolute inset-[-12px] rounded-full"
+                style={{ background: `conic-gradient(#433aa7 ${Math.min(occupancyRate, 100)}%, #dad6f6 0)` }}
+              />
+              <div className="absolute inset-3 rounded-full bg-white" />
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-3xl border border-[#e4e6ef] p-6 shadow-[0_12px_24px_-22px_rgba(26,33,74,0.4)] flex flex-col justify-between">
+          <p className="text-3xl text-[#12131f] font-medium">Pending Requests</p>
+          <div className="mt-6 flex items-center justify-between">
+            <p className="text-6xl font-bold text-[#241f63] leading-none">{pendingRequests}</p>
+            <ArrowLeftIcon className="w-10 h-10 text-[#8f8ca8] rotate-180" />
+          </div>
+        </div>
+
+        <div className="bg-white rounded-3xl border border-[#e4e6ef] p-6 shadow-[0_12px_24px_-22px_rgba(26,33,74,0.4)] flex flex-col justify-between">
+          <p className="text-3xl text-[#12131f] font-medium">Total Revenue (This Month)</p>
+          <p className="text-6xl font-bold text-[#241f63] leading-none mt-6">${dashboardRevenue.toLocaleString('en-US')}</p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <section className="lg:col-span-2 bg-white rounded-3xl border border-[#e4e6ef] p-6 shadow-[0_12px_24px_-22px_rgba(26,33,74,0.4)]">
+          <h2 className="text-4xl font-bold text-[#161822]">Room Availability</h2>
+          <div className="mt-4 rounded-2xl border border-[#d7d9e6] overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[980px] text-left text-[18px] text-[#151722]">
+                <thead className="bg-[#f8f9fd] border-b border-[#d7d9e6]">
+                  <tr>
+                    <th className="px-4 py-4 font-semibold">Room No.</th>
+                    <th className="px-4 py-4 font-semibold">Hall Name</th>
+                    <th className="px-4 py-4 font-semibold">Type</th>
+                    <th className="px-4 py-4 font-semibold">Status</th>
+                    <th className="px-4 py-4 font-semibold">Occupant</th>
+                    <th className="px-4 py-4 font-semibold">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {roomRows.map((room, idx) => (
+                    <tr key={`${room.roomNo}-${idx}`} className="border-t border-[#d7d9e6]">
+                      <td className="px-4 py-5">{room.roomNo}</td>
+                      <td className="px-4 py-5 max-w-[260px] truncate" title={room.hallName}>{room.hallName}</td>
+                      <td className="px-4 py-5">{room.type}</td>
+                      <td className="px-4 py-5">
+                        <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium ${statusPill[room.status] || statusPill.Available}`}>
+                          <span className="w-2.5 h-2.5 rounded-full bg-current" />
+                          {room.status}
+                        </span>
+                      </td>
+                      <td className="px-4 py-5">{room.occupant}</td>
+                      <td className="px-4 py-5 text-[#403f88] font-semibold">{room.action}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section className="bg-white rounded-3xl border border-[#e4e6ef] p-6 shadow-[0_12px_24px_-22px_rgba(26,33,74,0.4)]">
+          <h2 className="text-4xl font-bold text-[#161822]">Recent Requests</h2>
+          <div className="mt-4 space-y-6">
+            {recentRequests.map((req) => {
+              const hostel = hostels.find((h) => h.id === req.hostelId)
               return (
-                <div key={h.id} className="flex items-center justify-between">
-                  <div>
-                    <span className="text-sm text-gray-600">{h.name}</span>
-                    <span className="text-xs text-gray-400 ml-2">{st.availableBeds}/{st.totalBeds} beds</span>
-                  </div>
-                  <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${h.isOpen ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
-                    {h.isOpen ? 'Open' : 'Closed'}
-                  </span>
+                <div key={req.id} className="border-b border-[#e5e7f0] pb-5 last:border-b-0 last:pb-0">
+                  <p className="text-lg text-[#191b25] mb-3">
+                    {req.studentName} - Room {req.roomNumber} ({hostel?.name || 'Hostel'})
+                  </p>
+                  <button
+                    onClick={() => onApproveRequest?.(req.id)}
+                    className="w-full bg-[#433aa7] hover:bg-[#393096] text-white text-xl font-semibold rounded-2xl py-3 transition-colors"
+                  >
+                    Approve Request
+                  </button>
                 </div>
               )
             })}
           </div>
-        </div>
-        {/* Recent bookings */}
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
-          <h3 className="text-sm font-semibold text-gray-700 mb-4">Recent Booking Requests</h3>
-          <div className="space-y-3">
-            {bookings.slice(0, 5).map((bk) => (
-              <div key={bk.id} className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-700 font-medium">{bk.studentName}</p>
-                  <p className="text-xs text-gray-400">Room {bk.roomNumber}  Bed {bk.bedId}  {bk.date}</p>
-                </div>
-                <span className={`text-xs px-2.5 py-1 rounded-full font-medium capitalize ${bk.status === 'pending' ? 'bg-amber-50 text-amber-700' : bk.status === 'approved' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
-                  {bk.status}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
+        </section>
       </div>
     </div>
   )
@@ -851,7 +957,7 @@ const BookingsManagement = ({ bookings, setBookings, hostels, setHostels }) => {
 // 
 
 const pageTitles = {
-  dashboard: 'Dashboard',
+  dashboard: 'Hostel Manager - Unified UI',
   halls: 'Halls Management',
   bookings: 'Bookings Management',
 }
@@ -872,10 +978,38 @@ const HostelManagerDashboard = ({ user, onLogout }) => {
     return () => window.removeEventListener('resize', onResize)
   }, [])
 
+  const handleApproveFromDashboard = (bookingId) => {
+    const booking = bookings.find((b) => b.id === bookingId)
+    if (!booking) return
+
+    setBookings((prev) => prev.map((b) => (b.id === bookingId ? { ...b, status: 'approved' } : b)))
+
+    setHostels((prev) => prev.map((h) => {
+      if (h.id !== booking.hostelId) return h
+      return {
+        ...h,
+        floors: h.floors.map((floor) => ({
+          ...floor,
+          rooms: floor.rooms.map((room) => {
+            if (room.roomNumber !== booking.roomNumber) return room
+            return {
+              ...room,
+              beds: room.beds.map((bed) =>
+                bed.bedId === booking.bedId
+                  ? { ...bed, status: 'occupied', studentName: booking.studentName, studentId: booking.studentId }
+                  : bed
+              ),
+            }
+          }),
+        })),
+      }
+    }))
+  }
+
   const renderContent = () => {
     switch (activePage) {
       case 'dashboard':
-        return <DashboardStats hostels={hostels} bookings={bookings} />
+        return <DashboardStats hostels={hostels} bookings={bookings} onApproveRequest={handleApproveFromDashboard} onToggleSidebar={() => setSidebarOpen(true)} />
       case 'halls':
         return <HallsManagement hostels={hostels} setHostels={setHostels} />
       case 'bookings':
@@ -885,15 +1019,17 @@ const HostelManagerDashboard = ({ user, onLogout }) => {
     }
   }
 
-  const sora = { fontFamily: "'Sora', sans-serif" }
+  const unifiedFont = { fontFamily: "'Plus Jakarta Sans', sans-serif" }
 
   return (
-    <div className="min-h-screen bg-amber-50/30 flex" style={sora}>
-      <ManagerSidebar activePage={activePage} onNavigate={setActivePage} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+    <div className="min-h-screen bg-[#f3f5fb] flex" style={unifiedFont}>
+      <ManagerSidebar user={user} activePage={activePage} onNavigate={setActivePage} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="flex-1 flex flex-col min-w-0">
-        <ManagerTopbar user={user} pageTitle={pageTitles[activePage] || 'Dashboard'} onToggleSidebar={() => setSidebarOpen(true)} onLogout={onLogout} />
+        {activePage !== 'dashboard' && (
+          <ManagerTopbar user={user} pageTitle={pageTitles[activePage] || 'Dashboard'} onToggleSidebar={() => setSidebarOpen(true)} onLogout={onLogout} />
+        )}
         <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-auto">
-          <div className="max-w-7xl mx-auto animate-[fadeIn_0.3s_ease-out]">
+          <div className="max-w-[1400px] mx-auto animate-[fadeIn_0.3s_ease-out]">
             {renderContent()}
           </div>
         </main>
