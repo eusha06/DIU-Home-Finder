@@ -2,24 +2,20 @@ import { Router } from 'express';
 import { body, validationResult } from 'express-validator';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import pool from '../db/pool.js';
 
 const router = Router();
 
-// ─── Helper: sign a JWT token ─────────────────────────────────────────────────
-const signToken = (userId, role) => {
-  return jwt.sign(
-    { id: userId, role },           // payload — stored inside the token
-    process.env.JWT_SECRET,         // secret key from .env
-    { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
-  );
-};
+const signToken = (userId, role) =>
+  jwt.sign({ id: userId, role }, process.env.JWT_SECRET, {
+    expiresIn: process.env.JWT_EXPIRES_IN || '7d',
+  });
 
-// ─── Helper: send validation errors ──────────────────────────────────────────
 const handleValidation = (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     res.status(400).json({ success: false, errors: errors.array() });
-    return true; // means "there were errors, stop processing"
+    return true;
   }
   return false;
 };
@@ -32,46 +28,46 @@ router.post(
   [
     body('name').trim().notEmpty().withMessage('Name is required'),
     body('email').isEmail().withMessage('Valid email is required'),
-    body('password')
-      .isLength({ min: 6 })
-      .withMessage('Password must be at least 6 characters'),
-    body('role')
-      .optional()
-      .isIn(['student', 'owner'])
-      .withMessage('Role must be student or owner'),
+    body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
+    body('role').optional().isIn(['student', 'owner']).withMessage('Role must be student or owner'),
   ],
   async (req, res) => {
-    // Stop if validation failed
     if (handleValidation(req, res)) return;
 
     try {
-      const { name, email, password, role = 'student', diu_student_id } = req.body;
+      const { name, email, password, role = 'student', diu_student_id, phone } = req.body;
 
-      // ── Placeholder until DB is set up in Phase 2 ──
-      // In Phase 2, you will replace this block with real DB queries like:
-      // const existing = await pool.query('SELECT * FROM users WHERE email=$1', [email]);
-      // if (existing.rows.length > 0) return res.status(409).json(...)
+      // Check if email already exists in the database
+      const existing = await pool.query(
+        'SELECT id FROM users WHERE email = $1',
+        [email]
+      );
+      if (existing.rows.length > 0) {
+        return res.status(409).json({
+          success: false,
+          message: 'An account with this email already exists',
+        });
+      }
 
-      // Hash the password — NEVER store plain text passwords
-      const saltRounds = 12; // higher = more secure but slower
-      const password_hash = await bcrypt.hash(password, saltRounds);
+      // Hash the password — never store plain text
+      const password_hash = await bcrypt.hash(password, 12);
 
-      // Placeholder response (real DB insert comes in Phase 2)
-      const mockUser = {
-        id: 1,
-        name,
-        email,
-        role,
-        diu_student_id: diu_student_id || null,
-      };
+      // Insert the new user into the database
+      const result = await pool.query(
+        `INSERT INTO users (name, email, password_hash, role, diu_student_id, phone)
+         VALUES ($1, $2, $3, $4, $5, $6)
+         RETURNING id, name, email, role, diu_student_id, phone, created_at`,
+        [name, email, password_hash, role, diu_student_id || null, phone || null]
+      );
 
-      const token = signToken(mockUser.id, mockUser.role);
+      const user = result.rows[0];
+      const token = signToken(user.id, user.role);
 
       res.status(201).json({
         success: true,
-        message: 'User registered successfully',
+        message: 'Account created successfully',
         token,
-        user: mockUser,
+        user,
       });
 
     } catch (error) {
@@ -96,22 +92,33 @@ router.post(
     try {
       const { email, password } = req.body;
 
-      // ── Placeholder until DB is set up in Phase 2 ──
-      // In Phase 2 you'll replace this with a real DB lookup:
-      // const result = await pool.query('SELECT * FROM users WHERE email=$1', [email]);
-      // const user = result.rows[0];
-      // if (!user) return res.status(401).json({ success: false, message: 'Invalid credentials' });
-      // const valid = await bcrypt.compare(password, user.password_hash);
+      // Find user by email
+      const result = await pool.query(
+        'SELECT * FROM users WHERE email = $1 AND is_active = true',
+        [email]
+      );
 
-      // Mock login for now — accepts any email/password
-      const mockUser = { id: 1, name: 'Test User', email, role: 'student' };
-      const token = signToken(mockUser.id, mockUser.role);
+      const user = result.rows[0];
+
+      // If user not found OR password doesn't match — same vague error message
+      // (don't tell attackers which one failed)
+      if (!user || !(await bcrypt.compare(password, user.password_hash))) {
+        return res.status(401).json({
+          success: false,
+          message: 'Invalid email or password',
+        });
+      }
+
+      const token = signToken(user.id, user.role);
+
+      // Don't send the password hash back to the client
+      const { password_hash, ...safeUser } = user;
 
       res.json({
         success: true,
         message: 'Login successful',
         token,
-        user: mockUser,
+        user: safeUser,
       });
 
     } catch (error) {
@@ -120,5 +127,23 @@ router.post(
     }
   }
 );
+
+// ─────────────────────────────────────────────────────────────────────────────
+// GET /api/auth/me  — get the currently logged-in user's profile
+// ─────────────────────────────────────────────────────────────────────────────
+import protect from '../middleware/auth.js';
+
+router.get('/me', protect, async (req, res) => {
+  try {
+    const result = await pool.query(
+      'SELECT id, name, email, role, diu_student_id, phone, created_at FROM users WHERE id = $1',
+      [req.user.id]
+    );
+    res.json({ success: true, user: result.rows[0] });
+  } catch (error) {
+    console.error('Get me error:', error);
+    res.status(500).json({ success: false, message: 'Failed to get profile' });
+  }
+});
 
 export default router;
