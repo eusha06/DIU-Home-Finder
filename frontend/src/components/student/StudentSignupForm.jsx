@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { authAPI } from '../../api/index.js'
 import FormInput from '../shared/FormInput'
 import { UserIcon, EmailIcon, PhoneIcon, IdIcon, LockIcon } from '../shared/Icons'
 
@@ -23,7 +24,9 @@ const StudentSignupForm = ({ onSwitchToLogin, onStudentLogin }) => {
     password: '',
     confirmPassword: '',
   })
+
   const [errors, setErrors] = useState({})
+  const [loading, setLoading] = useState(false)
 
   // ── Helpers ─────────────────────────────────────────────────────────────
   const isValidDiuEmail = (email) => /^[^\s@]+@diu\.edu\.bd$/i.test(email)
@@ -35,41 +38,35 @@ const StudentSignupForm = ({ onSwitchToLogin, onStudentLogin }) => {
   }
 
   // ── Submit handler ──────────────────────────────────────────────────────
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     const errs = {}
 
-    // Full Name
     if (!formData.fullName.trim()) errs.fullName = 'Full name is required.'
 
-    // DIU Email
     if (!formData.email) {
       errs.email = 'DIU email is required.'
     } else if (!isValidDiuEmail(formData.email)) {
       errs.email = 'Email must end with @diu.edu.bd'
     }
 
-    // Phone
     if (!formData.phone) {
       errs.phone = 'Phone number is required.'
     } else if (!isValidPhone(formData.phone)) {
       errs.phone = 'Enter a valid BD phone (e.g. 01XXXXXXXXX).'
     }
 
-    // Student ID
-    if (!formData.studentId.trim()) errs.studentId = 'Student ID is required.'
+    if (!formData.studentId.trim())
+      errs.studentId = 'Student ID is required.'
+    if (!formData.gender)
+      errs.gender = 'Please select your gender.'
 
-    // Gender
-    if (!formData.gender) errs.gender = 'Please select your gender.'
-
-    // Password
     if (!formData.password) {
       errs.password = 'Password is required.'
     } else if (formData.password.length < 6) {
       errs.password = 'Password must be at least 6 characters.'
     }
 
-    // Confirm Password
     if (!formData.confirmPassword) {
       errs.confirmPassword = 'Please confirm your password.'
     } else if (formData.password !== formData.confirmPassword) {
@@ -77,18 +74,29 @@ const StudentSignupForm = ({ onSwitchToLogin, onStudentLogin }) => {
     }
 
     setErrors(errs)
-    if (Object.keys(errs).length === 0) {
-      console.log('Student Signup Data:', { role: 'student', ...formData })
-      // Navigate to student homepage with profile data
+
+    if (Object.keys(errs).length > 0) return
+
+    try {
+      setLoading(true)
+
+      await authAPI.register({
+        name: formData.fullName,
+        email: formData.email,
+        password: formData.password,
+        role: 'student',
+        phone: formData.phone,
+        diu_student_id: formData.studentId,
+      })
+
       if (onStudentLogin) {
-        onStudentLogin({
-          fullName: formData.fullName,
-          email: formData.email,
-          phone: formData.phone,
-          studentId: formData.studentId,
-          gender: formData.gender,
-        })
+        onStudentLogin(formData.email, formData.password)
       }
+
+    } catch (err) {
+      setErrors({ api: err.message })
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -96,6 +104,7 @@ const StudentSignupForm = ({ onSwitchToLogin, onStudentLogin }) => {
   return (
     <div>
       <form onSubmit={handleSubmit} noValidate>
+
         <FormInput
           label="Full Name"
           name="fullName"
@@ -138,27 +147,43 @@ const StudentSignupForm = ({ onSwitchToLogin, onStudentLogin }) => {
           icon={<IdIcon />}
         />
 
-        {/* Gender selector – toggle buttons */}
+        {/* Gender selector */}
         <div className="mb-3.5">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Gender</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Gender
+          </label>
+
           <div className="flex gap-3">
             {['Male', 'Female'].map((g) => (
               <button
                 key={g}
                 type="button"
-                onClick={() => setFormData((prev) => ({ ...prev, gender: g.toLowerCase() }))}
+                onClick={() =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    gender: g.toLowerCase(),
+                  }))
+                }
                 className={`
-                  flex-1 py-2.5 rounded-lg border text-sm font-medium transition-all duration-200
-                  ${formData.gender === g.toLowerCase()
-                    ? 'border-indigo-500 bg-indigo-50 text-indigo-700 shadow-sm'
-                    : 'border-gray-300 bg-gray-50 text-gray-600 hover:border-indigo-300'}
+                  flex-1 py-2.5 rounded-lg border text-sm font-medium
+                  transition-all duration-200
+                  ${
+                    formData.gender === g.toLowerCase()
+                      ? 'border-indigo-500 bg-indigo-50 text-indigo-700 shadow-sm'
+                      : 'border-gray-300 bg-gray-50 text-gray-600 hover:border-indigo-300'
+                  }
                 `}
               >
                 {g === 'Male' ? '👨' : '👩'} {g}
               </button>
             ))}
           </div>
-          {errors.gender && <p className="mt-1 text-xs text-red-500">{errors.gender}</p>}
+
+          {errors.gender && (
+            <p className="mt-1 text-xs text-red-500">
+              {errors.gender}
+            </p>
+          )}
         </div>
 
         <FormInput
@@ -183,23 +208,24 @@ const StudentSignupForm = ({ onSwitchToLogin, onStudentLogin }) => {
           icon={<LockIcon />}
         />
 
-        {/* Register button */}
+        {errors.api && (
+          <p className="mb-3 text-sm text-red-500 text-center bg-red-50 py-2 rounded-lg">
+            {errors.api}
+          </p>
+        )}
+
         <button
           type="submit"
+          disabled={loading}
           className="w-full py-2.5 rounded-lg bg-violet-600 text-white font-semibold
-                     hover:bg-violet-700 active:scale-[0.98] transition-all duration-200
-                     shadow-md hover:shadow-lg mt-1"
+            hover:bg-violet-700 active:scale-[0.98] transition-all duration-200
+            shadow-md hover:shadow-lg mt-1
+            disabled:opacity-60 disabled:cursor-not-allowed"
         >
-          Create Account
+          {loading ? 'Creating account...' : 'Create Account'}
         </button>
-      </form>
 
-      <p className="text-center text-xs text-gray-400 mt-5">
-        Already have an account?{' '}
-        <button onClick={onSwitchToLogin} className="text-violet-500 hover:underline font-medium">
-          Login
-        </button>
-      </p>
+      </form>
     </div>
   )
 }

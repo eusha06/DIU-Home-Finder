@@ -18,6 +18,7 @@ import LandingPage from './components/LandingPage'
 // ── Helper: redirect authenticated users to their dashboard ───────────────────
 const ROLE_HOME = {
   student: '/student/home',
+  owner: '/owner/dashboard',
   homeowner: '/owner/dashboard',
   admin: '/admin',
   hostel_manager: '/hostel-manager',
@@ -82,7 +83,7 @@ function App() {
       <Route
         path="/owner/dashboard"
         element={
-          <ProtectedRoute allowedRoles={['homeowner']}>
+          <ProtectedRoute allowedRoles={['owner', 'homeowner']}>
             <OwnerDashboard owner={user} onLogout={handleLogout} />
           </ProtectedRoute>
         }

@@ -16,6 +16,7 @@ const ManagerLoginForm = ({ onSwitchToSignup, onManagerLogin }) => {
   // ── Form state ──────────────────────────────────────────────────────────
   const [formData, setFormData] = useState({ email: '', password: '' })
   const [errors, setErrors] = useState({})
+  const [loading, setLoading] = useState(false)
 
   // ── Helpers ─────────────────────────────────────────────────────────────
   const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
@@ -26,7 +27,7 @@ const ManagerLoginForm = ({ onSwitchToSignup, onManagerLogin }) => {
   }
 
   // ── Submit handler ──────────────────────────────────────────────────────
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     const errs = {}
 
@@ -44,14 +45,15 @@ const ManagerLoginForm = ({ onSwitchToSignup, onManagerLogin }) => {
 
     setErrors(errs)
     if (Object.keys(errs).length === 0) {
-      console.log('Manager Login Data:', { role: 'hostel_manager', ...formData })
-      // Simulate login – pass manager data to dashboard
-      if (onManagerLogin) {
-        onManagerLogin({
-          name: formData.email.split('@')[0].replace(/[._]/g, ' '),
-          email: formData.email,
-          role: 'hostel_manager',
-        })
+      try {
+        setLoading(true)
+        if (onManagerLogin) {
+          await onManagerLogin(formData.email, formData.password)
+        }
+      } catch (err) {
+        setErrors({ api: err.message || 'Login failed' })
+      } finally {
+        setLoading(false)
       }
     }
   }
@@ -93,13 +95,20 @@ const ManagerLoginForm = ({ onSwitchToSignup, onManagerLogin }) => {
           </button>
         </div>
 
+        {errors.api && (
+          <p className="mb-3 text-sm text-red-500 text-center bg-red-50 py-2 rounded-lg">
+            {errors.api}
+          </p>
+        )}
+
         <button
           type="submit"
+          disabled={loading}
           className="w-full py-2.5 rounded-lg bg-emerald-600 text-white font-semibold
                      hover:bg-emerald-700 active:scale-[0.98] transition-all duration-200
-                     shadow-md hover:shadow-lg"
+                     shadow-md hover:shadow-lg disabled:opacity-60 disabled:cursor-not-allowed"
         >
-          Login
+          {loading ? 'Logging in...' : 'Login'}
         </button>
       </form>
 

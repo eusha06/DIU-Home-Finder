@@ -31,11 +31,12 @@ import UnauthorizedPage from '../shared/UnauthorizedPage'
 // ─────────────────────────────────────────────────────────────────────────────
 
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
-  const { user, isAuthenticated } = useAuth()
+  const { user, isAuthenticated, isLoggedIn } = useAuth()
+  const authenticated = typeof isAuthenticated === 'boolean' ? isAuthenticated : isLoggedIn
 
   // ── 1. Not authenticated → redirect to login ────────────────────────────
   // `replace` prevents the login redirect from creating a back-button loop.
-  if (!isAuthenticated) {
+  if (!authenticated) {
     return <Navigate to="/login" replace />
   }
 

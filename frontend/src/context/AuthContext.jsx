@@ -1,81 +1,98 @@
-import { createContext, useContext, useState, useCallback } from 'react'
+import { createContext, useContext, useState, useEffect } from 'react';
+import { authAPI } from '../api/index.js';
 
-// ─────────────────────────────────────────────────────────────────────────────
-// AuthContext
-// ─────────────────────────────────────────────────────────────────────────────
-// Provides authentication state & helpers to the entire app.
-//
-// Currently uses a simulated in-memory user object.
-// To connect with a real backend later:
-//   1. Replace `login()` with an API call that returns user + token.
-//   2. Persist the token (localStorage / httpOnly cookie).
-//   3. On mount, validate the token and rehydrate `user`.
-//   4. Replace `logout()` with an API call + token removal.
-// ─────────────────────────────────────────────────────────────────────────────
+// Create the context
+const AuthContext = createContext(null);
 
-const AuthContext = createContext(null)
-
-/**
- * Simulated user object (for development / demo).
- * Set `isAuthenticated: false` to test the login redirect,
- * or change `role` to test role-based access.
- *
- * Valid roles: "student" | "homeowner" | "hostel_manager" | "admin"
- */
-const MOCK_USER = {
-  name: 'John',
-  role: 'student', // change to test different roles
-  isAuthenticated: true,
-}
-
-/**
- * AuthProvider – wraps the app and exposes auth state via context.
- *
- * Exposed values:
- *   user             – current user object (or null when logged out)
- *   login(userData)  – set the user (simulate login)
- *   logout()         – clear the user (simulate logout)
- *   isAuthenticated  – shorthand boolean
- */
+// Provider component — wraps your whole app
 export const AuthProvider = ({ children }) => {
-  // ── State ────────────────────────────────────────────────────────────────
-  // Start unauthenticated – user must log in or sign up.
-  const [user, setUser] = useState(null)
+  const [user, setUser]       = useState(null);   // logged-in user object
+  const [token, setToken]     = useState(null);   // JWT token string
+  const [loading, setLoading] = useState(true);   // true while checking saved login
 
-  // ── Login handler ────────────────────────────────────────────────────────
-  // Accepts a user object with at minimum { name, role, isAuthenticated }.
-  // TODO: Replace with real API call → POST /api/auth/login
-  const login = useCallback((userData) => {
-    setUser({ ...userData, isAuthenticated: true })
-  }, [])
+  // On app startup — check if user was previously logged in
+  // (token saved in localStorage survives page refresh)
+  useEffect(() => {
+    const savedToken = localStorage.getItem('token');
+    const savedUser  = localStorage.getItem('user');
 
-  // ── Logout handler ───────────────────────────────────────────────────────
-  // Clears user state. TODO: call POST /api/auth/logout & remove token.
-  const logout = useCallback(() => {
-    setUser(null)
-  }, [])
+    if (savedToken && savedUser) {
+      try {
+        setToken(savedToken);
+        setUser(JSON.parse(savedUser));
+      } catch {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+      }
+    }
+    setLoading(false);
+  }, []);
 
-  // ── Context value ────────────────────────────────────────────────────────
+  // ─── Login ─────────────────────────────────────────────────────────────────
+  const login = async (email, password) => {
+    const data = await authAPI.login(email, password);
+
+    // Save to state
+    setToken(data.token);
+    setUser(data.user);
+
+    // Save to localStorage so login persists after page refresh
+    localStorage.setItem('token', data.token);
+    localStorage.setItem('user', JSON.stringify(data.user));
+
+    return data;
+  };
+
+  // ─── Register ──────────────────────────────────────────────────────────────
+  const register = async (userData) => {
+    const data = await authAPI.register(userData);
+
+    setToken(data.token);
+    setUser(data.user);
+    localStorage.setItem('token', data.token);
+    localStorage.setItem('user', JSON.stringify(data.user));
+
+    return data;
+  };
+
+  // ─── Logout ────────────────────────────────────────────────────────────────
+  const logout = () => {
+    setToken(null);
+    setUser(null);
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+  };
+
+  // Values available to any component that calls useAuth()
   const value = {
     user,
+    token,
+    loading,
+    isAuthenticated: !!token,
+    isLoggedIn: !!token,
+    isStudent:  user?.role === 'student',
+    isOwner:    user?.role === 'owner' || user?.role === 'homeowner',
+    isAdmin:    user?.role === 'admin',
     login,
+    register,
     logout,
-    isAuthenticated: !!user?.isAuthenticated,
-  }
+  };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
-}
+  return (
+    <AuthContext.Provider value={value}>
+      {/* Don't render children until we've checked localStorage */}
+      {!loading && children}
+    </AuthContext.Provider>
+  );
+};
 
-/**
- * useAuth – convenience hook to consume AuthContext.
- * Throws if used outside of <AuthProvider>.
- */
+// Custom hook — use this in any component instead of useContext(AuthContext)
 export const useAuth = () => {
-  const context = useContext(AuthContext)
+  const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth must be used within an <AuthProvider>')
+    throw new Error('useAuth must be used inside <AuthProvider>');
   }
-  return context
-}
+  return context;
+};
 
-export default AuthContext
+export default AuthContext;

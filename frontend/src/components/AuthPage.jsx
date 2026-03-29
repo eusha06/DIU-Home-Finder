@@ -36,20 +36,35 @@ const AuthPage = () => {
   const navigate = useNavigate()
 
   // ── Login/signup callbacks that update auth context & navigate ──────────
-  const onStudentLogin = (userData) => {
-    login({ ...userData, name: userData.fullName || userData.email, role: 'student' })
+ const onStudentLogin = async (email, password) => {
+  try {
+    await login(email, password)   // calls AuthContext login → saves token
     navigate('/student/home', { replace: true })
+  } catch (err) {
+    console.error('Student login failed:', err.message)
+    throw err
   }
+}
 
-  const onOwnerLogin = (userData) => {
-    login({ ...userData, name: userData.fullName || userData.email, role: 'homeowner' })
+const onOwnerLogin = async (email, password) => {
+  try {
+    await login(email, password)
     navigate('/owner/dashboard', { replace: true })
+  } catch (err) {
+    console.error('Owner login failed:', err.message)
+    throw err
   }
+}
 
-  const onManagerLogin = (userData) => {
-    login({ ...userData, name: userData.name || userData.fullName || userData.email, role: 'hostel_manager' })
+const onManagerLogin = async (email, password) => {
+  try {
+    await login(email, password)
     navigate('/hostel-manager', { replace: true })
+  } catch (err) {
+    console.error('Manager login failed:', err.message)
+    throw err
   }
+}
 
   // ── Active tab: 'login' | 'signup' ──────────────────────────────────────
   const [activeTab, setActiveTab] = useState('login')

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { authAPI } from '../../api/index.js'
 import FormInput from '../shared/FormInput'
 import { UserIcon, EmailIcon, PhoneIcon, IdIcon, BuildingIcon, LocationIcon, LockIcon } from '../shared/Icons'
 
@@ -25,6 +26,7 @@ const OwnerSignupForm = ({ onSwitchToLogin, onOwnerLogin }) => {
     confirmPassword: '',
   })
   const [errors, setErrors] = useState({})
+  const [loading, setLoading] = useState(false)
 
   // ── Helpers ─────────────────────────────────────────────────────────────
   const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
@@ -36,7 +38,7 @@ const OwnerSignupForm = ({ onSwitchToLogin, onOwnerLogin }) => {
   }
 
   // ── Submit handler ──────────────────────────────────────────────────────
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     const errs = {}
 
@@ -82,12 +84,24 @@ const OwnerSignupForm = ({ onSwitchToLogin, onOwnerLogin }) => {
 
     setErrors(errs)
     if (Object.keys(errs).length === 0) {
-      console.log('Owner Signup Data:', { role: 'owner', ...formData })
-      if (onOwnerLogin) {
-        onOwnerLogin({
-          fullName: formData.fullName,
+      try {
+        setLoading(true)
+
+        await authAPI.register({
+          name: formData.fullName,
           email: formData.email,
+          password: formData.password,
+          role: 'owner',
+          phone: formData.phone,
         })
+
+        if (onOwnerLogin) {
+          await onOwnerLogin(formData.email, formData.password)
+        }
+      } catch (err) {
+        setErrors({ api: err.message || 'Signup failed' })
+      } finally {
+        setLoading(false)
       }
     }
   }
@@ -180,14 +194,22 @@ const OwnerSignupForm = ({ onSwitchToLogin, onOwnerLogin }) => {
           icon={<LockIcon />}
         />
 
+        {errors.api && (
+          <p className="mb-3 text-sm text-red-500 text-center bg-red-50 py-2 rounded-lg">
+            {errors.api}
+          </p>
+        )}
+
         {/* Register button */}
         <button
           type="submit"
+          disabled={loading}
           className="w-full py-2.5 rounded-lg bg-blue-700 text-white font-semibold
                      hover:bg-blue-800 active:scale-[0.98] transition-all duration-200
-                     shadow-md hover:shadow-lg mt-1"
+                     shadow-md hover:shadow-lg mt-1
+                     disabled:opacity-60 disabled:cursor-not-allowed"
         >
-          Create Account
+          {loading ? 'Creating account...' : 'Create Account'}
         </button>
       </form>
 
