@@ -1,1 +1,18 @@
-node_modules
+# Dependencies — never commit these, they're huge
+node_modules/
+
+# Build output — generated automatically, not source code
+dist/
+
+# Environment variables — contains secrets, NEVER commit
+.env
+.env.local
+.env.production
+
+# OS junk files
+.DS_Store
+Thumbs.db
+
+# Editor files
+.vscode/
+.idea/
