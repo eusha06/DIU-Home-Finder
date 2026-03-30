@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 
 // ── Student homepage components ───────────────────────────────────────────
 import Navbar from './Navbar'
@@ -8,9 +8,8 @@ import FilterSidebar from './FilterSidebar'
 import PropertyCard from './PropertyCard'
 import PropertyDetailModal from './PropertyDetailModal'
 import BookingConfirmModal from './BookingConfirmModal'
-import dummyProperties from './data/dummyProperties'
+import { propertiesAPI } from '../../api/index.js'
 import dummyHostels from './data/dummyHostelData'
-
 // ── Hostel browsing components ────────────────────────────────────────────
 import HostelCard from './HostelCard'
 import HostelDetailView from './HostelDetailView'
@@ -18,7 +17,6 @@ import SeatRequestModal from './SeatRequestModal'
 
 // ── Constants ─────────────────────────────────────────────────────────────
 const ITEMS_PER_PAGE = 6
-const LOADING_DELAY_MS = 1500
 
 // ═══════════════════════════════════════════════════════════════════════════
 // SkeletonCard – placeholder shown while listings are loading
@@ -248,10 +246,47 @@ const StudentHomePage = ({ student, onLogout }) => {
 
   // ── Combine both data sources into one array ────────────────────────────
   // (used only for rental homes now; hostels use their own hierarchical data)
-  const allProperties = useMemo(
-    () => [...dummyProperties],
-    []
-  )
+// ── Real properties from the backend API ────────────────────────────────
+const [allProperties, setAllProperties] = useState([])
+const [apiError, setApiError] = useState(null)
+
+const fetchProperties = useCallback(async () => {
+  try {
+    setApiError(null)
+    const data = await propertiesAPI.getAll({ available: true })
+    // Map API response fields to match what the existing UI components expect
+    const mapped = data.properties.map((p) => ({
+      id:          p.id,
+      title:       p.title,
+      type:        p.type === 'room' || p.type === 'flat' || p.type === 'seat'
+                     ? 'home'
+                     : p.type,
+      location:    p.area || p.address,
+      address:     p.address,
+      rent:        p.rent,
+      gender:      p.gender_preference,   // 'male' | 'female' | 'any'
+      available:   p.is_available,
+      rooms:       p.total_seats || 1,
+      bathrooms:   1,                     // not in DB yet — default 1
+      floor:       1,                     // not in DB yet — default 1
+      distance:    p.distance_from_diu,
+      amenities:   p.amenities || [],
+      image:       p.primary_image || null,
+      postedAt:    p.created_at,
+      ownerName:   p.owner_name,
+      ownerPhone:  p.owner_phone,
+    }))
+    setAllProperties(mapped)
+  } catch (err) {
+    console.error('Failed to fetch properties:', err)
+    setApiError(err.message)
+  }
+}, [])
+
+// Fetch on mount
+useEffect(() => {
+  fetchProperties()
+}, [fetchProperties])
 
   // ── Search & sort state ─────────────────────────────────────────────────
   const [searchQuery, setSearchQuery] = useState('')
@@ -301,13 +336,13 @@ const StudentHomePage = ({ student, onLogout }) => {
 
   // ── Simulate loading whenever category changes ──────────────────────────
   // This gives a realistic skeleton-card experience while "fetching" data.
-  useEffect(() => {
-    if (selectedCategory) {
-      setIsLoading(true)
-      const timer = setTimeout(() => setIsLoading(false), LOADING_DELAY_MS)
-      return () => clearTimeout(timer)
-    }
-  }, [selectedCategory])
+// ── Show loading skeleton while API is fetching ─────────────────────────
+useEffect(() => {
+  if (selectedCategory) {
+    // Show skeleton while properties are still loading from API
+    setIsLoading(allProperties.length === 0 && !apiError)
+  }
+}, [selectedCategory, allProperties.length, apiError])
 
   // ── Reset to page 1 whenever any filter / search / sort changes ─────────
   // This prevents the user from seeing a blank page after narrowing results.
@@ -499,6 +534,22 @@ const StudentHomePage = ({ student, onLogout }) => {
               </div>
             </div>
           </div>
+                    {/* API error banner */}
+          {apiError && (
+            <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 mt-4">
+              <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 flex items-center justify-between">
+                <p className="text-sm text-red-600">
+                  Could not load properties: {apiError}
+                </p>
+                <button
+                  onClick={fetchProperties}
+                  className="text-xs text-red-600 font-medium underline hover:no-underline ml-4"
+                >
+                  Try again
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* ═══════════════════════════════════════════════════════════ */}
           {/* HOSTEL CATEGORY — new hierarchical browsing flow           */}

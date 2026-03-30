@@ -29,31 +29,44 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   // ─── Login ─────────────────────────────────────────────────────────────────
-  const login = async (email, password) => {
-    const data = await authAPI.login(email, password);
+  const login = async (email, password, extraData = {}) => {
+  const data = await authAPI.login(email, password)
 
-    // Save to state
-    setToken(data.token);
-    setUser(data.user);
+  // Merge backend user with any extra frontend-only fields
+  // (gender is selected on the login form but not stored in DB)
+  const enrichedUser = {
+    ...data.user,
+    fullName:   data.user.name,
+    studentId:  data.user.diu_student_id || 'N/A',
+    gender:     extraData.gender || 'any',
+    phone:      data.user.phone || '',
+  }
 
-    // Save to localStorage so login persists after page refresh
-    localStorage.setItem('token', data.token);
-    localStorage.setItem('user', JSON.stringify(data.user));
-
-    return data;
-  };
+  setToken(data.token)
+  setUser(enrichedUser)
+  localStorage.setItem('token', data.token)
+  localStorage.setItem('user', JSON.stringify(enrichedUser))
+  return { ...data, user: enrichedUser }
+};
 
   // ─── Register ──────────────────────────────────────────────────────────────
   const register = async (userData) => {
-    const data = await authAPI.register(userData);
+  const data = await authAPI.register(userData)
 
-    setToken(data.token);
-    setUser(data.user);
-    localStorage.setItem('token', data.token);
-    localStorage.setItem('user', JSON.stringify(data.user));
+  const enrichedUser = {
+    ...data.user,
+    fullName:  data.user.name,
+    studentId: data.user.diu_student_id || 'N/A',
+    gender:    userData.gender || 'any',
+    phone:     data.user.phone || '',
+  }
 
-    return data;
-  };
+  setToken(data.token)
+  setUser(enrichedUser)
+  localStorage.setItem('token', data.token)
+  localStorage.setItem('user', JSON.stringify(enrichedUser))
+  return { ...data, user: enrichedUser }
+};
 
   // ─── Logout ────────────────────────────────────────────────────────────────
   const logout = () => {

@@ -81,17 +81,18 @@ const StudentSignupForm = ({ onSwitchToLogin, onStudentLogin }) => {
       setLoading(true)
 
       await authAPI.register({
-        name: formData.fullName,
-        email: formData.email,
-        password: formData.password,
-        role: 'student',
-        phone: formData.phone,
-        diu_student_id: formData.studentId,
-      })
+       name:           formData.fullName,
+       email:          formData.email,
+       password:       formData.password,
+       role:           'student',
+       phone:          formData.phone,
+       diu_student_id: formData.studentId,
+       gender:         formData.gender,
+   })
 
-      if (onStudentLogin) {
-        onStudentLogin(formData.email, formData.password)
-      }
+   if (onStudentLogin) {
+     await onStudentLogin(formData.email, formData.password, formData.gender || 'any')
+    }
 
     } catch (err) {
       setErrors({ api: err.message })

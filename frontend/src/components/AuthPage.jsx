@@ -36,33 +36,32 @@ const AuthPage = () => {
   const navigate = useNavigate()
 
   // ── Login/signup callbacks that update auth context & navigate ──────────
- const onStudentLogin = async (email, password) => {
+// ── Login/signup callbacks ──────────────────────────────────────────────
+const onStudentLogin = async (email, password, gender = 'any') => {
   try {
-    await login(email, password)   // calls AuthContext login → saves token
+    // Pass gender as extraData so AuthContext can store it
+    await login(email, password, { gender })
     navigate('/student/home', { replace: true })
   } catch (err) {
     console.error('Student login failed:', err.message)
-    throw err
   }
 }
 
 const onOwnerLogin = async (email, password) => {
   try {
-    await login(email, password)
+    await login(email, password, {})
     navigate('/owner/dashboard', { replace: true })
   } catch (err) {
     console.error('Owner login failed:', err.message)
-    throw err
   }
 }
 
 const onManagerLogin = async (email, password) => {
   try {
-    await login(email, password)
+    await login(email, password, {})
     navigate('/hostel-manager', { replace: true })
   } catch (err) {
     console.error('Manager login failed:', err.message)
-    throw err
   }
 }
 

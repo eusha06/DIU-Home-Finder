@@ -41,7 +41,8 @@ const ROLE_HOME = {
 // ─────────────────────────────────────────────────────────────────────────────
 
 function App() {
-  const { user, isAuthenticated, logout } = useAuth()
+  const { user, isLoggedIn, logout } = useAuth()
+  const isAuthenticated = isLoggedIn
 
   // ── Shared logout handler (clears context + redirects via Navigate) ─────
   const handleLogout = () => {

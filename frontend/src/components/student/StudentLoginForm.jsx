@@ -56,8 +56,8 @@ const StudentLoginForm = ({ onSwitchToSignup, onStudentLogin }) => {
 
       // Delegate auth to AuthPage/AuthContext so state stays in one place
       if (onStudentLogin) {
-        await onStudentLogin(formData.email, formData.password)
-      }
+      await onStudentLogin(formData.email, formData.password, formData.gender || 'any')
+  }
     } catch (err) {
       // Show backend error (e.g. "Invalid email or password")
       setErrors({ api: err.message || 'Login failed' })
