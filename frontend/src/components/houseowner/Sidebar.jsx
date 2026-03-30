@@ -44,7 +44,7 @@ const HelpIcon = () => (
 const navItems = [
   { id: 'dashboard', route: 'dashboard', label: 'Dashboard', icon: HomeIcon },
   { id: 'listings', route: 'properties', label: 'My Listings', icon: ListIcon },
-  { id: 'revenue', route: 'bookings', label: 'Revenue', icon: PieIcon },
+  { id: 'booking-request', route: 'bookings', label: 'Booking Request', icon: PieIcon },
   { id: 'add-property', route: 'addProperty', label: 'Add Property', icon: MailIcon },
   { id: 'settings', route: null, label: 'Settings', icon: GearIcon },
   { id: 'help', route: null, label: 'Help', icon: HelpIcon },

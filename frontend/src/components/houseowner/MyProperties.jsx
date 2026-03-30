@@ -83,16 +83,19 @@ const MyProperties = ({ properties, onUpdateProperty, onDeleteProperty, onAddPro
     lift: '🛗 Lift',
   }
 
+  const availableCount = properties.filter((property) => property.available).length
+  const unavailableCount = properties.length - availableCount
+
   if (properties.length === 0) {
     return (
-      <div className="text-center py-20">
+      <div className="rounded-[24px] border border-[#c8d3ff] bg-[linear-gradient(160deg,#f8f9ff_0%,#eef2ff_100%)] shadow-[0_20px_40px_-34px_rgba(37,55,145,0.8)] text-center py-16 px-6">
         <span className="text-5xl mb-4 block">🏚️</span>
-        <h3 className="text-lg font-semibold text-gray-600 mb-1">No properties listed yet</h3>
-        <p className="text-sm text-gray-400 mb-5">Add your first property to start receiving bookings.</p>
+        <h3 className="text-xl font-semibold text-[#2b3365] mb-1">No properties listed yet</h3>
+        <p className="text-sm text-[#6d77ab] mb-5 max-w-sm mx-auto">Add your first property to start receiving bookings.</p>
         <button
           type="button"
           onClick={onAddPropertyClick}
-          className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-white bg-blue-700 rounded-lg hover:bg-blue-800 transition-colors"
+          className="inline-flex items-center gap-2 px-5 py-3 text-sm font-semibold text-white rounded-xl bg-[linear-gradient(120deg,#3f56d0_0%,#2f45bf_55%,#2639a5_100%)] hover:brightness-110 transition-all shadow-[0_16px_30px_-20px_rgba(47,69,191,0.85)]"
         >
           <span>+</span>
           Add Property
@@ -102,15 +105,21 @@ const MyProperties = ({ properties, onUpdateProperty, onDeleteProperty, onAddPro
   }
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-5">
-        <h3 className="text-base font-semibold text-gray-800">
-          My Properties <span className="text-sm font-normal text-gray-400">({properties.length})</span>
-        </h3>
+    <div className="space-y-5">
+      <div className="rounded-2xl border border-[#cfdaff] bg-white/85 px-4 sm:px-5 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 shadow-[0_14px_30px_-28px_rgba(45,64,149,0.65)]">
+        <div>
+          <h3 className="text-lg sm:text-xl font-semibold text-[#27305f]">
+            My Properties <span className="text-sm font-normal text-[#7480b3]">({properties.length})</span>
+          </h3>
+          <div className="flex items-center gap-2 mt-2 text-xs">
+            <span className="bg-[#dbf5e2] text-[#2a6d40] px-2.5 py-1 rounded-full font-semibold">{availableCount} Available</span>
+            <span className="bg-[#ffe2e2] text-[#99565f] px-2.5 py-1 rounded-full font-semibold">{unavailableCount} Not Available</span>
+          </div>
+        </div>
         <button
           type="button"
           onClick={onAddPropertyClick}
-          className="inline-flex items-center gap-2 px-3.5 py-2 text-xs sm:text-sm font-semibold text-white bg-blue-700 rounded-lg hover:bg-blue-800 transition-colors"
+          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold text-white rounded-xl bg-[linear-gradient(120deg,#3f56d0_0%,#2f45bf_55%,#2639a5_100%)] hover:brightness-110 transition-all shadow-[0_16px_30px_-20px_rgba(47,69,191,0.85)]"
         >
           <span>+</span>
           Add Property
@@ -121,10 +130,10 @@ const MyProperties = ({ properties, onUpdateProperty, onDeleteProperty, onAddPro
         {properties.map((property) => (
           <div
             key={property.id}
-            className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-200 group"
+            className="bg-white/90 rounded-2xl border border-[#ccd8ff] shadow-[0_18px_34px_-26px_rgba(34,52,143,0.7)] overflow-hidden hover:shadow-[0_24px_44px_-28px_rgba(34,52,143,0.78)] transition-shadow duration-200 group"
           >
             {/* Image */}
-            <div className="relative h-44 overflow-hidden">
+            <div className="relative h-44 sm:h-48 overflow-hidden">
               <img
                 src={property.images?.[0] || 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=600'}
                 alt={property.title}
@@ -147,9 +156,9 @@ const MyProperties = ({ properties, onUpdateProperty, onDeleteProperty, onAddPro
             </div>
 
             {/* Info */}
-            <div className="p-4">
-              <h4 className="text-sm font-semibold text-gray-800 mb-1 truncate">{property.title}</h4>
-              <p className="text-xs text-gray-400 mb-3 flex items-center gap-1">
+            <div className="p-4 sm:p-5">
+              <h4 className="text-base font-semibold text-[#242d59] mb-1 truncate">{property.title}</h4>
+              <p className="text-xs text-[#7a84b5] mb-3 flex items-center gap-1">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -159,17 +168,17 @@ const MyProperties = ({ properties, onUpdateProperty, onDeleteProperty, onAddPro
 
               {/* Quick stats */}
               <div className="grid grid-cols-3 gap-2 mb-3">
-                <div className="bg-gray-50 rounded-lg px-2 py-1.5 text-center">
-                  <p className="text-[10px] text-gray-400">Rooms</p>
-                  <p className="text-xs font-bold text-gray-700">{property.rooms}</p>
+                <div className="bg-[#f4f7ff] rounded-xl border border-[#d8e0ff] px-2 py-1.5 text-center">
+                  <p className="text-[10px] text-[#7b86b8]">Rooms</p>
+                  <p className="text-xs font-bold text-[#2d3568]">{property.rooms}</p>
                 </div>
-                <div className="bg-gray-50 rounded-lg px-2 py-1.5 text-center">
-                  <p className="text-[10px] text-gray-400">Bath</p>
-                  <p className="text-xs font-bold text-gray-700">{property.bathrooms}</p>
+                <div className="bg-[#f4f7ff] rounded-xl border border-[#d8e0ff] px-2 py-1.5 text-center">
+                  <p className="text-[10px] text-[#7b86b8]">Bath</p>
+                  <p className="text-xs font-bold text-[#2d3568]">{property.bathrooms}</p>
                 </div>
-                <div className="bg-gray-50 rounded-lg px-2 py-1.5 text-center">
-                  <p className="text-[10px] text-gray-400">Floor</p>
-                  <p className="text-xs font-bold text-gray-700">{property.floor}</p>
+                <div className="bg-[#f4f7ff] rounded-xl border border-[#d8e0ff] px-2 py-1.5 text-center">
+                  <p className="text-[10px] text-[#7b86b8]">Floor</p>
+                  <p className="text-xs font-bold text-[#2d3568]">{property.floor}</p>
                 </div>
               </div>
 
@@ -189,7 +198,7 @@ const MyProperties = ({ properties, onUpdateProperty, onDeleteProperty, onAddPro
                     <button onClick={() => setEditingRent(null)} className="text-xs text-gray-400 hover:text-gray-600">✕</button>
                   </div>
                 ) : (
-                  <span className="text-sm font-bold text-blue-700">৳{property.rent.toLocaleString()}/mo</span>
+                  <span className="text-sm font-bold text-[#3650c7]">৳{property.rent.toLocaleString()}/mo</span>
                 )}
               </div>
 
@@ -209,7 +218,7 @@ const MyProperties = ({ properties, onUpdateProperty, onDeleteProperty, onAddPro
                     <button onClick={() => setEditingSeats(null)} className="text-xs text-gray-400 hover:text-gray-600">✕</button>
                   </div>
                 ) : (
-                  <span className="text-sm font-semibold text-gray-700">{property.availableSeats}</span>
+                  <span className="text-sm font-semibold text-[#33406d]">{property.availableSeats}</span>
                 )}
               </div>
 
@@ -228,22 +237,22 @@ const MyProperties = ({ properties, onUpdateProperty, onDeleteProperty, onAddPro
               <div className="grid grid-cols-2 gap-2">
                 <button
                   onClick={() => handleEditRent(property)}
-                  className="px-3 py-2 text-xs font-medium text-blue-700 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
+                  className="px-3 py-2 text-xs font-semibold text-[#3249c1] bg-[#e8edff] rounded-xl border border-[#c3d0ff] hover:bg-[#dde6ff] transition-colors"
                 >
                   Edit
                 </button>
                 <button
                   onClick={() => handleEditSeats(property)}
-                  className="px-3 py-2 text-xs font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
+                  className="px-3 py-2 text-xs font-semibold text-[#3249c1] bg-[#e8edff] rounded-xl border border-[#c3d0ff] hover:bg-[#dde6ff] transition-colors"
                 >
                   Edit Seats
                 </button>
                 <button
                   onClick={() => toggleAvailability(property)}
-                  className={`px-3 py-2 text-xs font-medium rounded-lg transition-colors
+                  className={`px-3 py-2 text-xs font-semibold rounded-xl border transition-colors
                     ${property.available
-                      ? 'text-amber-600 bg-amber-50 hover:bg-amber-100'
-                      : 'text-green-600 bg-green-50 hover:bg-green-100'
+                      ? 'text-[#996d2a] bg-[#fff1d9] border-[#f7da9d] hover:bg-[#ffe9c3]'
+                      : 'text-[#2f7b49] bg-[#dff7e6] border-[#a9e4bc] hover:bg-[#d1f2db]'
                     }`}
                 >
                   {property.available ? 'Mark Unavailable' : 'Mark Available'}
@@ -252,13 +261,13 @@ const MyProperties = ({ properties, onUpdateProperty, onDeleteProperty, onAddPro
                   <div className="flex gap-1">
                     <button
                       onClick={() => handleDelete(property.id)}
-                      className="flex-1 px-2 py-2 text-xs font-medium text-white bg-red-500 rounded-lg hover:bg-red-600 transition-colors"
+                      className="flex-1 px-2 py-2 text-xs font-semibold text-white bg-[#da4c59] rounded-xl hover:bg-[#cb3f4d] transition-colors"
                     >
                       Confirm
                     </button>
                     <button
                       onClick={() => setDeleteConfirm(null)}
-                      className="flex-1 px-2 py-2 text-xs font-medium text-gray-500 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                      className="flex-1 px-2 py-2 text-xs font-semibold text-[#5e6793] bg-[#edf1ff] rounded-xl hover:bg-[#e1e8ff] transition-colors"
                     >
                       Cancel
                     </button>
@@ -266,7 +275,7 @@ const MyProperties = ({ properties, onUpdateProperty, onDeleteProperty, onAddPro
                 ) : (
                   <button
                     onClick={() => setDeleteConfirm(property.id)}
-                    className="px-3 py-2 text-xs font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors"
+                    className="px-3 py-2 text-xs font-semibold text-[#b94853] bg-[#ffe9ec] rounded-xl border border-[#f9c9cf] hover:bg-[#ffe0e5] transition-colors"
                   >
                     Remove
                   </button>

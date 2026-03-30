@@ -34,15 +34,15 @@ const initialFormState = {
 
 const Field = ({ label, name, type = 'text', placeholder, value, error, onChange }) => (
   <div>
-    <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
+    <label className="block text-sm font-semibold text-[#303760] mb-1.5">{label}</label>
     <input
       name={name}
       type={type}
       placeholder={placeholder}
       value={value}
       onChange={onChange}
-      className={`w-full rounded-lg border bg-gray-50 px-4 py-2.5 text-sm outline-none transition-colors duration-200
-        ${error ? 'border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-200' : 'border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-200'}`}
+      className={`w-full rounded-xl border bg-white px-4 py-2.5 text-sm text-[#1e244b] outline-none transition-colors duration-200
+        ${error ? 'border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-200' : 'border-[#c9d3ff] focus:border-[#5d6ee7] focus:ring-2 focus:ring-[#cad3ff]'}`}
     />
     {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
   </div>
@@ -153,72 +153,79 @@ const AddPropertyForm = ({ onAddProperty }) => {
   }
 }
   return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
-      <div className="px-6 py-5 border-b border-gray-100">
-        <h3 className="text-base font-semibold text-gray-800">Add New Property</h3>
-        <p className="text-xs text-gray-400 mt-1">Fill in the details to list a new property</p>
+    <div className="relative overflow-hidden rounded-[24px] border border-[#b7c5ff] bg-[linear-gradient(180deg,#eef2ff_0%,#f8f9ff_100%)] shadow-[0_22px_45px_-34px_rgba(44,61,156,0.85)]">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_6%_8%,rgba(144,162,255,0.28),transparent_35%),radial-gradient(circle_at_92%_0%,rgba(186,201,255,0.3),transparent_30%)]" />
+      <div className="relative px-5 sm:px-6 py-5 border-b border-[#d8e0ff]">
+        <h3 className="text-lg sm:text-xl font-semibold text-[#1f2757]">Add New Property</h3>
+        <p className="text-sm text-[#6570a9] mt-1">Fill in the details to list a new property</p>
       </div>
 
-      <form onSubmit={handleSubmit} noValidate className="p-6">
+      <form onSubmit={handleSubmit} noValidate className="relative p-4 sm:p-6 space-y-5">
         {/* Basic Info */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-          <Field label="Property Title" name="title" placeholder="e.g. Green Valley Apartment" value={formData.title} error={errors.title} onChange={handleChange} />
-          <Field label="Location" name="location" placeholder="e.g. Dhanmondi, Dhaka" value={formData.location} error={errors.location} onChange={handleChange} />
-          <Field label="Rent (৳/month)" name="rent" type="number" placeholder="e.g. 5000" value={formData.rent} error={errors.rent} onChange={handleChange} />
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Gender Allowed</label>
-            <div className="flex rounded-lg bg-gray-100 p-1">
-              {[{ key: 'male', label: '👨 Male' }, { key: 'female', label: '👩 Female' }].map(({ key, label }) => (
-                <button
-                  key={key}
-                  type="button"
-                  onClick={() => setFormData((prev) => ({ ...prev, gender: key }))}
-                  className={`flex-1 py-2.5 text-xs font-semibold rounded-md transition-all duration-200
-                    ${formData.gender === key ? 'bg-white text-blue-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
-                >
-                  {label}
-                </button>
-              ))}
+        <div className="rounded-2xl border border-[#cfdaff] bg-white/80 p-4 sm:p-5">
+          <p className="text-xs uppercase tracking-[0.16em] font-bold text-[#7482be] mb-3">Basic Details</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Field label="Property Title" name="title" placeholder="e.g. Green Valley Apartment" value={formData.title} error={errors.title} onChange={handleChange} />
+            <Field label="Location" name="location" placeholder="e.g. Dhanmondi, Dhaka" value={formData.location} error={errors.location} onChange={handleChange} />
+            <Field label="Rent (৳/month)" name="rent" type="number" placeholder="e.g. 5000" value={formData.rent} error={errors.rent} onChange={handleChange} />
+            <div>
+              <label className="block text-sm font-semibold text-[#303760] mb-1.5">Gender Allowed</label>
+              <div className="flex rounded-xl bg-[#eef1ff] border border-[#d3dcff] p-1">
+                {[{ key: 'male', label: '👨 Male' }, { key: 'female', label: '👩 Female' }].map(({ key, label }) => (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => setFormData((prev) => ({ ...prev, gender: key }))}
+                    className={`flex-1 py-2.5 text-xs sm:text-sm font-semibold rounded-lg transition-all duration-200
+                      ${formData.gender === key ? 'bg-white text-[#3850cc] shadow-sm' : 'text-[#6370a3] hover:text-[#45518a]'}`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         </div>
 
         {/* Room Details */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          <Field label="Rooms" name="rooms" type="number" placeholder="e.g. 3" value={formData.rooms} error={errors.rooms} onChange={handleChange} />
-          <Field label="Bathrooms" name="bathrooms" type="number" placeholder="e.g. 2" value={formData.bathrooms} error={errors.bathrooms} onChange={handleChange} />
-          <Field label="Floor" name="floor" type="number" placeholder="e.g. 2" value={formData.floor} error={errors.floor} onChange={handleChange} />
-          <Field label="Available Seats" name="availableSeats" type="number" placeholder="e.g. 4" value={formData.availableSeats} error={errors.availableSeats} onChange={handleChange} />
+        <div className="rounded-2xl border border-[#cfdaff] bg-white/80 p-4 sm:p-5">
+          <p className="text-xs uppercase tracking-[0.16em] font-bold text-[#7482be] mb-3">Capacity</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <Field label="Rooms" name="rooms" type="number" placeholder="e.g. 3" value={formData.rooms} error={errors.rooms} onChange={handleChange} />
+            <Field label="Bathrooms" name="bathrooms" type="number" placeholder="e.g. 2" value={formData.bathrooms} error={errors.bathrooms} onChange={handleChange} />
+            <Field label="Floor" name="floor" type="number" placeholder="e.g. 2" value={formData.floor} error={errors.floor} onChange={handleChange} />
+            <Field label="Available Seats" name="availableSeats" type="number" placeholder="e.g. 4" value={formData.availableSeats} error={errors.availableSeats} onChange={handleChange} />
+          </div>
         </div>
 
         {/* Description */}
-        <div className="mb-6">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+        <div className="rounded-2xl border border-[#cfdaff] bg-white/80 p-4 sm:p-5">
+          <label className="block text-sm font-semibold text-[#303760] mb-1.5">Description</label>
           <textarea
             name="description"
-            rows={3}
+            rows={4}
             placeholder="Describe the property, surroundings, rules, etc."
             value={formData.description}
             onChange={handleChange}
-            className={`w-full rounded-lg border bg-gray-50 px-4 py-2.5 text-sm outline-none resize-none transition-colors duration-200
-              ${errors.description ? 'border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-200' : 'border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-200'}`}
+            className={`w-full rounded-xl border bg-white px-4 py-3 text-sm text-[#1e244b] outline-none resize-none transition-colors duration-200
+              ${errors.description ? 'border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-200' : 'border-[#c9d3ff] focus:border-[#5d6ee7] focus:ring-2 focus:ring-[#cad3ff]'}`}
           />
           {errors.description && <p className="mt-1 text-xs text-red-500">{errors.description}</p>}
         </div>
 
         {/* Facilities */}
-        <div className="mb-6">
-          <label className="block text-sm font-medium text-gray-700 mb-2">Facilities</label>
+        <div className="rounded-2xl border border-[#cfdaff] bg-white/80 p-4 sm:p-5">
+          <label className="block text-sm font-semibold text-[#303760] mb-2">Facilities</label>
           <div className="flex flex-wrap gap-2">
             {facilityOptions.map(({ key, label }) => (
               <button
                 key={key}
                 type="button"
                 onClick={() => handleFacilityToggle(key)}
-                className={`px-4 py-2 rounded-lg text-xs font-medium transition-all duration-200 border
+                className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 border
                   ${formData.facilities.includes(key)
-                    ? 'bg-blue-50 text-blue-800 border-blue-300 shadow-sm'
-                    : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'
+                    ? 'bg-[#e8edff] text-[#3249c1] border-[#9db0ff] shadow-sm'
+                    : 'bg-white text-[#5f6998] border-[#d4dcff] hover:bg-[#f3f6ff]'
                   }`}
               >
                 {label}
@@ -228,11 +235,11 @@ const AddPropertyForm = ({ onAddProperty }) => {
         </div>
 
         {/* Image Upload */}
-        <div className="mb-6">
-          <label className="block text-sm font-medium text-gray-700 mb-2">Upload Images</label>
+        <div className="rounded-2xl border border-[#cfdaff] bg-white/80 p-4 sm:p-5">
+          <label className="block text-sm font-semibold text-[#303760] mb-2">Upload Images</label>
           <div className="flex flex-wrap gap-3 mb-3">
             {imagePreviews.map((src, i) => (
-              <div key={i} className="relative w-24 h-24 rounded-lg overflow-hidden border border-gray-200 group">
+              <div key={i} className="relative w-24 h-24 rounded-xl overflow-hidden border border-[#cdd8ff] group">
                 <img src={src} alt={`Preview ${i + 1}`} className="w-full h-full object-cover" />
                 <button
                   type="button"
@@ -243,21 +250,21 @@ const AddPropertyForm = ({ onAddProperty }) => {
                 </button>
               </div>
             ))}
-            <label className="w-24 h-24 rounded-lg border-2 border-dashed border-gray-300 flex flex-col items-center justify-center cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-colors">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <label className="w-24 h-24 rounded-xl border-2 border-dashed border-[#b8c7ff] bg-[#f5f7ff] flex flex-col items-center justify-center cursor-pointer hover:border-[#6f82ef] hover:bg-[#ebefff] transition-colors">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-[#6c7ab5]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
               </svg>
-              <span className="text-[10px] text-gray-400 mt-1">Add</span>
+              <span className="text-[10px] text-[#6c7ab5] mt-1">Add</span>
               <input type="file" accept="image/*" multiple onChange={handleImageUpload} className="hidden" />
             </label>
           </div>
         </div>
 
         {/* Availability Toggle */}
-        <div className="mb-8 flex items-center justify-between bg-gray-50 rounded-xl px-5 py-4 border border-gray-200">
+        <div className="flex items-center justify-between bg-[linear-gradient(120deg,#edf1ff_0%,#f6f8ff_100%)] rounded-2xl px-5 py-4 border border-[#cdd9ff]">
           <div>
-            <p className="text-sm font-medium text-gray-700">Availability Status</p>
-            <p className="text-xs text-gray-400 mt-0.5">
+            <p className="text-sm font-semibold text-[#2d3568]">Availability Status</p>
+            <p className="text-xs text-[#6f79ad] mt-0.5">
               {formData.available ? 'This property is currently listed as available' : 'This property is marked as not available'}
             </p>
           </div>
@@ -283,9 +290,9 @@ const AddPropertyForm = ({ onAddProperty }) => {
 <button
   type="submit"
   disabled={submitting}
-  className="w-full py-3 rounded-xl bg-blue-700 text-white font-semibold
-             hover:bg-blue-800 active:scale-[0.98] transition-all duration-200
-             shadow-md hover:shadow-lg disabled:opacity-60 disabled:cursor-not-allowed"
+  className="w-full py-3 rounded-xl bg-[linear-gradient(120deg,#3f56d0_0%,#2f45bf_55%,#2639a5_100%)] text-white font-semibold
+             hover:brightness-110 active:scale-[0.98] transition-all duration-200
+             shadow-[0_16px_32px_-20px_rgba(47,69,191,0.9)] disabled:opacity-60 disabled:cursor-not-allowed"
 >
   {submitting ? 'Adding property...' : 'Add Property'}
 </button>

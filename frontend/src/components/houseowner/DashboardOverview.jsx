@@ -12,17 +12,17 @@ const formatDate = (dateString) => {
 }
 
 const StatCard = ({ label, value, trend, trendTone }) => (
-  <div className="relative rounded-[20px] border border-[#6677df] bg-[linear-gradient(135deg,#273487_0%,#3445a9_46%,#4157c3_100%)] shadow-[0_20px_30px_-24px_rgba(18,28,102,0.95)] p-3 overflow-hidden">
+  <div className="relative rounded-[20px] border border-[#6677df] bg-[linear-gradient(135deg,#273487_0%,#3445a9_46%,#4157c3_100%)] shadow-[0_20px_30px_-24px_rgba(18,28,102,0.95)] p-2.5 sm:p-3 overflow-hidden">
     <div className="absolute inset-0 bg-[radial-gradient(circle_at_58%_46%,rgba(147,165,255,0.28),transparent_54%)]" />
-    <div className="relative z-10 rounded-[16px] border border-white/45 bg-[linear-gradient(138deg,rgba(255,255,255,0.23)_0%,rgba(255,255,255,0.08)_100%)] backdrop-blur-sm px-5 py-4">
-      <div className="flex items-center justify-between">
-        <p className="text-[33px] font-medium text-white/95">{label}</p>
-        <span className="text-[30px] bg-white/25 text-white/90 rounded-full px-3 py-1 leading-none">Soft-UI</span>
+    <div className="relative z-10 rounded-[16px] border border-white/45 bg-[linear-gradient(138deg,rgba(255,255,255,0.23)_0%,rgba(255,255,255,0.08)_100%)] backdrop-blur-sm px-4 sm:px-5 py-3.5 sm:py-4">
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-xl sm:text-2xl lg:text-3xl font-medium text-white/95 leading-tight">{label}</p>
+        <span className="text-sm sm:text-base lg:text-lg bg-white/25 text-white/90 rounded-full px-2.5 sm:px-3 py-1 leading-none whitespace-nowrap">Soft-UI</span>
       </div>
-      <div className="mt-5 flex items-end justify-between gap-3">
-        <p className="text-4xl lg:text-[57px] leading-none font-bold text-white tracking-[-0.02em]">{value}</p>
+      <div className="mt-4 sm:mt-5 flex items-end justify-between gap-3">
+        <p className="text-3xl sm:text-4xl lg:text-5xl leading-none font-bold text-white tracking-[-0.02em]">{value}</p>
         <p
-          className={`text-[30px] rounded-full px-4 py-2 border leading-none ${
+          className={`text-sm sm:text-base lg:text-lg rounded-full px-3 sm:px-4 py-1.5 sm:py-2 border leading-none whitespace-nowrap ${
             trendTone === 'green'
               ? 'bg-[#c8f1d4]/95 text-[#285f3a] border-[#a8e6be]'
               : 'bg-[#ffe9bb]/95 text-[#986f1f] border-[#f7d78e]'
@@ -115,8 +115,8 @@ const DashboardOverview = ({ properties = [], bookings = [] }) => {
   const approvedBookingsCount = bookings.filter((b) => b.status === 'approved').length
 
   return (
-    <div className="space-y-7 pb-2">
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+    <div className="space-y-5 sm:space-y-7 pb-2">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         <StatCard label="Active Listings" value={totalProperties} trend="↑ +2 this month" trendTone="green" />
         <StatCard
           label="Total Revenue (YTD)"
@@ -126,29 +126,29 @@ const DashboardOverview = ({ properties = [], bookings = [] }) => {
         />
       </div>
 
-      <section className="bg-[#f7f8ff] border border-[#b6a6e0] rounded-2xl p-5 shadow-[0_20px_40px_-34px_rgba(86,61,171,0.65)]">
-        <h3 className="text-3xl sm:text-4xl lg:text-[44px] font-bold text-[#141734] tracking-[-0.02em] mb-4">Recent Activity</h3>
+      <section className="bg-[#f7f8ff] border border-[#b6a6e0] rounded-2xl p-4 sm:p-5 shadow-[0_20px_40px_-34px_rgba(86,61,171,0.65)]">
+        <h3 className="text-2xl sm:text-3xl lg:text-[40px] font-bold text-[#141734] tracking-[-0.02em] mb-3 sm:mb-4">Recent Activity</h3>
 
         <div className="rounded-2xl border border-[#b9addd] bg-white/55 overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[860px] text-left text-lg text-[#1a1f3e]">
+            <table className="w-full min-w-[640px] text-left text-sm sm:text-base text-[#1a1f3e]">
               <thead className="bg-[linear-gradient(180deg,#f8f8ff_0%,#f0f1fb_100%)] text-[#202447]">
                 <tr>
-                  <th className="px-6 py-4 font-bold">Date</th>
-                  <th className="px-6 py-4 font-bold">Property</th>
-                  <th className="px-6 py-4 font-bold">Action</th>
-                  <th className="px-6 py-4 font-bold">Status</th>
+                  <th className="px-4 sm:px-6 py-3 sm:py-4 font-bold">Date</th>
+                  <th className="px-4 sm:px-6 py-3 sm:py-4 font-bold">Property</th>
+                  <th className="px-4 sm:px-6 py-3 sm:py-4 font-bold">Action</th>
+                  <th className="px-4 sm:px-6 py-3 sm:py-4 font-bold">Status</th>
                 </tr>
               </thead>
               <tbody>
                 {rows.map((row) => (
                   <tr key={row.id} className="border-t border-[#c8b9e8]">
-                    <td className="px-6 py-4 whitespace-nowrap">{formatDate(row.date)}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">{row.property}</td>
-                    <td className="px-6 py-4">{row.action}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap">{formatDate(row.date)}</td>
+                    <td className="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap">{row.property}</td>
+                    <td className="px-4 sm:px-6 py-3 sm:py-4">{row.action}</td>
+                    <td className="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
                       <span
-                        className={`inline-flex items-center rounded-full px-4 py-1.5 text-base font-medium ${
+                        className={`inline-flex items-center rounded-full px-3 sm:px-4 py-1 sm:py-1.5 text-xs sm:text-sm font-medium ${
                           statusStyles[row.status] || statusStyles.Pending
                         }`}
                       >

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import Sidebar from './Sidebar'
 import TopNavbar from './TopNavbar'
 import DashboardOverview from './DashboardOverview'
@@ -13,7 +13,7 @@ import { ownerBookings as initialBookings } from './data/dummyOwnerData'
 const pageTitles = {
   dashboard:   'Owner Dashboard',
   properties:  'My Listings',
-  bookings:    'Revenue',
+  bookings:    'Booking Request',
   addProperty: 'Add Property',
 }
 
@@ -24,7 +24,7 @@ const OwnerDashboard = ({ owner, onLogout }) => {
 
   // ── Data state ────────────────────────────────────────────────────────
   const [properties, setProperties] = useState([])
-  const [bookings]                  = useState(initialBookings)
+  const [bookings, setBookings]     = useState(initialBookings)
   const [loadingProps, setLoadingProps] = useState(true)
   const [propsError,   setPropsError]   = useState(null)
 
@@ -89,7 +89,92 @@ const OwnerDashboard = ({ owner, onLogout }) => {
 
   // ── Booking actions ───────────────────────────────────────────────────
   const handleUpdateBooking = (bookingId, newStatus) => {
-    console.log(`Booking ${bookingId} status changed to: ${newStatus}`)
+    setBookings((prev) =>
+      prev.map((booking) =>
+        booking.id === bookingId
+          ? { ...booking, status: newStatus }
+          : booking
+      )
+    )
+  }
+
+  const notificationItems = useMemo(() => {
+    const pendingBookings = bookings.filter((booking) => booking.status === 'pending').length
+    const approvedBookings = bookings.filter((booking) => booking.status === 'approved').length
+    const activeListings = properties.filter((property) => property.available).length
+
+    const items = []
+
+    if (pendingBookings > 0) {
+      items.push({
+        id: 'pending-bookings',
+        icon: '⏳',
+        title: `${pendingBookings} pending booking request${pendingBookings > 1 ? 's' : ''}`,
+        description: 'Open Booking Request and respond to students.',
+        actionLabel: 'Review requests',
+        action: 'bookings',
+        tone: 'amber',
+      })
+    }
+
+    if (properties.length === 0) {
+      items.push({
+        id: 'create-first-listing',
+        icon: '🏠',
+        title: 'No property listed yet',
+        description: 'Create your first listing to start receiving requests.',
+        actionLabel: 'Add property',
+        action: 'addProperty',
+        tone: 'blue',
+      })
+    } else {
+      items.push({
+        id: 'listing-summary',
+        icon: '📌',
+        title: `${activeListings} active listing${activeListings > 1 ? 's' : ''} live`,
+        description: `${properties.length} total listing${properties.length > 1 ? 's' : ''} in your account.`,
+        actionLabel: 'View listings',
+        action: 'properties',
+        tone: 'green',
+      })
+    }
+
+    if (approvedBookings > 0) {
+      items.push({
+        id: 'approved-bookings',
+        icon: '✅',
+        title: `${approvedBookings} booking${approvedBookings > 1 ? 's' : ''} approved`,
+        description: 'Track accepted requests in Booking Request.',
+        actionLabel: 'Open booking page',
+        action: 'bookings',
+        tone: 'green',
+      })
+    }
+
+    if (propsError) {
+      items.push({
+        id: 'listing-sync-error',
+        icon: '⚠️',
+        title: 'Could not sync listings',
+        description: propsError,
+        actionLabel: 'Retry now',
+        action: 'retry-properties',
+        tone: 'red',
+      })
+    }
+
+    return items
+  }, [bookings, properties, propsError])
+
+  const handleNotificationAction = (action) => {
+    if (!action) return
+
+    if (action === 'retry-properties') {
+      fetchMyProperties()
+      return
+    }
+
+    setActivePage(action)
   }
 
   // ── Render content ────────────────────────────────────────────────────
@@ -169,6 +254,9 @@ const OwnerDashboard = ({ owner, onLogout }) => {
                 onToggleSidebar={() => setSidebarOpen(true)}
                 onLogout={onLogout}
                 variant="dashboard"
+                notifications={notificationItems}
+                onNotificationAction={handleNotificationAction}
+                onNavigate={setActivePage}
               />
             </div>
 
@@ -179,20 +267,29 @@ const OwnerDashboard = ({ owner, onLogout }) => {
             </div>
           </main>
         ) : (
-          <>
-            <TopNavbar
-              owner={owner}
-              pageTitle={pageTitles[activePage] || 'Owner Dashboard'}
-              onToggleSidebar={() => setSidebarOpen(true)}
-              onLogout={onLogout}
-            />
+          <main className="flex-1 overflow-auto">
+            <div className="relative min-h-[190px] sm:min-h-[210px] bg-[linear-gradient(118deg,#171d59_0%,#25378f_50%,#3f57c9_100%)]">
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_72%_8%,rgba(124,141,246,0.2),transparent_34%),radial-gradient(circle_at_16%_100%,rgba(88,102,198,0.28),transparent_58%)]" />
+              <TopNavbar
+                owner={owner}
+                pageTitle={pageTitles[activePage] || 'Owner Dashboard'}
+                onToggleSidebar={() => setSidebarOpen(true)}
+                onLogout={onLogout}
+                variant="dashboard"
+                notifications={notificationItems}
+                onNotificationAction={handleNotificationAction}
+                onNavigate={setActivePage}
+              />
+            </div>
 
-            <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-auto">
-              <div className="max-w-6xl mx-auto animate-[fadeIn_0.3s_ease-out]">
-                {renderContent()}
+            <div className="px-4 sm:px-6 lg:px-9 pb-10 -mt-[16px] sm:-mt-[20px] relative z-10">
+              <div className="max-w-[1180px] mx-auto animate-[fadeIn_0.3s_ease-out]">
+                <div className="rounded-[24px] border border-[#bcc6ff] bg-[linear-gradient(180deg,#f8f9ff_0%,#f2f4ff_100%)] shadow-[0_24px_46px_-36px_rgba(37,51,125,0.8)] p-3 sm:p-4 lg:p-5">
+                  {renderContent()}
+                </div>
               </div>
-            </main>
-          </>
+            </div>
+          </main>
         )}
       </div>
     </div>

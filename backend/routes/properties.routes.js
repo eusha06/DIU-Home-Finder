@@ -70,7 +70,7 @@ router.get('/', async (req, res) => {
 // ─────────────────────────────────────────────────────────────────────────────
 // GET /api/properties/:id
 // ─────────────────────────────────────────────────────────────────────────────
-router.get('/:id', async (req, res) => {
+router.get('/:id(\\d+)', async (req, res) => {
   try {
     const { id } = req.params;
 
