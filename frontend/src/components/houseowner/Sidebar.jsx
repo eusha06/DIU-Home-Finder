@@ -45,7 +45,7 @@ const navItems = [
   { id: 'dashboard', route: 'dashboard', label: 'Dashboard', icon: HomeIcon },
   { id: 'listings', route: 'properties', label: 'My Listings', icon: ListIcon },
   { id: 'revenue', route: 'bookings', label: 'Revenue', icon: PieIcon },
-  { id: 'messages', route: 'addProperty', label: 'Messages', icon: MailIcon },
+  { id: 'add-property', route: 'addProperty', label: 'Add Property', icon: MailIcon },
   { id: 'settings', route: null, label: 'Settings', icon: GearIcon },
   { id: 'help', route: null, label: 'Help', icon: HelpIcon },
 ]

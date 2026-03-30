@@ -32,6 +32,22 @@ const initialFormState = {
   available: true,
 }
 
+const Field = ({ label, name, type = 'text', placeholder, value, error, onChange }) => (
+  <div>
+    <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
+    <input
+      name={name}
+      type={type}
+      placeholder={placeholder}
+      value={value}
+      onChange={onChange}
+      className={`w-full rounded-lg border bg-gray-50 px-4 py-2.5 text-sm outline-none transition-colors duration-200
+        ${error ? 'border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-200' : 'border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-200'}`}
+    />
+    {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
+  </div>
+)
+
 const AddPropertyForm = ({ onAddProperty }) => {
   const [formData, setFormData] = useState({ ...initialFormState })
   const [imagePreviews, setImagePreviews] = useState([])
@@ -136,23 +152,6 @@ const AddPropertyForm = ({ onAddProperty }) => {
     setSubmitting(false)
   }
 }
-  // ── Field component ───────────────────────────────────────────────────
-  const Field = ({ label, name, type = 'text', placeholder, value, error }) => (
-    <div>
-      <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
-      <input
-        name={name}
-        type={type}
-        placeholder={placeholder}
-        value={value}
-        onChange={handleChange}
-        className={`w-full rounded-lg border bg-gray-50 px-4 py-2.5 text-sm outline-none transition-colors duration-200
-          ${error ? 'border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-200' : 'border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-200'}`}
-      />
-      {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
-    </div>
-  )
-
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
       <div className="px-6 py-5 border-b border-gray-100">
@@ -163,9 +162,9 @@ const AddPropertyForm = ({ onAddProperty }) => {
       <form onSubmit={handleSubmit} noValidate className="p-6">
         {/* Basic Info */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-          <Field label="Property Title" name="title" placeholder="e.g. Green Valley Apartment" value={formData.title} error={errors.title} />
-          <Field label="Location" name="location" placeholder="e.g. Dhanmondi, Dhaka" value={formData.location} error={errors.location} />
-          <Field label="Rent (৳/month)" name="rent" type="number" placeholder="e.g. 5000" value={formData.rent} error={errors.rent} />
+          <Field label="Property Title" name="title" placeholder="e.g. Green Valley Apartment" value={formData.title} error={errors.title} onChange={handleChange} />
+          <Field label="Location" name="location" placeholder="e.g. Dhanmondi, Dhaka" value={formData.location} error={errors.location} onChange={handleChange} />
+          <Field label="Rent (৳/month)" name="rent" type="number" placeholder="e.g. 5000" value={formData.rent} error={errors.rent} onChange={handleChange} />
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Gender Allowed</label>
             <div className="flex rounded-lg bg-gray-100 p-1">
@@ -186,10 +185,10 @@ const AddPropertyForm = ({ onAddProperty }) => {
 
         {/* Room Details */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          <Field label="Rooms" name="rooms" type="number" placeholder="e.g. 3" value={formData.rooms} error={errors.rooms} />
-          <Field label="Bathrooms" name="bathrooms" type="number" placeholder="e.g. 2" value={formData.bathrooms} error={errors.bathrooms} />
-          <Field label="Floor" name="floor" type="number" placeholder="e.g. 2" value={formData.floor} error={errors.floor} />
-          <Field label="Available Seats" name="availableSeats" type="number" placeholder="e.g. 4" value={formData.availableSeats} error={errors.availableSeats} />
+          <Field label="Rooms" name="rooms" type="number" placeholder="e.g. 3" value={formData.rooms} error={errors.rooms} onChange={handleChange} />
+          <Field label="Bathrooms" name="bathrooms" type="number" placeholder="e.g. 2" value={formData.bathrooms} error={errors.bathrooms} onChange={handleChange} />
+          <Field label="Floor" name="floor" type="number" placeholder="e.g. 2" value={formData.floor} error={errors.floor} onChange={handleChange} />
+          <Field label="Available Seats" name="availableSeats" type="number" placeholder="e.g. 4" value={formData.availableSeats} error={errors.availableSeats} onChange={handleChange} />
         </div>
 
         {/* Description */}

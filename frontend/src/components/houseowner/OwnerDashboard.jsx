@@ -14,7 +14,7 @@ const pageTitles = {
   dashboard:   'Owner Dashboard',
   properties:  'My Listings',
   bookings:    'Revenue',
-  addProperty: 'Messages',
+  addProperty: 'Add Property',
 }
 
 const OwnerDashboard = ({ owner, onLogout }) => {
@@ -127,6 +127,7 @@ const OwnerDashboard = ({ owner, onLogout }) => {
             properties={properties}
             onUpdateProperty={handleUpdateProperty}
             onDeleteProperty={handleDeleteProperty}
+            onAddPropertyClick={() => setActivePage('addProperty')}
           />
         )
 

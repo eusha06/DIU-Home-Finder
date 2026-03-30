@@ -10,8 +10,9 @@ import { propertiesAPI } from '../../api/index.js'
  *   properties     – array of property objects
  *   onUpdateProperty – callback(updatedProperty) to update a property
  *   onDeleteProperty – callback(propertyId) to remove a property
+ *   onAddPropertyClick – callback() to navigate to add property form
  */
-const MyProperties = ({ properties, onUpdateProperty, onDeleteProperty }) => {
+const MyProperties = ({ properties, onUpdateProperty, onDeleteProperty, onAddPropertyClick }) => {
   const [editingRent, setEditingRent] = useState(null)
   const [editingSeats, setEditingSeats] = useState(null)
   const [newRent, setNewRent] = useState('')
@@ -87,7 +88,15 @@ const MyProperties = ({ properties, onUpdateProperty, onDeleteProperty }) => {
       <div className="text-center py-20">
         <span className="text-5xl mb-4 block">🏚️</span>
         <h3 className="text-lg font-semibold text-gray-600 mb-1">No properties listed yet</h3>
-        <p className="text-sm text-gray-400">Add your first property to start receiving bookings.</p>
+        <p className="text-sm text-gray-400 mb-5">Add your first property to start receiving bookings.</p>
+        <button
+          type="button"
+          onClick={onAddPropertyClick}
+          className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-white bg-blue-700 rounded-lg hover:bg-blue-800 transition-colors"
+        >
+          <span>+</span>
+          Add Property
+        </button>
       </div>
     )
   }
@@ -98,6 +107,14 @@ const MyProperties = ({ properties, onUpdateProperty, onDeleteProperty }) => {
         <h3 className="text-base font-semibold text-gray-800">
           My Properties <span className="text-sm font-normal text-gray-400">({properties.length})</span>
         </h3>
+        <button
+          type="button"
+          onClick={onAddPropertyClick}
+          className="inline-flex items-center gap-2 px-3.5 py-2 text-xs sm:text-sm font-semibold text-white bg-blue-700 rounded-lg hover:bg-blue-800 transition-colors"
+        >
+          <span>+</span>
+          Add Property
+        </button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
@@ -213,13 +230,13 @@ const MyProperties = ({ properties, onUpdateProperty, onDeleteProperty }) => {
                   onClick={() => handleEditRent(property)}
                   className="px-3 py-2 text-xs font-medium text-blue-700 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
                 >
-                  Edit Rent
+                  Edit
                 </button>
                 <button
                   onClick={() => handleEditSeats(property)}
                   className="px-3 py-2 text-xs font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
                 >
-                  Update Seats
+                  Edit Seats
                 </button>
                 <button
                   onClick={() => toggleAvailability(property)}
@@ -251,7 +268,7 @@ const MyProperties = ({ properties, onUpdateProperty, onDeleteProperty }) => {
                     onClick={() => setDeleteConfirm(property.id)}
                     className="px-3 py-2 text-xs font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors"
                   >
-                    Delete
+                    Remove
                   </button>
                 )}
               </div>

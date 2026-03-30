@@ -9,7 +9,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { createContext, useContext, useState, useEffect } from 'react'
-import { logout } from '../api/index'   // Our API helper from Step 2
+import { authAPI } from '../api/index'
 
 // 1. Create the context object
 const AuthContext = createContext(null)
@@ -47,27 +47,46 @@ export function AuthProvider({ children }) {
   }, [])
 
 
-  // ── loginUser: called right after a successful login/register API response ──
-  // Pass in the { token, user } object that the server returns
+  // Keep localStorage and in-memory state in sync whenever auth changes.
+  function persistAuth(nextToken, nextUser) {
+    localStorage.setItem('token', nextToken)
+    localStorage.setItem('user', JSON.stringify(nextUser))
+    setToken(nextToken)
+    setUser(nextUser)
+  }
+
+  // ── login: primary login flow used by AuthPage/forms ─────────────────────
+  async function login(email, password, extraUserData = {}) {
+    const data = await authAPI.login(email, password)
+    const mergedUser = { ...(data.user || {}), ...extraUserData }
+    persistAuth(data.token, mergedUser)
+    return data
+  }
+
+  // ── loginUser: compatibility helper for legacy callers ───────────────────
   function loginUser(data) {
-    setToken(data.token)
-    setUser(data.user)
-    // Note: the api/index.js already saves to localStorage, but we set state here
+    if (!data?.token || !data?.user) return
+    persistAuth(data.token, data.user)
   }
 
 
-  // ── logoutUser: clears everything ─────────────────────────────────────────
-  function logoutUser() {
-    logout()           // Clears localStorage (from api/index.js)
+  // ── logout: clears everything ─────────────────────────────────────────────
+  function logout() {
+    localStorage.removeItem('token')
+    localStorage.removeItem('user')
     setToken(null)
     setUser(null)
   }
 
+  // Alias retained for existing components that still use logoutUser.
+  const logoutUser = logout
+
 
   // ── Convenience helpers ────────────────────────────────────────────────────
-  const isLoggedIn  = !!user                          // true / false
+  const isLoggedIn  = !!user && !!token               // true / false
+  const isAuthenticated = isLoggedIn
   const isStudent   = user?.role === 'student'        // true if student
-  const isOwner     = user?.role === 'owner'          // true if owner
+  const isOwner     = user?.role === 'owner' || user?.role === 'homeowner'
   const isAdmin     = user?.role === 'admin'          // true if admin
 
 
@@ -77,10 +96,13 @@ export function AuthProvider({ children }) {
     token,
     isLoading,
     isLoggedIn,
+    isAuthenticated,
     isStudent,
     isOwner,
     isAdmin,
+    login,
     loginUser,
+    logout,
     logoutUser,
   }
 
