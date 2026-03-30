@@ -1,111 +1,106 @@
-import { createContext, useContext, useState, useEffect } from 'react';
-import { authAPI } from '../api/index.js';
+// ─────────────────────────────────────────────────────────────────────────────
+// src/context/AuthContext.jsx
+// Global auth state. Any component can call useAuth() to get:
+//   - user      → { id, name, email, role } or null if not logged in
+//   - token     → JWT string or null
+//   - isLoading → true while we're checking localStorage on first load
+//   - loginUser()    → call after successful login API response
+//   - logoutUser()   → clears everything
+// ─────────────────────────────────────────────────────────────────────────────
 
-// Create the context
-const AuthContext = createContext(null);
+import { createContext, useContext, useState, useEffect } from 'react'
+import { logout } from '../api/index'   // Our API helper from Step 2
 
-// Provider component — wraps your whole app
-export const AuthProvider = ({ children }) => {
-  const [user, setUser]       = useState(null);   // logged-in user object
-  const [token, setToken]     = useState(null);   // JWT token string
-  const [loading, setLoading] = useState(true);   // true while checking saved login
+// 1. Create the context object
+const AuthContext = createContext(null)
 
-  // On app startup — check if user was previously logged in
-  // (token saved in localStorage survives page refresh)
+
+// 2. Create the Provider component
+// This wraps your entire app and "provides" the auth state to all children
+export function AuthProvider({ children }) {
+
+  const [user, setUser]         = useState(null)    // Logged-in user object or null
+  const [token, setToken]       = useState(null)    // JWT string or null
+  const [isLoading, setIsLoading] = useState(true)  // True while reading localStorage
+
+
+  // ── On first app load: check if user was already logged in ─────────────────
+  // localStorage persists across page refreshes — so if they logged in yesterday,
+  // they're still logged in today (until token expires or they log out).
   useEffect(() => {
-    const savedToken = localStorage.getItem('token');
-    const savedUser  = localStorage.getItem('user');
+    const savedToken = localStorage.getItem('token')
+    const savedUser  = localStorage.getItem('user')
 
     if (savedToken && savedUser) {
       try {
-        setToken(savedToken);
-        setUser(JSON.parse(savedUser));
-      } catch {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
+        setToken(savedToken)
+        setUser(JSON.parse(savedUser))   // Parse the JSON string back to an object
+      } catch (err) {
+        // If localStorage has corrupted data, clear it and start fresh
+        console.error('Failed to parse saved user:', err)
+        localStorage.removeItem('token')
+        localStorage.removeItem('user')
       }
     }
-    setLoading(false);
-  }, []);
 
-  // ─── Login ─────────────────────────────────────────────────────────────────
-  const login = async (email, password, extraData = {}) => {
-  const data = await authAPI.login(email, password)
+    setIsLoading(false)   // Done checking — app can now render
+  }, [])
 
-  // Merge backend user with any extra frontend-only fields
-  // (gender is selected on the login form but not stored in DB)
-  const enrichedUser = {
-    ...data.user,
-    fullName:   data.user.name,
-    studentId:  data.user.diu_student_id || 'N/A',
-    gender:     extraData.gender || 'any',
-    phone:      data.user.phone || '',
+
+  // ── loginUser: called right after a successful login/register API response ──
+  // Pass in the { token, user } object that the server returns
+  function loginUser(data) {
+    setToken(data.token)
+    setUser(data.user)
+    // Note: the api/index.js already saves to localStorage, but we set state here
   }
 
-  setToken(data.token)
-  setUser(enrichedUser)
-  localStorage.setItem('token', data.token)
-  localStorage.setItem('user', JSON.stringify(enrichedUser))
-  return { ...data, user: enrichedUser }
-};
 
-  // ─── Register ──────────────────────────────────────────────────────────────
-  const register = async (userData) => {
-  const data = await authAPI.register(userData)
-
-  const enrichedUser = {
-    ...data.user,
-    fullName:  data.user.name,
-    studentId: data.user.diu_student_id || 'N/A',
-    gender:    userData.gender || 'any',
-    phone:     data.user.phone || '',
+  // ── logoutUser: clears everything ─────────────────────────────────────────
+  function logoutUser() {
+    logout()           // Clears localStorage (from api/index.js)
+    setToken(null)
+    setUser(null)
   }
 
-  setToken(data.token)
-  setUser(enrichedUser)
-  localStorage.setItem('token', data.token)
-  localStorage.setItem('user', JSON.stringify(enrichedUser))
-  return { ...data, user: enrichedUser }
-};
 
-  // ─── Logout ────────────────────────────────────────────────────────────────
-  const logout = () => {
-    setToken(null);
-    setUser(null);
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-  };
+  // ── Convenience helpers ────────────────────────────────────────────────────
+  const isLoggedIn  = !!user                          // true / false
+  const isStudent   = user?.role === 'student'        // true if student
+  const isOwner     = user?.role === 'owner'          // true if owner
+  const isAdmin     = user?.role === 'admin'          // true if admin
 
-  // Values available to any component that calls useAuth()
+
+  // ── The value that every child component can access ────────────────────────
   const value = {
     user,
     token,
-    loading,
-    isAuthenticated: !!token,
-    isLoggedIn: !!token,
-    isStudent:  user?.role === 'student',
-    isOwner:    user?.role === 'owner' || user?.role === 'homeowner',
-    isAdmin:    user?.role === 'admin',
-    login,
-    register,
-    logout,
-  };
+    isLoading,
+    isLoggedIn,
+    isStudent,
+    isOwner,
+    isAdmin,
+    loginUser,
+    logoutUser,
+  }
 
   return (
     <AuthContext.Provider value={value}>
-      {/* Don't render children until we've checked localStorage */}
-      {!loading && children}
+      {children}
     </AuthContext.Provider>
-  );
-};
+  )
+}
 
-// Custom hook — use this in any component instead of useContext(AuthContext)
-export const useAuth = () => {
-  const context = useContext(AuthContext);
+
+// 3. Custom hook — components call this instead of useContext(AuthContext) directly
+// Usage: const { user, isLoggedIn, logoutUser } = useAuth()
+export function useAuth() {
+  const context = useContext(AuthContext)
+
   if (!context) {
-    throw new Error('useAuth must be used inside <AuthProvider>');
+    // This error means you forgot to wrap the component tree with <AuthProvider>
+    throw new Error('useAuth() must be used inside an <AuthProvider> wrapper')
   }
-  return context;
-};
 
-export default AuthContext;
+  return context
+}

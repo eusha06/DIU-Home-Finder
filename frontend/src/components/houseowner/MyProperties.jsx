@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { propertiesAPI } from '../../api/index.js'
 
 /**
  * MyProperties.jsx
@@ -24,37 +25,54 @@ const MyProperties = ({ properties, onUpdateProperty, onDeleteProperty }) => {
     setEditingSeats(null)
   }
 
-  const saveRent = (property) => {
-    if (newRent && Number(newRent) > 0) {
-      onUpdateProperty({ ...property, rent: Number(newRent) })
-    }
-    setEditingRent(null)
-    setNewRent('')
+  const saveRent = async (property) => {
+  if (!newRent || Number(newRent) <= 0) return
+  try {
+    await propertiesAPI.update(property.id, { rent: Number(newRent) })
+    onUpdateProperty({ ...property, rent: Number(newRent) })
+  } catch (err) {
+    alert('Failed to update rent: ' + err.message)
   }
-
+  setEditingRent(null)
+  setNewRent('')
+}
   const handleEditSeats = (property) => {
     setEditingSeats(property.id)
     setNewSeats(property.availableSeats.toString())
     setEditingRent(null)
   }
 
-  const saveSeats = (property) => {
-    if (newSeats !== '' && Number(newSeats) >= 0) {
-      onUpdateProperty({ ...property, availableSeats: Number(newSeats) })
-    }
-    setEditingSeats(null)
-    setNewSeats('')
+  const saveSeats = async (property) => {
+  if (newSeats === '' || Number(newSeats) < 0) return
+  try {
+    await propertiesAPI.update(property.id, { available_seats: Number(newSeats) })
+    onUpdateProperty({ ...property, availableSeats: Number(newSeats) })
+  } catch (err) {
+    alert('Failed to update seats: ' + err.message)
   }
+  setEditingSeats(null)
+  setNewSeats('')
+}
 
-  const toggleAvailability = (property) => {
+  const toggleAvailability = async (property) => {
+  try {
+    await propertiesAPI.update(property.id, { is_available: !property.available })
     onUpdateProperty({ ...property, available: !property.available })
+  } catch (err) {
+    alert('Failed to update availability: ' + err.message)
   }
+}
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
+  try {
+    await propertiesAPI.delete(id)
     onDeleteProperty(id)
     setDeleteConfirm(null)
+  } catch (err) {
+    alert('Failed to delete property: ' + err.message)
+    setDeleteConfirm(null)
   }
-
+}
   // ── Facility label ────────────────────────────────────────────────────
   const facilityLabels = {
     wifi: '📶 WiFi',

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { propertiesAPI } from '../../api/index.js'
 
 /**
  * AddPropertyForm.jsx
@@ -36,6 +37,7 @@ const AddPropertyForm = ({ onAddProperty }) => {
   const [imagePreviews, setImagePreviews] = useState([])
   const [errors, setErrors] = useState({})
   const [submitSuccess, setSubmitSuccess] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
 
   // ── Handlers ──────────────────────────────────────────────────────────
   const handleChange = (e) => {
@@ -81,38 +83,59 @@ const AddPropertyForm = ({ onAddProperty }) => {
   }
 
   // ── Submit ────────────────────────────────────────────────────────────
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    const errs = validate()
-    setErrors(errs)
+  const handleSubmit = async (e) => {
+  e.preventDefault()
+  const errs = validate()
+  setErrors(errs)
 
-    if (Object.keys(errs).length === 0) {
-      const propertyData = {
+  if (Object.keys(errs).length > 0) return
+
+  try {
+    setSubmitting(true)
+
+    // Call real backend API to create the property
+    const data = await propertiesAPI.create({
+      title:            formData.title,
+      description:      formData.description,
+      type:             'room',           // owner form doesn't pick type yet — default to room
+      rent:             Number(formData.rent),
+      address:          formData.location,
+      area:             formData.location,
+      total_seats:      Number(formData.availableSeats) || 1,
+      gender_preference: formData.gender,
+      amenities:        formData.facilities,
+    })
+
+    // Also call parent callback if it exists (for local state update)
+    if (onAddProperty) {
+      onAddProperty({
         ...formData,
-        id: Date.now(),
-        rent: Number(formData.rent),
-        rooms: Number(formData.rooms),
-        bathrooms: Number(formData.bathrooms),
-        floor: Number(formData.floor),
+        id:             data.property.id,
+        rent:           Number(formData.rent),
+        rooms:          Number(formData.rooms),
+        bathrooms:      Number(formData.bathrooms),
+        floor:          Number(formData.floor),
         availableSeats: Number(formData.availableSeats),
-        images: imagePreviews.length > 0
-          ? imagePreviews
-          : ['https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=600'],
-        postedAt: new Date().toISOString().split('T')[0],
-      }
-
-      console.log('New Property Data:', propertyData)
-      onAddProperty(propertyData)
-
-      // Reset form
-      setFormData({ ...initialFormState })
-      setImagePreviews([])
-      setErrors({})
-      setSubmitSuccess(true)
-      setTimeout(() => setSubmitSuccess(false), 3000)
+        images:         imagePreviews.length > 0
+                          ? imagePreviews
+                          : ['https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=600'],
+        postedAt:       new Date().toISOString().split('T')[0],
+      })
     }
-  }
 
+    // Reset form on success
+    setFormData({ ...initialFormState })
+    setImagePreviews([])
+    setErrors({})
+    setSubmitSuccess(true)
+    setTimeout(() => setSubmitSuccess(false), 3000)
+
+  } catch (err) {
+    setErrors({ api: err.message || 'Failed to add property' })
+  } finally {
+    setSubmitting(false)
+  }
+}
   // ── Field component ───────────────────────────────────────────────────
   const Field = ({ label, name, type = 'text', placeholder, value, error }) => (
     <div>
@@ -252,12 +275,21 @@ const AddPropertyForm = ({ onAddProperty }) => {
         </div>
 
         {/* Submit */}
-        <button
-          type="submit"
-          className="w-full py-3 rounded-xl bg-blue-700 text-white font-semibold hover:bg-blue-800 active:scale-[0.98] transition-all duration-200 shadow-md hover:shadow-lg"
-        >
-          Add Property
-        </button>
+        {errors.api && (
+  <div className="mb-4 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-4 py-3">
+    {errors.api}
+  </div>
+)}
+
+<button
+  type="submit"
+  disabled={submitting}
+  className="w-full py-3 rounded-xl bg-blue-700 text-white font-semibold
+             hover:bg-blue-800 active:scale-[0.98] transition-all duration-200
+             shadow-md hover:shadow-lg disabled:opacity-60 disabled:cursor-not-allowed"
+>
+  {submitting ? 'Adding property...' : 'Add Property'}
+</button>
 
         {/* Success message */}
         {submitSuccess && (
