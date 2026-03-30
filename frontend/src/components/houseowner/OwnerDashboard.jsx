@@ -1,44 +1,79 @@
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Sidebar from './Sidebar'
 import TopNavbar from './TopNavbar'
 import DashboardOverview from './DashboardOverview'
 import AddPropertyForm from './AddPropertyForm'
 import MyProperties from './MyProperties'
 import BookingsTable from './BookingsTable'
-import { ownerProperties as initialProperties, ownerBookings as initialBookings } from './data/dummyOwnerData'
+import { propertiesAPI } from '../../api/index.js'
 
-/**
- * OwnerDashboard.jsx
- * ──────────────────
- * Main dashboard page for house owners.
- * Manages all state and renders the appropriate section based on sidebar navigation.
- *
- * Props:
- *   owner    – owner object { fullName, email, ... }
- *   onLogout – callback to logout
- */
+// Bookings still use dummy data — will connect in a later phase
+import { ownerBookings as initialBookings } from './data/dummyOwnerData'
 
 const pageTitles = {
-  dashboard: 'Owner Dashboard',
-  properties: 'My Listings',
-  bookings: 'Revenue',
+  dashboard:   'Owner Dashboard',
+  properties:  'My Listings',
+  bookings:    'Revenue',
   addProperty: 'Messages',
 }
 
 const OwnerDashboard = ({ owner, onLogout }) => {
   // ── Navigation state ──────────────────────────────────────────────────
-  const [activePage, setActivePage] = useState('dashboard')
+  const [activePage, setActivePage]   = useState('dashboard')
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   // ── Data state ────────────────────────────────────────────────────────
-  const [properties, setProperties] = useState(initialProperties)
-  const [bookings, setBookings] = useState(initialBookings)
+  const [properties, setProperties] = useState([])
+  const [bookings]                  = useState(initialBookings)
+  const [loadingProps, setLoadingProps] = useState(true)
+  const [propsError,   setPropsError]   = useState(null)
+
+  // ── Fetch owner's own properties from real API ────────────────────────
+  const fetchMyProperties = useCallback(async () => {
+    try {
+      setLoadingProps(true)
+      setPropsError(null)
+      const data = await propertiesAPI.getMyListings()
+
+      // Map DB fields to what MyProperties component expects
+      const mapped = data.properties.map((p) => ({
+        id:             p.id,
+        title:          p.title,
+        location:       p.area || p.address,
+        address:        p.address,
+        rent:           p.rent,
+        gender:         p.gender_preference,
+        available:      p.is_available,
+        availableSeats: p.available_seats,
+        rooms:          p.total_seats || 1,
+        bathrooms:      1,
+        floor:          1,
+        facilities:     p.amenities || [],
+        images:         p.primary_image ? [p.primary_image] : [],
+        contactCount:   Number(p.contact_count) || 0,
+        postedAt:       p.created_at,
+      }))
+
+      setProperties(mapped)
+    } catch (err) {
+      console.error('Failed to fetch properties:', err)
+      setPropsError(err.message)
+    } finally {
+      setLoadingProps(false)
+    }
+  }, [])
+
+  // Fetch on mount
+  useEffect(() => {
+    fetchMyProperties()
+  }, [fetchMyProperties])
 
   // ── Property actions ──────────────────────────────────────────────────
   const handleAddProperty = (newProperty) => {
+    // Add to local state immediately (optimistic update)
     setProperties((prev) => [newProperty, ...prev])
-    console.log('Property added:', newProperty)
-    // Auto-navigate to My Properties after adding
+    // Refresh from server to get the real DB data
+    fetchMyProperties()
     setActivePage('properties')
   }
 
@@ -46,19 +81,14 @@ const OwnerDashboard = ({ owner, onLogout }) => {
     setProperties((prev) =>
       prev.map((p) => (p.id === updatedProperty.id ? updatedProperty : p))
     )
-    console.log('Property updated:', updatedProperty)
   }
 
   const handleDeleteProperty = (propertyId) => {
     setProperties((prev) => prev.filter((p) => p.id !== propertyId))
-    console.log('Property deleted, ID:', propertyId)
   }
 
   // ── Booking actions ───────────────────────────────────────────────────
   const handleUpdateBooking = (bookingId, newStatus) => {
-    setBookings((prev) =>
-      prev.map((b) => (b.id === bookingId ? { ...b, status: newStatus } : b))
-    )
     console.log(`Booking ${bookingId} status changed to: ${newStatus}`)
   }
 
@@ -67,7 +97,31 @@ const OwnerDashboard = ({ owner, onLogout }) => {
     switch (activePage) {
       case 'dashboard':
         return <DashboardOverview properties={properties} bookings={bookings} />
+
       case 'properties':
+        if (loadingProps) {
+          return (
+            <div className="flex items-center justify-center py-20">
+              <div className="text-center">
+                <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+                <p className="text-sm text-gray-500">Loading your properties...</p>
+              </div>
+            </div>
+          )
+        }
+        if (propsError) {
+          return (
+            <div className="bg-red-50 border border-red-200 rounded-xl px-5 py-4 flex items-center justify-between">
+              <p className="text-sm text-red-600">Failed to load properties: {propsError}</p>
+              <button
+                onClick={fetchMyProperties}
+                className="text-xs text-red-600 font-medium underline hover:no-underline ml-4"
+              >
+                Try again
+              </button>
+            </div>
+          )
+        }
         return (
           <MyProperties
             properties={properties}
@@ -75,6 +129,7 @@ const OwnerDashboard = ({ owner, onLogout }) => {
             onDeleteProperty={handleDeleteProperty}
           />
         )
+
       case 'bookings':
         return (
           <BookingsTable
@@ -82,8 +137,10 @@ const OwnerDashboard = ({ owner, onLogout }) => {
             onUpdateBooking={handleUpdateBooking}
           />
         )
+
       case 'addProperty':
         return <AddPropertyForm onAddProperty={handleAddProperty} />
+
       default:
         return <DashboardOverview properties={properties} bookings={bookings} />
     }

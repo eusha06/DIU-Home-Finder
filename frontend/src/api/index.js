@@ -61,7 +61,7 @@ export const propertiesAPI = {
   },
 
   getById: (id) => request(`/properties/${id}`),
-
+  getMyListings: () => request('/properties/my-listings'),
   create: (propertyData) =>
     request('/properties', {
       method: 'POST',
