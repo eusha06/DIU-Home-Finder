@@ -963,7 +963,7 @@ const pageTitles = {
 }
 
 const HostelManagerDashboard = ({ user, onLogout }) => {
-  if (!user || user.role !== 'hostel_manager') {
+  if (!user || (user.role !== 'hostel_manager' && user.role !== 'manager')) {
     return <Unauthorized onGoBack={onLogout} />
   }
 

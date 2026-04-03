@@ -29,13 +29,17 @@ router.post(
     body('name').trim().notEmpty().withMessage('Name is required'),
     body('email').isEmail().withMessage('Valid email is required'),
     body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
-    body('role').optional().isIn(['student', 'owner']).withMessage('Role must be student or owner'),
+    body('role')
+      .optional()
+      .isIn(['student', 'owner', 'hostel_manager', 'manager'])
+      .withMessage('Role must be student, owner, or hostel_manager'),
   ],
   async (req, res) => {
     if (handleValidation(req, res)) return;
 
     try {
       const { name, email, password, role = 'student', diu_student_id, phone } = req.body;
+      const normalizedRole = role === 'manager' ? 'hostel_manager' : role;
 
       // Check if email already exists in the database
       const existing = await pool.query(
@@ -57,7 +61,7 @@ router.post(
         `INSERT INTO users (name, email, password_hash, role, diu_student_id, phone)
          VALUES ($1, $2, $3, $4, $5, $6)
          RETURNING id, name, email, role, diu_student_id, phone, created_at`,
-        [name, email, password_hash, role, diu_student_id || null, phone || null]
+        [name, email, password_hash, normalizedRole, diu_student_id || null, phone || null]
       );
 
       const user = result.rows[0];
@@ -72,6 +76,14 @@ router.post(
 
     } catch (error) {
       console.error('Register error:', error);
+
+      if (error.code === '23514' && error.constraint === 'users_role_check') {
+        return res.status(500).json({
+          success: false,
+          message: 'Role constraint is outdated in database. Run the hostel_manager role migration first.',
+        });
+      }
+
       res.status(500).json({ success: false, message: 'Registration failed' });
     }
   }

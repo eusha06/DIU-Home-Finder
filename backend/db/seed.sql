@@ -20,6 +20,16 @@ INSERT INTO users (name, email, password_hash, role, diu_student_id, phone) VALU
   '01799887766'
 );
 
+-- ─── Sample Hostel Manager User ──────────────────────────────────────────────
+INSERT INTO users (name, email, password_hash, role, phone) VALUES
+(
+  'Rafiq Ahmed',
+  'rafiq@manager.com',
+  '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj4J/HS4qFbm',
+  'hostel_manager',
+  '01822334455'
+);
+
 -- ─── Sample Properties ───────────────────────────────────────────────────────
 -- owner_id = 1 (Mr. Rahman created above)
 INSERT INTO properties

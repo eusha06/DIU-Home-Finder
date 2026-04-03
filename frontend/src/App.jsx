@@ -22,6 +22,7 @@ const ROLE_HOME = {
   homeowner: '/owner/dashboard',
   admin: '/admin',
   hostel_manager: '/hostel-manager',
+  manager: '/hostel-manager',
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -104,7 +105,7 @@ function App() {
       <Route
         path="/hostel-manager"
         element={
-          <ProtectedRoute allowedRoles={['hostel_manager']}>
+          <ProtectedRoute allowedRoles={['hostel_manager', 'manager']}>
             <HostelManagerDashboard user={user} onLogout={handleLogout} />
           </ProtectedRoute>
         }

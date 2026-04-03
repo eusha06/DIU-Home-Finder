@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { authAPI } from '../../api/index.js'
 import FormInput from '../shared/FormInput'
 import { UserIcon, EmailIcon, PhoneIcon, IdIcon, BuildingIcon, LockIcon } from '../shared/Icons'
 
@@ -82,6 +83,15 @@ const ManagerSignupForm = ({ onSwitchToLogin, onManagerLogin }) => {
     if (Object.keys(errs).length === 0) {
       try {
         setLoading(true)
+
+        await authAPI.register({
+          name: formData.fullName,
+          email: formData.email,
+          password: formData.password,
+          role: 'hostel_manager',
+          phone: formData.phone,
+        })
+
         if (onManagerLogin) {
           await onManagerLogin(formData.email, formData.password)
         }

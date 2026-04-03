@@ -7,14 +7,14 @@ DROP TABLE IF EXISTS properties CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
 
 -- ─── Users ───────────────────────────────────────────────────────────────────
--- Stores all users: students, property owners, and admins
+-- Stores all users: students, property owners, hostel managers, and admins
 CREATE TABLE users (
   id              SERIAL PRIMARY KEY,
   name            VARCHAR(100)        NOT NULL,
   email           VARCHAR(150)        UNIQUE NOT NULL,
   password_hash   TEXT                NOT NULL,
   role            VARCHAR(20)         NOT NULL DEFAULT 'student'
-                  CHECK (role IN ('student', 'owner', 'admin')),
+                  CHECK (role IN ('student', 'owner', 'hostel_manager', 'admin')),
   diu_student_id  VARCHAR(50),        -- only for students e.g. "221-15-4567"
   phone           VARCHAR(20),
   is_active       BOOLEAN             DEFAULT true,
