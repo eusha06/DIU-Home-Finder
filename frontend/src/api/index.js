@@ -43,6 +43,12 @@ export const authAPI = {
     }),
 
   getMe: () => request('/auth/me'),
+
+  updateMe: (profileData) =>
+    request('/auth/me', {
+      method: 'PATCH',
+      body: JSON.stringify(profileData),
+    }),
 };
 
 // ─── Properties API ───────────────────────────────────────────────────────────

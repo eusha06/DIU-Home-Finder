@@ -42,7 +42,14 @@ const statusStyles = {
   Completed: 'bg-[#c6e8ca] text-[#296b35]',
 }
 
-const DashboardOverview = ({ properties = [], bookings = [] }) => {
+const fallbackStatusFilter = {
+  Pending: 'pending',
+  Approved: 'approved',
+  'In Progress': 'pending',
+  Completed: 'approved',
+}
+
+const DashboardOverview = ({ properties = [], bookings = [], onStatusClick }) => {
   const totalProperties = properties.length
   const approvedBookings = bookings.filter((b) => b.status === 'approved')
   const totalRevenue = approvedBookings.reduce((sum, booking) => {
@@ -57,6 +64,7 @@ const DashboardOverview = ({ properties = [], bookings = [] }) => {
       property: 'Sunrise Apartments, Unit 3B',
       action: 'Application Submitted by Liam C.',
       status: 'Pending',
+      filterStatus: 'pending',
     },
     {
       id: 'f2',
@@ -64,6 +72,7 @@ const DashboardOverview = ({ properties = [], bookings = [] }) => {
       property: 'University Lofts, Apt 101',
       action: 'Lease Signed by Emma R.',
       status: 'Approved',
+      filterStatus: 'approved',
     },
     {
       id: 'f3',
@@ -71,6 +80,7 @@ const DashboardOverview = ({ properties = [], bookings = [] }) => {
       property: 'The Commons, Room 2A',
       action: 'Booking Request from Noah K.',
       status: 'Pending',
+      filterStatus: 'pending',
     },
     {
       id: 'f4',
@@ -78,6 +88,7 @@ const DashboardOverview = ({ properties = [], bookings = [] }) => {
       property: 'Oakwood Residence, Unit 5C',
       action: 'Maintenance Request: Plumbing',
       status: 'In Progress',
+      filterStatus: 'pending',
     },
     {
       id: 'f5',
@@ -85,6 +96,7 @@ const DashboardOverview = ({ properties = [], bookings = [] }) => {
       property: 'The Lofts, Apt 404',
       action: 'Rent Payment Received',
       status: 'Completed',
+      filterStatus: 'approved',
     },
   ]
 
@@ -107,6 +119,7 @@ const DashboardOverview = ({ properties = [], bookings = [] }) => {
       property: booking.propertyTitle,
       action: actionLookup[booking.status] || `Activity from ${booking.studentName}`,
       status: statusLookup[booking.status] || 'Pending',
+      filterStatus: booking.status,
     }
   })
 
@@ -147,13 +160,16 @@ const DashboardOverview = ({ properties = [], bookings = [] }) => {
                     <td className="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap">{row.property}</td>
                     <td className="px-4 sm:px-6 py-3 sm:py-4">{row.action}</td>
                     <td className="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
-                      <span
-                        className={`inline-flex items-center rounded-full px-3 sm:px-4 py-1 sm:py-1.5 text-xs sm:text-sm font-medium ${
+                      <button
+                        type="button"
+                        onClick={() => onStatusClick?.(row.filterStatus || fallbackStatusFilter[row.status] || 'pending')}
+                        className={`inline-flex items-center rounded-full px-3 sm:px-4 py-1 sm:py-1.5 text-xs sm:text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5f6fe0] focus-visible:ring-offset-2 ${
                           statusStyles[row.status] || statusStyles.Pending
-                        }`}
+                        } ${onStatusClick ? 'cursor-pointer hover:brightness-95 active:scale-[0.98]' : 'cursor-default'}`}
+                        title="Open Booking Request with this status filter"
                       >
                         {row.status}
-                      </span>
+                      </button>
                     </td>
                   </tr>
                 ))}

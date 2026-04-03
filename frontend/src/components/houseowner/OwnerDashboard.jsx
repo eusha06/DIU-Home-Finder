@@ -5,28 +5,40 @@ import DashboardOverview from './DashboardOverview'
 import AddPropertyForm from './AddPropertyForm'
 import MyProperties from './MyProperties'
 import BookingsTable from './BookingsTable'
+import OwnerFooter from './OwnerFooter'
+import OwnerProfilePage from './OwnerProfilePage'
 import { propertiesAPI } from '../../api/index.js'
+import { useAuth } from '../../context/AuthContext'
 
 // Bookings still use dummy data — will connect in a later phase
 import { ownerBookings as initialBookings } from './data/dummyOwnerData'
 
 const pageTitles = {
-  dashboard:   'Owner Dashboard',
-  properties:  'My Listings',
-  bookings:    'Booking Request',
+  dashboard: 'Owner Dashboard',
+  properties: 'My Listings',
+  bookings: 'Booking Request',
   addProperty: 'Add Property',
+  profile: 'Edit Profile',
 }
 
 const OwnerDashboard = ({ owner, onLogout }) => {
+  const { updateProfile } = useAuth()
+
   // ── Navigation state ──────────────────────────────────────────────────
-  const [activePage, setActivePage]   = useState('dashboard')
+  const [activePage, setActivePage] = useState('dashboard')
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [bookingFilter, setBookingFilter] = useState('all')
+  const [ownerProfile, setOwnerProfile] = useState(owner)
 
   // ── Data state ────────────────────────────────────────────────────────
   const [properties, setProperties] = useState([])
-  const [bookings, setBookings]     = useState(initialBookings)
+  const [bookings, setBookings] = useState(initialBookings)
   const [loadingProps, setLoadingProps] = useState(true)
-  const [propsError,   setPropsError]   = useState(null)
+  const [propsError, setPropsError] = useState(null)
+
+  useEffect(() => {
+    setOwnerProfile(owner)
+  }, [owner])
 
   // ── Fetch owner's own properties from real API ────────────────────────
   const fetchMyProperties = useCallback(async () => {
@@ -37,21 +49,21 @@ const OwnerDashboard = ({ owner, onLogout }) => {
 
       // Map DB fields to what MyProperties component expects
       const mapped = data.properties.map((p) => ({
-        id:             p.id,
-        title:          p.title,
-        location:       p.area || p.address,
-        address:        p.address,
-        rent:           p.rent,
-        gender:         p.gender_preference,
-        available:      p.is_available,
+        id: p.id,
+        title: p.title,
+        location: p.area || p.address,
+        address: p.address,
+        rent: p.rent,
+        gender: p.gender_preference,
+        available: p.is_available,
         availableSeats: p.available_seats,
-        rooms:          p.total_seats || 1,
-        bathrooms:      1,
-        floor:          1,
-        facilities:     p.amenities || [],
-        images:         p.primary_image ? [p.primary_image] : [],
-        contactCount:   Number(p.contact_count) || 0,
-        postedAt:       p.created_at,
+        rooms: p.total_seats || 1,
+        bathrooms: 1,
+        floor: 1,
+        facilities: p.amenities || [],
+        images: p.primary_image ? [p.primary_image] : [],
+        contactCount: Number(p.contact_count) || 0,
+        postedAt: p.created_at,
       }))
 
       setProperties(mapped)
@@ -96,6 +108,12 @@ const OwnerDashboard = ({ owner, onLogout }) => {
           : booking
       )
     )
+  }
+
+  const handleSaveProfile = async (profileData) => {
+    const updated = await updateProfile(profileData)
+    setOwnerProfile(updated)
+    return updated
   }
 
   const notificationItems = useMemo(() => {
@@ -174,14 +192,34 @@ const OwnerDashboard = ({ owner, onLogout }) => {
       return
     }
 
+    if (action === 'bookings') {
+      setBookingFilter('all')
+    }
+
     setActivePage(action)
+  }
+
+  const handlePageNavigate = (page) => {
+    setBookingFilter('all')
+    setActivePage(page)
+  }
+
+  const handleDashboardStatusClick = (status) => {
+    setBookingFilter(status || 'all')
+    setActivePage('bookings')
   }
 
   // ── Render content ────────────────────────────────────────────────────
   const renderContent = () => {
     switch (activePage) {
       case 'dashboard':
-        return <DashboardOverview properties={properties} bookings={bookings} />
+        return (
+          <DashboardOverview
+            properties={properties}
+            bookings={bookings}
+            onStatusClick={handleDashboardStatusClick}
+          />
+        )
 
       case 'properties':
         if (loadingProps) {
@@ -221,14 +259,30 @@ const OwnerDashboard = ({ owner, onLogout }) => {
           <BookingsTable
             bookings={bookings}
             onUpdateBooking={handleUpdateBooking}
+            activeFilter={bookingFilter}
+            onFilterChange={setBookingFilter}
           />
         )
 
       case 'addProperty':
         return <AddPropertyForm onAddProperty={handleAddProperty} />
 
+      case 'profile':
+        return (
+          <OwnerProfilePage
+            owner={ownerProfile}
+            onSaveProfile={handleSaveProfile}
+          />
+        )
+
       default:
-        return <DashboardOverview properties={properties} bookings={bookings} />
+        return (
+          <DashboardOverview
+            properties={properties}
+            bookings={bookings}
+            onStatusClick={handleDashboardStatusClick}
+          />
+        )
     }
   }
 
@@ -238,50 +292,38 @@ const OwnerDashboard = ({ owner, onLogout }) => {
     <div className="min-h-screen bg-[#f4f5fb] flex" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
       <Sidebar
         activePage={activePage}
-        onNavigate={setActivePage}
+        onNavigate={handlePageNavigate}
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
       />
 
       <div className="flex-1 min-w-0 flex flex-col overflow-hidden">
-        {isDashboard ? (
-          <main className="flex-1 overflow-auto">
-            <div className="relative min-h-[240px] bg-[linear-gradient(118deg,#171d59_0%,#25378f_50%,#3f57c9_100%)]">
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_72%_8%,rgba(124,141,246,0.2),transparent_34%),radial-gradient(circle_at_16%_100%,rgba(88,102,198,0.28),transparent_58%)]" />
-              <TopNavbar
-                owner={owner}
-                pageTitle={pageTitles[activePage] || 'Owner Dashboard'}
-                onToggleSidebar={() => setSidebarOpen(true)}
-                onLogout={onLogout}
-                variant="dashboard"
-                notifications={notificationItems}
-                onNotificationAction={handleNotificationAction}
-                onNavigate={setActivePage}
-              />
-            </div>
+        <main className="flex-1 overflow-auto">
+          <div className={`relative ${isDashboard ? 'min-h-[240px]' : 'min-h-[190px] sm:min-h-[210px]'} bg-[linear-gradient(118deg,#171d59_0%,#25378f_50%,#3f57c9_100%)]`}>
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_72%_8%,rgba(124,141,246,0.2),transparent_34%),radial-gradient(circle_at_16%_100%,rgba(88,102,198,0.28),transparent_58%)]" />
+            <TopNavbar
+              owner={ownerProfile}
+              pageTitle={pageTitles[activePage] || 'Owner Dashboard'}
+              onToggleSidebar={() => setSidebarOpen(true)}
+              onLogout={onLogout}
+              variant="dashboard"
+              notifications={notificationItems}
+              onNotificationAction={handleNotificationAction}
+              onNavigate={handlePageNavigate}
+            />
+          </div>
 
+          {isDashboard ? (
             <div className="px-4 sm:px-6 lg:px-9 pb-10 -mt-[56px]">
               <div className="max-w-[1180px] mx-auto animate-[fadeIn_0.32s_ease-out]">
-                <DashboardOverview properties={properties} bookings={bookings} />
+                <DashboardOverview
+                  properties={properties}
+                  bookings={bookings}
+                  onStatusClick={handleDashboardStatusClick}
+                />
               </div>
             </div>
-          </main>
-        ) : (
-          <main className="flex-1 overflow-auto">
-            <div className="relative min-h-[190px] sm:min-h-[210px] bg-[linear-gradient(118deg,#171d59_0%,#25378f_50%,#3f57c9_100%)]">
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_72%_8%,rgba(124,141,246,0.2),transparent_34%),radial-gradient(circle_at_16%_100%,rgba(88,102,198,0.28),transparent_58%)]" />
-              <TopNavbar
-                owner={owner}
-                pageTitle={pageTitles[activePage] || 'Owner Dashboard'}
-                onToggleSidebar={() => setSidebarOpen(true)}
-                onLogout={onLogout}
-                variant="dashboard"
-                notifications={notificationItems}
-                onNotificationAction={handleNotificationAction}
-                onNavigate={setActivePage}
-              />
-            </div>
-
+          ) : (
             <div className="px-4 sm:px-6 lg:px-9 pb-10 -mt-[16px] sm:-mt-[20px] relative z-10">
               <div className="max-w-[1180px] mx-auto animate-[fadeIn_0.3s_ease-out]">
                 <div className="rounded-[24px] border border-[#bcc6ff] bg-[linear-gradient(180deg,#f8f9ff_0%,#f2f4ff_100%)] shadow-[0_24px_46px_-36px_rgba(37,51,125,0.8)] p-3 sm:p-4 lg:p-5">
@@ -289,8 +331,10 @@ const OwnerDashboard = ({ owner, onLogout }) => {
                 </div>
               </div>
             </div>
-          </main>
-        )}
+          )}
+
+          <OwnerFooter onNavigate={handlePageNavigate} />
+        </main>
       </div>
     </div>
   )

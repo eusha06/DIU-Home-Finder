@@ -69,6 +69,40 @@ export function AuthProvider({ children }) {
     persistAuth(data.token, data.user)
   }
 
+  // ── updateProfile: updates user profile on API + local auth state ───────
+  async function updateProfile(profileUpdates = {}) {
+    if (!user || !token) {
+      throw new Error('You must be logged in to update profile')
+    }
+
+    const apiPayload = {}
+    if (Object.prototype.hasOwnProperty.call(profileUpdates, 'name')) {
+      apiPayload.name = profileUpdates.name
+    }
+    if (Object.prototype.hasOwnProperty.call(profileUpdates, 'email')) {
+      apiPayload.email = profileUpdates.email
+    }
+    if (Object.prototype.hasOwnProperty.call(profileUpdates, 'phone')) {
+      apiPayload.phone = profileUpdates.phone
+    }
+
+    let nextUser = { ...user }
+
+    if (Object.keys(apiPayload).length > 0) {
+      const data = await authAPI.updateMe(apiPayload)
+      nextUser = { ...nextUser, ...(data.user || {}) }
+    }
+
+    const localOnlyFields = { ...profileUpdates }
+    delete localOnlyFields.name
+    delete localOnlyFields.email
+    delete localOnlyFields.phone
+
+    nextUser = { ...nextUser, ...localOnlyFields }
+    persistAuth(token, nextUser)
+    return nextUser
+  }
+
 
   // ── logout: clears everything ─────────────────────────────────────────────
   function logout() {
@@ -102,6 +136,7 @@ export function AuthProvider({ children }) {
     isAdmin,
     login,
     loginUser,
+    updateProfile,
     logout,
     logoutUser,
   }

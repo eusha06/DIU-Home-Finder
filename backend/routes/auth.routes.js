@@ -146,4 +146,95 @@ router.get('/me', protect, async (req, res) => {
   }
 });
 
+// ─────────────────────────────────────────────────────────────────────────────
+// PATCH /api/auth/me  — update the currently logged-in user's profile
+// ─────────────────────────────────────────────────────────────────────────────
+router.patch(
+  '/me',
+  protect,
+  [
+    body('name').optional().trim().notEmpty().withMessage('Name cannot be empty'),
+    body('email').optional().isEmail().withMessage('Valid email is required'),
+    body('phone')
+      .optional({ nullable: true })
+      .custom((value) => {
+        if (value === '' || value === null) return true;
+        return /^01[3-9]\d{8}$/.test(String(value));
+      })
+      .withMessage('Phone must be a valid BD number (01XXXXXXXXX)'),
+  ],
+  async (req, res) => {
+    if (handleValidation(req, res)) return;
+
+    try {
+      const { name, email, phone } = req.body;
+      const updates = {};
+
+      if (name !== undefined) {
+        updates.name = name.trim();
+      }
+
+      if (email !== undefined) {
+        updates.email = email.toLowerCase().trim();
+      }
+
+      if (phone !== undefined) {
+        const normalized = String(phone ?? '').trim();
+        updates.phone = normalized === '' ? null : normalized;
+      }
+
+      if (Object.keys(updates).length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'No profile fields provided for update',
+        });
+      }
+
+      if (updates.email) {
+        const existing = await pool.query(
+          'SELECT id FROM users WHERE email = $1 AND id <> $2',
+          [updates.email, req.user.id]
+        );
+
+        if (existing.rows.length > 0) {
+          return res.status(409).json({
+            success: false,
+            message: 'An account with this email already exists',
+          });
+        }
+      }
+
+      const setClauses = [];
+      const values = [];
+      let idx = 1;
+
+      Object.entries(updates).forEach(([key, value]) => {
+        setClauses.push(`${key} = $${idx}`);
+        values.push(value);
+        idx += 1;
+      });
+
+      setClauses.push('updated_at = NOW()');
+      values.push(req.user.id);
+
+      const result = await pool.query(
+        `UPDATE users
+         SET ${setClauses.join(', ')}
+         WHERE id = $${idx}
+         RETURNING id, name, email, role, diu_student_id, phone, created_at, updated_at`,
+        values
+      );
+
+      res.json({
+        success: true,
+        message: 'Profile updated successfully',
+        user: result.rows[0],
+      });
+    } catch (error) {
+      console.error('Update profile error:', error);
+      res.status(500).json({ success: false, message: 'Failed to update profile' });
+    }
+  }
+);
+
 export default router;

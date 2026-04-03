@@ -7,13 +7,26 @@
  * Props:
  *   bookings        – array of booking objects
  *   onUpdateBooking – callback(bookingId, newStatus) to update status
+ *   activeFilter    – optional status filter (all | pending | approved | rejected)
+ *   onFilterChange  – optional callback to update filter
  */
-const BookingsTable = ({ bookings, onUpdateBooking }) => {
+const BookingsTable = ({ bookings, onUpdateBooking, activeFilter = 'all', onFilterChange }) => {
   const statusStyles = {
     pending: 'bg-yellow-100 text-yellow-700',
     approved: 'bg-green-100 text-green-700',
     rejected: 'bg-red-100 text-red-700',
   }
+
+  const filterOptions = [
+    { key: 'all', label: 'All' },
+    { key: 'pending', label: 'Pending' },
+    { key: 'approved', label: 'Approved' },
+    { key: 'rejected', label: 'Rejected' },
+  ]
+
+  const filteredBookings = activeFilter === 'all'
+    ? bookings
+    : bookings.filter((booking) => booking.status === activeFilter)
 
   if (bookings.length === 0) {
     return (
@@ -44,8 +57,44 @@ const BookingsTable = ({ bookings, onUpdateBooking }) => {
         </div>
       </div>
 
+      <div className="rounded-2xl border border-[#d8e2ff] bg-[#f8faff] p-3 sm:p-3.5 flex flex-wrap items-center gap-2">
+        <span className="text-xs font-semibold uppercase tracking-wide text-[#7380b6] pr-1">Filter</span>
+        {filterOptions.map((option) => (
+          <button
+            key={option.key}
+            type="button"
+            onClick={() => onFilterChange?.(option.key)}
+            className={`px-3 py-1.5 text-xs sm:text-sm font-semibold rounded-full border transition-colors ${
+              activeFilter === option.key
+                ? 'bg-[#3550c9] text-white border-[#3550c9]'
+                : 'bg-white text-[#4b578f] border-[#cfd9ff] hover:bg-[#eef3ff]'
+            }`}
+          >
+            {option.label}
+          </button>
+        ))}
+      </div>
+
+      {filteredBookings.length === 0 && (
+        <div className="rounded-2xl border border-[#d8e2ff] bg-white/85 p-6 text-center shadow-[0_14px_30px_-28px_rgba(45,64,149,0.5)]">
+          <p className="text-sm text-[#5f6999]">
+            No {activeFilter} booking requests found right now.
+          </p>
+          {activeFilter !== 'all' && (
+            <button
+              type="button"
+              onClick={() => onFilterChange?.('all')}
+              className="mt-3 text-xs font-semibold text-[#3550c9] hover:text-[#243b9d]"
+            >
+              Clear filter
+            </button>
+          )}
+        </div>
+      )}
+
       {/* Desktop Table */}
-      <div className="hidden md:block bg-white/90 rounded-2xl border border-[#ccd8ff] shadow-[0_18px_34px_-26px_rgba(34,52,143,0.7)] overflow-hidden">
+      {filteredBookings.length > 0 && (
+        <div className="hidden md:block bg-white/90 rounded-2xl border border-[#ccd8ff] shadow-[0_18px_34px_-26px_rgba(34,52,143,0.7)] overflow-hidden">
         <table className="w-full">
           <thead>
             <tr className="bg-[linear-gradient(180deg,#f7f9ff_0%,#eef2ff_100%)] border-b border-[#d8e0ff]">
@@ -57,7 +106,7 @@ const BookingsTable = ({ bookings, onUpdateBooking }) => {
             </tr>
           </thead>
           <tbody className="divide-y divide-[#e3e9ff]">
-            {bookings.map((booking) => (
+            {filteredBookings.map((booking) => (
               <tr key={booking.id} className="hover:bg-[#f6f8ff] transition-colors">
                 {/* Student */}
                 <td className="px-5 py-4">
@@ -110,11 +159,13 @@ const BookingsTable = ({ bookings, onUpdateBooking }) => {
             ))}
           </tbody>
         </table>
-      </div>
+        </div>
+      )}
 
       {/* Mobile Cards */}
-      <div className="md:hidden space-y-3">
-        {bookings.map((booking) => (
+      {filteredBookings.length > 0 && (
+        <div className="md:hidden space-y-3">
+        {filteredBookings.map((booking) => (
           <div key={booking.id} className="bg-white/90 rounded-2xl border border-[#ccd8ff] shadow-[0_14px_28px_-24px_rgba(34,52,143,0.65)] p-4">
             <div className="flex items-start justify-between mb-3">
               <div className="flex items-center gap-2">
@@ -154,7 +205,8 @@ const BookingsTable = ({ bookings, onUpdateBooking }) => {
             )}
           </div>
         ))}
-      </div>
+        </div>
+      )}
     </div>
   )
 }

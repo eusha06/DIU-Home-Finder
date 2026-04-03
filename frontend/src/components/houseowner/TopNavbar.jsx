@@ -19,6 +19,7 @@ const quickActions = [
   { id: 'nav-properties', label: 'My Listings', action: 'properties' },
   { id: 'nav-bookings', label: 'Booking Request', action: 'bookings' },
   { id: 'nav-add', label: 'Add Property', action: 'addProperty' },
+  { id: 'nav-profile', label: 'Edit Profile', action: 'profile' },
 ]
 
 const TopNavbar = ({
