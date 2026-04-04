@@ -20,7 +20,12 @@ const notificationToneClasses = {
   green: 'bg-[#dff7e6] text-[#2f7b49] border-[#a9e4bc]',
 }
 
-const Navbar = ({ student, onLogout }) => {
+const quickActions = [
+  { id: 'student-home', label: 'Student Dashboard', action: 'dashboard' },
+  { id: 'student-profile', label: 'Edit Profile', action: 'profile' },
+]
+
+const Navbar = ({ student, onLogout, onNavigate }) => {
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false)
   const [isProfileOpen, setIsProfileOpen] = useState(false)
   const [readNotificationIds, setReadNotificationIds] = useState(new Set())
@@ -30,6 +35,9 @@ const Navbar = ({ student, onLogout }) => {
 
   const displayName = student?.fullName || student?.name || 'Student'
   const initials = displayName.charAt(0).toUpperCase()
+  const roleLabel = student?.role
+    ? student.role.replace('_', ' ').replace(/\b\w/g, (ch) => ch.toUpperCase())
+    : 'Student'
 
   const notifications = useMemo(
     () => [
@@ -100,6 +108,14 @@ const Navbar = ({ student, onLogout }) => {
       next.add(notificationId)
       return next
     })
+  }
+
+  const handleQuickAction = (action) => {
+    if (onNavigate && action) {
+      onNavigate(action)
+    }
+
+    setIsProfileOpen(false)
   }
 
   const toggleNotifications = () => {
@@ -218,10 +234,23 @@ const Navbar = ({ student, onLogout }) => {
                 <div className="absolute right-0 top-full mt-3 w-64 rounded-2xl border border-[#d2dcff] bg-white shadow-[0_24px_45px_-28px_rgba(32,49,134,0.7)] overflow-hidden z-40">
                   <div className="px-4 py-3 border-b border-[#e3e9ff]">
                     <p className="text-sm font-semibold text-[#27305f] truncate">{displayName}</p>
-                    <p className="text-xs text-[#6f79ad] truncate">Student</p>
+                    <p className="text-xs text-[#6f79ad] truncate">{roleLabel}</p>
                   </div>
 
-                  <div className="p-2">
+                  <div className="p-2 space-y-1">
+                    {quickActions.map((item) => (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => handleQuickAction(item.action)}
+                        className="w-full text-left text-sm font-medium text-[#33406d] px-3 py-2.5 rounded-xl hover:bg-[#f3f6ff] transition-colors"
+                      >
+                        {item.label}
+                      </button>
+                    ))}
+                  </div>
+
+                  <div className="p-2 border-t border-[#e3e9ff]">
                     <button
                       type="button"
                       onClick={onLogout}

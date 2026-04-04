@@ -8,7 +8,9 @@ import FilterSidebar from './FilterSidebar'
 import PropertyCard from './PropertyCard'
 import PropertyDetailModal from './PropertyDetailModal'
 import BookingConfirmModal from './BookingConfirmModal'
+import StudentProfilePage from './StudentProfilePage'
 import { propertiesAPI } from '../../api/index.js'
+import { useAuth } from '../../context/AuthContext'
 import dummyHostels from './data/dummyHostelData'
 // ── Hostel browsing components ────────────────────────────────────────────
 import HostelCard from './HostelCard'
@@ -242,9 +244,13 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
 //   onLogout - callback to return to auth page
 //
 const StudentHomePage = ({ student, onLogout }) => {
+  const { updateProfile } = useAuth()
+
   // ── Category state ──────────────────────────────────────────────────────
   // null = show category selection view; 'home' | 'hostel' = show listings
   const [selectedCategory, setSelectedCategory] = useState(null)
+  const [activeView, setActiveView] = useState('browse')
+  const [studentProfile, setStudentProfile] = useState(student)
 
   // ── Combine both data sources into one array ────────────────────────────
   // (used only for rental homes now; hostels use their own hierarchical data)
@@ -323,9 +329,15 @@ useEffect(() => {
   const [seatRequest, setSeatRequest] = useState(null)             // { bed, room, hostel } for modal
   const [hostelSearchQuery, setHostelSearchQuery] = useState('')   // search within hostels
 
+  useEffect(() => {
+    setStudentProfile(student)
+  }, [student])
+
+  const studentGender = studentProfile?.gender || student?.gender || 'any'
+
   // ── Hostels filtered by student gender ──────────────────────────────────
   const filteredHostels = useMemo(() => {
-    let result = dummyHostels.filter((h) => h.gender === student.gender)
+    let result = dummyHostels.filter((h) => h.gender === studentGender)
     // Text search on hostel name and location
     if (hostelSearchQuery.trim()) {
       const q = hostelSearchQuery.toLowerCase()
@@ -334,7 +346,7 @@ useEffect(() => {
       )
     }
     return result
-  }, [student.gender, hostelSearchQuery])
+  }, [studentGender, hostelSearchQuery])
 
   // ── Simulate loading whenever category changes ──────────────────────────
   // This gives a realistic skeleton-card experience while "fetching" data.
@@ -380,7 +392,7 @@ useEffect(() => {
     }
 
     // 1) Gender filter (auto from student profile)
-    result = result.filter((p) => p.gender === student.gender || p.gender === 'any')
+    result = result.filter((p) => p.gender === studentGender || p.gender === 'any')
 
     // 2) Text search (title + location)
     if (searchQuery.trim()) {
@@ -445,7 +457,25 @@ useEffect(() => {
     }
 
     return result
-  }, [searchQuery, sortBy, filters, student.gender, selectedCategory, allProperties])
+  }, [searchQuery, sortBy, filters, studentGender, selectedCategory, allProperties])
+
+  const handleSaveProfile = async (profileData) => {
+    const updatedProfile = await updateProfile(profileData)
+    setStudentProfile(updatedProfile)
+    return updatedProfile
+  }
+
+  const handleNavbarNavigate = (action) => {
+    if (action === 'profile') {
+      setActiveView('profile')
+      setSidebarOpen(false)
+      return
+    }
+
+    if (action === 'dashboard') {
+      setActiveView('browse')
+    }
+  }
 
   // ── Pagination derived values ───────────────────────────────────────────
   const totalPages = Math.ceil(filteredProperties.length / ITEMS_PER_PAGE)
@@ -494,16 +524,28 @@ useEffect(() => {
   return (
     <div className="min-h-screen bg-[#F3F4F8]" style={{ fontFamily: "'Sora', sans-serif" }}>
       {/* ── Navbar ──────────────────────────────────────────────────── */}
-      <Navbar student={student} onLogout={onLogout} />
+      <Navbar student={studentProfile} onLogout={onLogout} onNavigate={handleNavbarNavigate} />
 
-      {/* ── Category selection view (initial) ──────────────────────── */}
-      {!selectedCategory && (
-        <CategorySelection onSelect={setSelectedCategory} />
+      {activeView === 'profile' && (
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <StudentProfilePage
+            student={studentProfile}
+            onSaveProfile={handleSaveProfile}
+            onBackToHome={() => setActiveView('browse')}
+          />
+        </div>
       )}
 
-      {/* ── Listing view (after category is selected) ──────────────── */}
-      {selectedCategory && (
+      {/* ── Category selection view (initial) ──────────────────────── */}
+      {activeView === 'browse' && (
         <>
+          {!selectedCategory && (
+            <CategorySelection onSelect={setSelectedCategory} />
+          )}
+
+          {/* ── Listing view (after category is selected) ──────────────── */}
+          {selectedCategory && (
+            <>
           {/* Back button + category title bar */}
           <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 pt-5">
             <div className="flex items-center gap-3">
@@ -528,10 +570,10 @@ useEffect(() => {
                 </h2>
                 <p className="text-xs text-gray-400">
                   {selectedCategory === 'home'
-                    ? `Showing rental homes for ${student.gender} students`
+                    ? `Showing rental homes for ${studentGender} students`
                     : selectedHostel
                       ? `${selectedHostel.location}`
-                      : `Showing hostels for ${student.gender} students`}
+                      : `Showing hostels for ${studentGender} students`}
                 </p>
               </div>
             </div>
@@ -653,7 +695,7 @@ useEffect(() => {
           <FilterSidebar
             filters={filters}
             onChange={handleFilterChange}
-            studentGender={student.gender}
+            studentGender={studentGender}
             isOpen={sidebarOpen}
             onClose={() => setSidebarOpen(false)}
             onReset={resetAllFilters}
@@ -731,7 +773,10 @@ useEffect(() => {
       {bookingProperty && (
         <BookingConfirmModal
           property={bookingProperty}
-          student={{ name: student.fullName, email: student.email }}
+          student={{
+            name: studentProfile?.fullName || studentProfile?.name || 'Student',
+            email: studentProfile?.email || '',
+          }}
           onClose={() => setBookingProperty(null)}
           onConfirm={handleBookingConfirm}
         />
@@ -764,6 +809,8 @@ useEffect(() => {
           </span>
         </div>
       )}
+            </>
+          )}
         </>
       )}
     </div>
