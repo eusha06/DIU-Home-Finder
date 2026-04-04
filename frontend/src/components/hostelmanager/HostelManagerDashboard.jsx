@@ -3,6 +3,7 @@ import {
   managerHostels as initialHostels,
   managerBookings as initialBookings,
 } from './data/dummyHostelManagerData'
+import ManagerFooter from './ManagerFooter'
 
 // 
 // INLINE SVG ICON COMPONENTS
@@ -1088,6 +1089,7 @@ const HostelManagerDashboard = ({ user, onLogout }) => {
           <div className="max-w-[1400px] mx-auto animate-[fadeIn_0.3s_ease-out]">
             {renderContent()}
           </div>
+          <ManagerFooter onNavigate={setActivePage} />
         </main>
       </div>
     </div>
