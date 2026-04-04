@@ -18,6 +18,8 @@ import SeatRequestModal from './SeatRequestModal'
 // ── Constants ─────────────────────────────────────────────────────────────
 const ITEMS_PER_PAGE = 6
 
+const normalizeAmenity = (value = '') => String(value).trim().toLowerCase().replace(/\s+/g, '_')
+
 // ═══════════════════════════════════════════════════════════════════════════
 // SkeletonCard – placeholder shown while listings are loading
 // ═══════════════════════════════════════════════════════════════════════════
@@ -261,6 +263,7 @@ const fetchProperties = useCallback(async () => {
       type:        p.type === 'room' || p.type === 'flat' || p.type === 'seat'
                      ? 'home'
                      : p.type,
+      listingType: p.type,
       location:    p.area || p.address,
       address:     p.address,
       rent:        p.rent,
@@ -290,16 +293,15 @@ useEffect(() => {
 
   // ── Search & sort state ─────────────────────────────────────────────────
   const [searchQuery, setSearchQuery] = useState('')
-  const [priceRange, setPriceRange] = useState('all')
   const [sortBy, setSortBy] = useState('newest')
 
   // ── Sidebar filter state ────────────────────────────────────────────────
   const [filters, setFilters] = useState({
-    gender: student.gender,
-    rooms: 'all',
-    bathrooms: 'all',
-    floor: 'all',
-    availableOnly: false,
+    location: '',
+    minPrice: '',
+    maxPrice: '',
+    propertyTypes: [],
+    amenities: [],
   })
 
   // ── Pagination state ────────────────────────────────────────────────────
@@ -348,7 +350,7 @@ useEffect(() => {
   // This prevents the user from seeing a blank page after narrowing results.
   useEffect(() => {
     setCurrentPage(1)
-  }, [searchQuery, priceRange, sortBy, filters, selectedCategory])
+  }, [searchQuery, sortBy, filters, selectedCategory])
 
   // ── Filter change handler ───────────────────────────────────────────────
   const handleFilterChange = (filterName, value) => {
@@ -358,14 +360,13 @@ useEffect(() => {
   // ── Reset ALL filters (used by EmptyState "Reset Filters" button) ───────
   const resetAllFilters = () => {
     setSearchQuery('')
-    setPriceRange('all')
     setSortBy('newest')
     setFilters({
-      gender: student.gender,
-      rooms: 'all',
-      bathrooms: 'all',
-      floor: 'all',
-      availableOnly: false,
+      location: '',
+      minPrice: '',
+      maxPrice: '',
+      propertyTypes: [],
+      amenities: [],
     })
   }
 
@@ -391,49 +392,50 @@ useEffect(() => {
       )
     }
 
-    // 3) Price range
-    if (priceRange !== 'all') {
-      if (priceRange === '7000+') {
-        result = result.filter((p) => p.rent >= 7000)
-      } else {
-        const [min, max] = priceRange.split('-').map(Number)
-        result = result.filter((p) => p.rent >= min && p.rent <= max)
-      }
+    // 3) Location filter from sidebar
+    if (filters.location.trim()) {
+      const locationQuery = filters.location.toLowerCase()
+      result = result.filter(
+        (p) =>
+          p.location.toLowerCase().includes(locationQuery) ||
+          p.address.toLowerCase().includes(locationQuery)
+      )
     }
 
-    // 4) Rooms
-    if (filters.rooms !== 'all') {
-      if (filters.rooms === '5+') {
-        result = result.filter((p) => p.rooms >= 5)
-      } else {
-        result = result.filter((p) => p.rooms === Number(filters.rooms))
-      }
+    // 4) Custom min/max rent
+    const parsedMin = filters.minPrice === '' ? null : Number(filters.minPrice)
+    const parsedMax = filters.maxPrice === '' ? null : Number(filters.maxPrice)
+    const hasMin = Number.isFinite(parsedMin)
+    const hasMax = Number.isFinite(parsedMax)
+
+    if (hasMin || hasMax) {
+      const safeMin = hasMin ? parsedMin : Number.MIN_SAFE_INTEGER
+      const safeMax = hasMax ? parsedMax : Number.MAX_SAFE_INTEGER
+      const minRent = Math.min(safeMin, safeMax)
+      const maxRent = Math.max(safeMin, safeMax)
+
+      result = result.filter((p) => p.rent >= minRent && p.rent <= maxRent)
     }
 
-    // 5) Bathrooms
-    if (filters.bathrooms !== 'all') {
-      if (filters.bathrooms === '3+') {
-        result = result.filter((p) => p.bathrooms >= 3)
-      } else {
-        result = result.filter((p) => p.bathrooms === Number(filters.bathrooms))
-      }
+    // 5) Property subtype filter (room / flat / seat)
+    if (filters.propertyTypes.length > 0) {
+      result = result.filter((p) => filters.propertyTypes.includes(p.listingType))
     }
 
-    // 6) Floor
-    if (filters.floor !== 'all') {
-      if (filters.floor === '5+') {
-        result = result.filter((p) => p.floor >= 5)
-      } else {
-        result = result.filter((p) => p.floor === Number(filters.floor))
-      }
+    // 6) Amenities filter (all selected amenities must exist)
+    if (filters.amenities.length > 0) {
+      result = result.filter((p) => {
+        const propertyAmenities = Array.isArray(p.amenities)
+          ? p.amenities.map(normalizeAmenity)
+          : []
+
+        return filters.amenities.every((selectedAmenity) =>
+          propertyAmenities.includes(normalizeAmenity(selectedAmenity))
+        )
+      })
     }
 
-    // 7) Availability
-    if (filters.availableOnly) {
-      result = result.filter((p) => p.available)
-    }
-
-    // 8) Sort
+    // 7) Sort
     if (sortBy === 'newest') {
       result.sort((a, b) => new Date(b.postedAt) - new Date(a.postedAt))
     } else if (sortBy === 'price-low') {
@@ -443,7 +445,7 @@ useEffect(() => {
     }
 
     return result
-  }, [searchQuery, priceRange, sortBy, filters, student.gender, selectedCategory, allProperties])
+  }, [searchQuery, sortBy, filters, student.gender, selectedCategory, allProperties])
 
   // ── Pagination derived values ───────────────────────────────────────────
   const totalPages = Math.ceil(filteredProperties.length / ITEMS_PER_PAGE)
@@ -654,6 +656,7 @@ useEffect(() => {
             studentGender={student.gender}
             isOpen={sidebarOpen}
             onClose={() => setSidebarOpen(false)}
+            onReset={resetAllFilters}
           />
 
           {/* Main column */}
@@ -662,8 +665,6 @@ useEffect(() => {
             <SearchBar
               searchQuery={searchQuery}
               onSearchChange={setSearchQuery}
-              priceRange={priceRange}
-              onPriceChange={setPriceRange}
               sortBy={sortBy}
               onSortChange={setSortBy}
               resultCount={filteredProperties.length}
