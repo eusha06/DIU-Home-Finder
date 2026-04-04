@@ -21,24 +21,9 @@ DIU-Home-Finder/
 └── index.html    # Vite entry point
 ```
 
-## Getting Started
-
-### Frontend
-```bash
-npm install
-npm run dev
-```
-
-### Backend
-```bash
-cd backend
-npm install
-npm run dev
-```
-
 ## Features
 - Browse verified properties near DIU campus
 - Filter by type, rent, and availability
-- Student login / owner login
+- Student login / owner login / hostel manager login
 - Bookmark properties
 - Contact landlords directly
