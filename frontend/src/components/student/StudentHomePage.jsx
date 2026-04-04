@@ -9,6 +9,7 @@ import PropertyCard from './PropertyCard'
 import PropertyDetailModal from './PropertyDetailModal'
 import BookingConfirmModal from './BookingConfirmModal'
 import StudentProfilePage from './StudentProfilePage'
+import StudentFooter from './StudentFooter'
 import { propertiesAPI } from '../../api/index.js'
 import { useAuth } from '../../context/AuthContext'
 import dummyHostels from './data/dummyHostelData'
@@ -466,14 +467,35 @@ useEffect(() => {
   }
 
   const handleNavbarNavigate = (action) => {
+    if (!action) return
+
     if (action === 'profile') {
       setActiveView('profile')
       setSidebarOpen(false)
       return
     }
 
+    setActiveView('browse')
+
     if (action === 'dashboard') {
-      setActiveView('browse')
+      setSelectedCategory(null)
+      setSelectedHostel(null)
+      setSeatRequest(null)
+      return
+    }
+
+    if (action === 'homes') {
+      setSelectedCategory('home')
+      setSelectedHostel(null)
+      setSeatRequest(null)
+      return
+    }
+
+    if (action === 'hostels') {
+      setSelectedCategory('hostel')
+      setSelectedHostel(null)
+      setSeatRequest(null)
+      return
     }
   }
 
@@ -813,6 +835,8 @@ useEffect(() => {
           )}
         </>
       )}
+
+      <StudentFooter onNavigate={handleNavbarNavigate} />
     </div>
   )
 }
