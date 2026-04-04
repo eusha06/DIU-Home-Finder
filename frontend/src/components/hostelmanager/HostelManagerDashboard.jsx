@@ -79,14 +79,6 @@ function ChevronDownIcon({ className }) {
   )
 }
 
-function ClockIcon({ className }) {
-  return (
-    <svg className={className} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l2.5 1.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-    </svg>
-  )
-}
-
 function BellIcon({ className }) {
   return (
     <svg viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor" strokeWidth="1.8">
@@ -175,11 +167,10 @@ const navItems = [
   { id: 'overview', route: 'dashboard', label: 'Overview', icon: DashboardIcon },
   { id: 'rooms', route: 'halls', label: 'Rooms', icon: HallsIcon },
   { id: 'requests', route: 'bookings', label: 'Requests', icon: BookingsIcon },
-  { id: 'pending-queue', route: 'pendingRequests', label: 'Pending Queue', icon: ClockIcon },
   { id: 'settings', route: null, label: 'Settings', icon: LockIcon },
 ]
 
-const ManagerSidebar = ({ user, activePage, onNavigate, isOpen, onClose, pendingRequests = 0, totalRequests = 0 }) => {
+const ManagerSidebar = ({ user, activePage, onNavigate, isOpen, onClose, totalRequests = 0 }) => {
   const handleNav = (route) => {
     if (route) onNavigate(route)
     onClose()
@@ -209,7 +200,6 @@ const ManagerSidebar = ({ user, activePage, onNavigate, isOpen, onClose, pending
             const isActive = activePage === route
             const isDisabled = !route
             const showRequestCount = id === 'requests'
-            const showPendingCount = id === 'pending-queue'
             return (
               <button
                 key={id}
@@ -229,12 +219,6 @@ const ManagerSidebar = ({ user, activePage, onNavigate, isOpen, onClose, pending
                 {showRequestCount && (
                   <span className="ml-auto text-xs font-semibold px-2 py-0.5 rounded-full bg-[#2f3c90] text-[#dce2ff] border border-white/15">
                     {totalRequests}
-                  </span>
-                )}
-
-                {showPendingCount && (
-                  <span className="ml-auto text-xs font-semibold px-2 py-0.5 rounded-full bg-[#f5d691] text-[#5c4512] border border-[#e7c372]">
-                    {pendingRequests}
                   </span>
                 )}
 
@@ -279,7 +263,6 @@ const managerQuickActions = [
   { id: 'manager-overview', label: 'Manager Overview', action: 'dashboard' },
   { id: 'manager-rooms', label: 'Rooms', action: 'halls' },
   { id: 'manager-requests', label: 'Requests', action: 'bookings' },
-  { id: 'manager-pending', label: 'Pending Queue', action: 'pendingRequests' },
   { id: 'manager-profile', label: 'Edit Profile', action: 'profile' },
 ]
 
@@ -384,23 +367,23 @@ const ManagerTopbar = ({
   }
 
   return (
-    <header className="bg-white border-b border-gray-200 sticky top-0 z-30">
+    <header className="bg-gradient-to-r from-[#f8faff] via-[#f1f5ff] to-[#ecf4ff] border-b border-[#d8e1fb] shadow-[0_8px_24px_-22px_rgba(30,58,138,0.65)] sticky top-0 z-30">
       <div className="px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center gap-3 min-w-0">
             <button
               onClick={onToggleSidebar}
-              className="lg:hidden w-10 h-10 flex items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors"
+              className="lg:hidden w-10 h-10 flex items-center justify-center rounded-lg text-[#4f5d93] hover:bg-white hover:text-[#2f417d] transition-colors border border-transparent hover:border-[#d5def6]"
             >
               <MenuIcon className="h-6 w-6" />
             </button>
-            <h2 className="text-base sm:text-lg font-semibold text-gray-800 truncate">{pageTitle}</h2>
+            <h2 className="text-base sm:text-lg font-semibold text-[#1f2d5f] truncate">{pageTitle}</h2>
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3">
             <div ref={notificationsRef} className="relative">
               <button
-                className="relative w-10 h-10 rounded-full flex items-center justify-center transition-colors text-[#5f688f] hover:bg-[#f0f2ff]"
+                className="relative w-10 h-10 rounded-full flex items-center justify-center transition-colors text-[#4d5f9b] bg-white/80 border border-[#d8e0fb] hover:bg-white"
                 type="button"
                 aria-label="notifications"
                 onClick={toggleNotifications}
@@ -478,7 +461,7 @@ const ManagerTopbar = ({
               <button
                 type="button"
                 onClick={toggleProfileMenu}
-                className="flex items-center gap-2 rounded-full px-1.5 py-1 hover:bg-[#f0f2ff] transition-colors"
+                className="flex items-center gap-2 rounded-full px-1.5 py-1 hover:bg-white transition-colors border border-transparent hover:border-[#d8e0fb]"
               >
                 <div className="w-10 h-10 rounded-full overflow-hidden ring-2 ring-[#dce2ff] shadow-sm bg-[#e8edff] flex items-center justify-center text-sm font-bold text-[#2c3f9f]">
                   {user?.avatar ? (
@@ -528,7 +511,7 @@ const ManagerTopbar = ({
 
             <button
               onClick={onLogout}
-              className="text-xs font-semibold text-[#7f84a9] hover:text-[#4c527d] transition-colors hidden sm:inline-flex"
+              className="text-xs font-semibold text-[#5c6ca8] hover:text-[#324886] transition-colors hidden sm:inline-flex"
             >
               Logout
             </button>
@@ -1139,14 +1122,62 @@ const HallsManagement = ({ hostels, setHostels }) => {
 
 const BookingsManagement = ({ bookings, setBookings, hostels, setHostels, initialFilter = 'all' }) => {
   const [statusFilter, setStatusFilter] = useState(initialFilter)
+  const [selectedStudentId, setSelectedStudentId] = useState(null)
 
   useEffect(() => {
     setStatusFilter(initialFilter)
   }, [initialFilter])
 
+  useEffect(() => {
+    if (selectedStudentId && !bookings.some((booking) => booking.studentId === selectedStudentId)) {
+      setSelectedStudentId(null)
+    }
+  }, [bookings, selectedStudentId])
+
   const filteredBookings = statusFilter === 'all'
     ? bookings
     : bookings.filter((b) => b.status === statusFilter)
+
+  const studentProfileBookings = useMemo(() => {
+    if (!selectedStudentId) return []
+
+    return bookings
+      .filter((booking) => booking.studentId === selectedStudentId)
+      .sort((left, right) => new Date(right.date).getTime() - new Date(left.date).getTime())
+  }, [bookings, selectedStudentId])
+
+  const studentProfileStats = useMemo(() => {
+    return studentProfileBookings.reduce(
+      (stats, booking) => {
+        stats.total += 1
+        stats[booking.status] += 1
+        return stats
+      },
+      { total: 0, pending: 0, approved: 0, rejected: 0 }
+    )
+  }, [studentProfileBookings])
+
+  const studentCurrentSeat = useMemo(() => {
+    if (!selectedStudentId) return null
+
+    for (const hostel of hostels) {
+      for (const floor of hostel.floors) {
+        for (const room of floor.rooms) {
+          for (const bed of room.beds) {
+            if (bed.studentId === selectedStudentId && bed.status === 'occupied') {
+              return {
+                hostelName: hostel.name,
+                roomNumber: room.roomNumber,
+                bedId: bed.bedId,
+              }
+            }
+          }
+        }
+      }
+    }
+
+    return null
+  }, [hostels, selectedStudentId])
 
   // Approve  mark bed as occupied in hostel data
   const handleApprove = (bookingId) => {
@@ -1191,6 +1222,97 @@ const BookingsManagement = ({ bookings, setBookings, hostels, setHostels, initia
     rejected: 'bg-red-50 text-red-700',
   }
 
+  const selectedStudent = studentProfileBookings[0] || null
+
+  if (selectedStudent) {
+    return (
+      <div className="space-y-6">
+        <button
+          type="button"
+          onClick={() => setSelectedStudentId(null)}
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-[#d4d9ee] bg-white text-[#2e3864] text-sm font-medium hover:bg-[#f8f9ff] transition-colors"
+        >
+          <ArrowLeftIcon className="w-4 h-4" />
+          Back to Requests
+        </button>
+
+        <div className="bg-white rounded-2xl border border-[#e3e7f5] shadow-sm p-5 sm:p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+            <div className="w-14 h-14 rounded-full bg-[#e9eeff] text-[#2f46a1] flex items-center justify-center text-xl font-bold">
+              {selectedStudent.studentName?.charAt(0)?.toUpperCase() || 'S'}
+            </div>
+
+            <div className="min-w-0">
+              <h3 className="text-xl font-semibold text-[#1f2747] truncate">{selectedStudent.studentName}</h3>
+              <p className="text-sm text-[#6c7398]">{selectedStudent.studentId}</p>
+              <p className="text-sm text-[#4f5a87] mt-1">
+                {studentCurrentSeat
+                  ? `Current Allocation: ${studentCurrentSeat.hostelName} | Room ${studentCurrentSeat.roomNumber} | Bed ${studentCurrentSeat.bedId}`
+                  : 'Current Allocation: Not assigned yet'}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+          <div className="bg-white rounded-xl border border-[#e7ebf7] p-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-[#8690bb]">Total Requests</p>
+            <p className="mt-2 text-2xl font-bold text-[#1f2747]">{studentProfileStats.total}</p>
+          </div>
+          <div className="bg-white rounded-xl border border-[#e7ebf7] p-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-[#8690bb]">Pending</p>
+            <p className="mt-2 text-2xl font-bold text-amber-600">{studentProfileStats.pending}</p>
+          </div>
+          <div className="bg-white rounded-xl border border-[#e7ebf7] p-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-[#8690bb]">Approved</p>
+            <p className="mt-2 text-2xl font-bold text-emerald-600">{studentProfileStats.approved}</p>
+          </div>
+          <div className="bg-white rounded-xl border border-[#e7ebf7] p-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-[#8690bb]">Rejected</p>
+            <p className="mt-2 text-2xl font-bold text-rose-600">{studentProfileStats.rejected}</p>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl border border-[#e3e7f5] shadow-sm overflow-hidden">
+          <div className="px-5 py-4 border-b border-[#ebeffb] flex items-center justify-between gap-3">
+            <h4 className="text-sm font-semibold text-[#28325b]">Request History</h4>
+            <p className="text-xs text-[#7a83ad]">Latest first</p>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="bg-[#f8f9ff] border-b border-[#eef1fb]">
+                  <th className="text-left text-[11px] font-semibold text-[#6f79a6] uppercase tracking-wider px-5 py-3">Date</th>
+                  <th className="text-left text-[11px] font-semibold text-[#6f79a6] uppercase tracking-wider px-5 py-3">Hostel</th>
+                  <th className="text-left text-[11px] font-semibold text-[#6f79a6] uppercase tracking-wider px-5 py-3">Room</th>
+                  <th className="text-left text-[11px] font-semibold text-[#6f79a6] uppercase tracking-wider px-5 py-3">Bed</th>
+                  <th className="text-left text-[11px] font-semibold text-[#6f79a6] uppercase tracking-wider px-5 py-3">Status</th>
+                </tr>
+              </thead>
+
+              <tbody className="divide-y divide-[#f1f3fa]">
+                {studentProfileBookings.map((booking) => (
+                  <tr key={booking.id} className="hover:bg-[#fafbff] transition-colors">
+                    <td className="px-5 py-3.5 text-sm text-[#535f8e]">{booking.date}</td>
+                    <td className="px-5 py-3.5 text-sm text-[#394572]">{getHostelName(booking.hostelId)}</td>
+                    <td className="px-5 py-3.5 text-sm text-[#5a668f] font-mono">{booking.roomNumber}</td>
+                    <td className="px-5 py-3.5 text-sm text-[#5a668f] font-mono">{booking.bedId}</td>
+                    <td className="px-5 py-3.5">
+                      <span className={`inline-block text-xs px-2.5 py-1 rounded-full font-medium capitalize ${statusStyles[booking.status]}`}>
+                        {booking.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div>
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
@@ -1231,8 +1353,14 @@ const BookingsManagement = ({ bookings, setBookings, hostels, setHostels, initia
                 filteredBookings.map((booking) => (
                   <tr key={booking.id} className="hover:bg-gray-50/50 transition-colors">
                     <td className="px-5 py-3.5">
-                      <p className="text-sm font-medium text-gray-700">{booking.studentName}</p>
-                      <p className="text-[11px] text-gray-400">{booking.studentId}</p>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedStudentId(booking.studentId)}
+                        className="text-left"
+                      >
+                        <p className="text-sm font-semibold text-[#2f48ac] hover:text-[#20367f] hover:underline">{booking.studentName}</p>
+                        <p className="text-[11px] text-gray-400">{booking.studentId}</p>
+                      </button>
                     </td>
                     <td className="px-5 py-3.5">
                       <p className="text-sm text-gray-600">{getHostelName(booking.hostelId)}</p>
@@ -1280,7 +1408,6 @@ const pageTitles = {
   dashboard: 'Hostel Manager',
   halls: 'Halls Management',
   bookings: 'Bookings Management',
-  pendingRequests: 'Pending Requests Queue',
   profile: 'Edit Profile',
 }
 
@@ -1295,8 +1422,8 @@ const HostelManagerDashboard = ({ user, onLogout }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [hostels, setHostels] = useState(initialHostels)
   const [bookings, setBookings] = useState(initialBookings)
+  const [bookingsInitialFilter, setBookingsInitialFilter] = useState('all')
   const [managerProfile, setManagerProfile] = useState(user)
-  const pendingRequestCount = useMemo(() => bookings.filter((b) => b.status === 'pending').length, [bookings])
 
   useEffect(() => {
     const onResize = () => { if (window.innerWidth >= 1024) setSidebarOpen(false) }
@@ -1320,9 +1447,9 @@ const HostelManagerDashboard = ({ user, onLogout }) => {
         id: 'manager-pending-requests',
         icon: '⏳',
         title: `${pendingRequests} request${pendingRequests > 1 ? 's' : ''} pending approval`,
-        description: 'Open Pending Queue and process student requests quickly.',
-        actionLabel: 'Open queue',
-        action: 'pendingRequests',
+        description: 'Open Requests and use the Pending tab to process quickly.',
+        actionLabel: 'Open requests',
+        action: 'bookings_pending',
         tone: 'amber',
       })
     }
@@ -1352,8 +1479,34 @@ const HostelManagerDashboard = ({ user, onLogout }) => {
     return items
   }, [bookings, hostels])
 
+  const openBookingsPage = (filter = 'all') => {
+    setBookingsInitialFilter(filter)
+    setActivePage('bookings')
+    setSidebarOpen(false)
+  }
+
+  const handleSidebarNavigate = (nextPage) => {
+    if (nextPage === 'bookings') {
+      openBookingsPage('all')
+      return
+    }
+
+    setActivePage(nextPage)
+    setSidebarOpen(false)
+  }
+
   const handleTopbarNavigate = (action) => {
     if (!action) return
+
+    if (action === 'bookings_pending') {
+      openBookingsPage('pending')
+      return
+    }
+
+    if (action === 'bookings') {
+      openBookingsPage('all')
+      return
+    }
 
     setActivePage(action)
     setSidebarOpen(false)
@@ -1372,7 +1525,7 @@ const HostelManagerDashboard = ({ user, onLogout }) => {
           <DashboardStats
             hostels={hostels}
             bookings={bookings}
-            onOpenRequests={() => setActivePage('pendingRequests')}
+            onOpenRequests={() => openBookingsPage('pending')}
             onOpenRooms={() => setActivePage('halls')}
             onToggleSidebar={() => setSidebarOpen(true)}
           />
@@ -1380,9 +1533,7 @@ const HostelManagerDashboard = ({ user, onLogout }) => {
       case 'halls':
         return <HallsManagement hostels={hostels} setHostels={setHostels} />
       case 'bookings':
-        return <BookingsManagement bookings={bookings} setBookings={setBookings} hostels={hostels} setHostels={setHostels} />
-      case 'pendingRequests':
-        return <BookingsManagement bookings={bookings} setBookings={setBookings} hostels={hostels} setHostels={setHostels} initialFilter="pending" />
+        return <BookingsManagement bookings={bookings} setBookings={setBookings} hostels={hostels} setHostels={setHostels} initialFilter={bookingsInitialFilter} />
       case 'profile':
         return <ManagerProfilePage manager={managerProfile} onSaveProfile={handleSaveProfile} />
       default:
@@ -1390,7 +1541,7 @@ const HostelManagerDashboard = ({ user, onLogout }) => {
           <DashboardStats
             hostels={hostels}
             bookings={bookings}
-            onOpenRequests={() => setActivePage('pendingRequests')}
+            onOpenRequests={() => openBookingsPage('pending')}
             onOpenRooms={() => setActivePage('halls')}
             onToggleSidebar={() => setSidebarOpen(true)}
           />
@@ -1405,10 +1556,9 @@ const HostelManagerDashboard = ({ user, onLogout }) => {
       <ManagerSidebar
         user={managerProfile}
         activePage={activePage}
-        onNavigate={setActivePage}
+        onNavigate={handleSidebarNavigate}
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
-        pendingRequests={pendingRequestCount}
         totalRequests={bookings.length}
       />
       <div className="flex-1 flex flex-col min-w-0">
