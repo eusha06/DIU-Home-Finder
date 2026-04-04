@@ -76,6 +76,14 @@ function ChevronDownIcon({ className }) {
   )
 }
 
+function ClockIcon({ className }) {
+  return (
+    <svg className={className} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l2.5 1.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+  )
+}
+
 // 
 // FACILITY ICON MAP
 // 
@@ -154,13 +162,12 @@ const Unauthorized = ({ onGoBack }) => (
 const navItems = [
   { id: 'overview', route: 'dashboard', label: 'Overview', icon: DashboardIcon },
   { id: 'rooms', route: 'halls', label: 'Rooms', icon: HallsIcon },
-  { id: 'students', route: null, label: 'Students', icon: BookingsIcon },
-  { id: 'maintenance', route: null, label: 'Maintenance', icon: ArrowLeftIcon },
-  { id: 'reports', route: 'bookings', label: 'Reports', icon: BookingsIcon },
+  { id: 'requests', route: 'bookings', label: 'Requests', icon: BookingsIcon },
+  { id: 'pending-queue', route: 'pendingRequests', label: 'Pending Queue', icon: ClockIcon },
   { id: 'settings', route: null, label: 'Settings', icon: LockIcon },
 ]
 
-const ManagerSidebar = ({ user, activePage, onNavigate, isOpen, onClose }) => {
+const ManagerSidebar = ({ user, activePage, onNavigate, isOpen, onClose, pendingRequests = 0, totalRequests = 0 }) => {
   const handleNav = (route) => {
     if (route) onNavigate(route)
     onClose()
@@ -188,18 +195,40 @@ const ManagerSidebar = ({ user, activePage, onNavigate, isOpen, onClose }) => {
         <nav className="flex-1 px-4 py-2 space-y-2">
           {navItems.map(({ id, route, label, icon: Icon }) => {
             const isActive = activePage === route
+            const isDisabled = !route
+            const showRequestCount = id === 'requests'
+            const showPendingCount = id === 'pending-queue'
             return (
               <button
                 key={id}
                 onClick={() => handleNav(route)}
+                disabled={isDisabled}
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-[18px] font-medium transition-all duration-200 text-left ${
                   isActive
                     ? 'bg-white text-[#2d3170] shadow-[0_10px_25px_-18px_rgba(255,255,255,0.7)]'
-                    : 'text-[#d0d2ea] hover:bg-white/10'
+                    : isDisabled
+                      ? 'text-[#9ba1cb] bg-white/[0.03] cursor-not-allowed'
+                      : 'text-[#d0d2ea] hover:bg-white/10'
                 }`}
               >
                 <Icon className={`w-5 h-5 flex-shrink-0 ${isActive ? 'text-[#5b5fb4]' : 'text-[#b2b4d2]'}`} />
-                {label}
+                <span className="truncate">{label}</span>
+
+                {showRequestCount && (
+                  <span className="ml-auto text-xs font-semibold px-2 py-0.5 rounded-full bg-[#2f3c90] text-[#dce2ff] border border-white/15">
+                    {totalRequests}
+                  </span>
+                )}
+
+                {showPendingCount && (
+                  <span className="ml-auto text-xs font-semibold px-2 py-0.5 rounded-full bg-[#f5d691] text-[#5c4512] border border-[#e7c372]">
+                    {pendingRequests}
+                  </span>
+                )}
+
+                {isDisabled && (
+                  <span className="ml-auto text-[10px] font-semibold uppercase tracking-[0.08em] text-[#bbc0e4]">Soon</span>
+                )}
               </button>
             )
           })}
@@ -258,7 +287,7 @@ const ManagerTopbar = ({ user, pageTitle, onToggleSidebar, onLogout }) => (
 // DASHBOARD OVERVIEW
 // 
 
-const DashboardStats = ({ hostels, bookings, onApproveRequest, onToggleSidebar }) => {
+const DashboardStats = ({ hostels, bookings, onOpenRequests, onOpenRooms, onToggleSidebar }) => {
   const allStats = useMemo(() => computeAllStats(hostels), [hostels])
   const pendingRequests = bookings.filter((b) => b.status === 'pending').length
   const approvedBookings = bookings.filter((b) => b.status === 'approved')
@@ -279,34 +308,39 @@ const DashboardStats = ({ hostels, bookings, onApproveRequest, onToggleSidebar }
     hostels.forEach((hostel) => {
       hostel.floors.forEach((floor) => {
         floor.rooms.forEach((room) => {
-          if (rows.length < 3) {
-            const firstOccupied = room.beds.find((b) => b.status === 'occupied')
+          if (rows.length < 8) {
+            const totalBeds = room.beds.length
+            const occupiedBeds = room.beds.filter((bed) => bed.status === 'occupied').length
+            const availableBeds = totalBeds - occupiedBeds
+
+            let status = 'Partially Occupied'
+            if (occupiedBeds === 0) {
+              status = 'Available'
+            } else if (availableBeds === 0) {
+              status = 'Occupied'
+            }
+
             rows.push({
               hallName: hostel.name,
+              floorNo: floor.floorNumber,
               roomNo: room.roomNumber,
               type: room.type,
-              status: firstOccupied ? 'Occupied' : 'Available',
-              occupant: firstOccupied?.studentName || 'Awaiting Assignment',
-              action: firstOccupied ? 'View Profile' : 'Assign',
+              occupiedBeds,
+              totalBeds,
+              status,
             })
           }
         })
       })
     })
 
-    if (rows[2]) {
-      rows[2] = { ...rows[2], status: 'Maintenance', occupant: 'Maintenance', action: 'Schedule' }
-    }
-
     return rows
   }, [hostels])
-
-  const recentRequests = bookings.filter((b) => b.status === 'pending').slice(0, 2)
 
   const statusPill = {
     Available: 'bg-[#cdeed7] text-[#1f7f41]',
     Occupied: 'bg-[#c8e0f7] text-[#1f5f98]',
-    Maintenance: 'bg-[#f4e1a8] text-[#8d6b18]',
+    'Partially Occupied': 'bg-[#d9e7ff] text-[#2f5ba3]',
   }
 
   return (
@@ -340,7 +374,14 @@ const DashboardStats = ({ hostels, bookings, onApproveRequest, onToggleSidebar }
           <p className="text-3xl text-[#12131f] font-medium">Pending Requests</p>
           <div className="mt-6 flex items-center justify-between">
             <p className="text-6xl font-bold text-[#241f63] leading-none">{pendingRequests}</p>
-            <ArrowLeftIcon className="w-10 h-10 text-[#8f8ca8] rotate-180" />
+            <button
+              type="button"
+              onClick={onOpenRequests}
+              className="inline-flex items-center gap-1.5 rounded-xl border border-[#d1d6f0] bg-[#f4f6ff] px-3 py-2 text-xs font-semibold text-[#3f4a93] hover:bg-[#e9edff] transition-colors"
+            >
+              Open Queue
+              <ArrowLeftIcon className="w-3.5 h-3.5 rotate-180" />
+            </button>
           </div>
         </div>
 
@@ -350,66 +391,85 @@ const DashboardStats = ({ hostels, bookings, onApproveRequest, onToggleSidebar }
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <section className="lg:col-span-2 bg-white rounded-3xl border border-[#e4e6ef] p-6 shadow-[0_12px_24px_-22px_rgba(26,33,74,0.4)]">
-          <h2 className="text-4xl font-bold text-[#161822]">Room Availability</h2>
-          <div className="mt-4 rounded-2xl border border-[#d7d9e6] overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[980px] text-left text-[18px] text-[#151722]">
-                <thead className="bg-[#f8f9fd] border-b border-[#d7d9e6]">
-                  <tr>
-                    <th className="px-4 py-4 font-semibold">Room No.</th>
-                    <th className="px-4 py-4 font-semibold">Hall Name</th>
-                    <th className="px-4 py-4 font-semibold">Type</th>
-                    <th className="px-4 py-4 font-semibold">Status</th>
-                    <th className="px-4 py-4 font-semibold">Occupant</th>
-                    <th className="px-4 py-4 font-semibold">Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {roomRows.map((room, idx) => (
-                    <tr key={`${room.roomNo}-${idx}`} className="border-t border-[#d7d9e6]">
-                      <td className="px-4 py-5">{room.roomNo}</td>
-                      <td className="px-4 py-5 max-w-[260px] truncate" title={room.hallName}>{room.hallName}</td>
-                      <td className="px-4 py-5">{room.type}</td>
-                      <td className="px-4 py-5">
-                        <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium ${statusPill[room.status] || statusPill.Available}`}>
-                          <span className="w-2.5 h-2.5 rounded-full bg-current" />
-                          {room.status}
-                        </span>
-                      </td>
-                      <td className="px-4 py-5">{room.occupant}</td>
-                      <td className="px-4 py-5 text-[#403f88] font-semibold">{room.action}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+      <section className="bg-white rounded-3xl border border-[#e4e6ef] p-6 shadow-[0_12px_24px_-22px_rgba(26,33,74,0.4)]">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h2 className="text-4xl font-bold text-[#161822]">Room Availability</h2>
+            <p className="mt-1 text-sm text-[#6a6f8d]">Quick room snapshot across managed hostels with direct access to Room Management.</p>
           </div>
-        </section>
+          <button
+            type="button"
+            onClick={onOpenRooms}
+            className="inline-flex items-center gap-1.5 rounded-xl border border-[#d1d6f0] bg-[#f4f6ff] px-3 py-2 text-xs font-semibold text-[#3f4a93] hover:bg-[#e9edff] transition-colors"
+          >
+            Open Room Management
+            <ArrowLeftIcon className="w-3.5 h-3.5 rotate-180" />
+          </button>
+        </div>
 
-        <section className="bg-white rounded-3xl border border-[#e4e6ef] p-6 shadow-[0_12px_24px_-22px_rgba(26,33,74,0.4)]">
-          <h2 className="text-4xl font-bold text-[#161822]">Recent Requests</h2>
-          <div className="mt-4 space-y-6">
-            {recentRequests.map((req) => {
-              const hostel = hostels.find((h) => h.id === req.hostelId)
-              return (
-                <div key={req.id} className="border-b border-[#e5e7f0] pb-5 last:border-b-0 last:pb-0">
-                  <p className="text-lg text-[#191b25] mb-3">
-                    {req.studentName} - Room {req.roomNumber} ({hostel?.name || 'Hostel'})
-                  </p>
-                  <button
-                    onClick={() => onApproveRequest?.(req.id)}
-                    className="w-full bg-[#433aa7] hover:bg-[#393096] text-white text-xl font-semibold rounded-2xl py-3 transition-colors"
-                  >
-                    Approve Request
-                  </button>
-                </div>
-              )
-            })}
+        <div className="mt-4 rounded-2xl border border-[#d7d9e6] overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[760px] text-left text-base text-[#151722]">
+              <thead className="bg-[#f8f9fd] border-b border-[#d7d9e6]">
+                <tr>
+                  <th className="px-4 py-4 font-semibold">Hall Name</th>
+                  <th className="px-4 py-4 font-semibold">Floor</th>
+                  <th className="px-4 py-4 font-semibold">Room No.</th>
+                  <th className="px-4 py-4 font-semibold">Type</th>
+                  <th className="px-4 py-4 font-semibold">Bed Usage</th>
+                  <th className="px-4 py-4 font-semibold">Status</th>
+                  <th className="px-4 py-4 font-semibold">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {roomRows.length === 0 && (
+                  <tr>
+                    <td colSpan={7} className="px-4 py-7 text-sm text-[#687095] text-center">
+                      No room data available yet.
+                    </td>
+                  </tr>
+                )}
+
+                {roomRows.map((room, idx) => (
+                  <tr key={`${room.roomNo}-${idx}`} className="border-t border-[#d7d9e6]">
+                    <td className="px-4 py-4 max-w-[290px] truncate" title={room.hallName}>{room.hallName}</td>
+                    <td className="px-4 py-4">{room.floorNo}</td>
+                    <td className="px-4 py-4 font-semibold">{room.roomNo}</td>
+                    <td className="px-4 py-4">{room.type}</td>
+                    <td className="px-4 py-4 text-[#424a74]">{room.occupiedBeds}/{room.totalBeds} occupied</td>
+                    <td className="px-4 py-4">
+                      <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium ${statusPill[room.status] || statusPill.Available}`}>
+                        <span className="w-2.5 h-2.5 rounded-full bg-current" />
+                        {room.status}
+                      </span>
+                    </td>
+                    <td className="px-4 py-4">
+                      <button
+                        type="button"
+                        onClick={onOpenRooms}
+                        className="text-xs font-semibold rounded-lg border border-[#d4daf6] bg-white px-3 py-1.5 text-[#4252aa] hover:bg-[#f4f7ff] transition-colors"
+                      >
+                        Manage
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-        </section>
-      </div>
+        </div>
+
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
+          <p className="text-xs text-[#7a82a8]">Showing latest rooms across managed hostels.</p>
+          <button
+            type="button"
+            onClick={onOpenRequests}
+            className="text-xs font-semibold text-[#3d4d9f] hover:text-[#2c3b82]"
+          >
+            Open Pending Requests
+          </button>
+        </div>
+      </section>
     </div>
   )
 }
@@ -821,8 +881,12 @@ const HallsManagement = ({ hostels, setHostels }) => {
 // BOOKINGS MANAGEMENT
 // 
 
-const BookingsManagement = ({ bookings, setBookings, hostels, setHostels }) => {
-  const [statusFilter, setStatusFilter] = useState('all')
+const BookingsManagement = ({ bookings, setBookings, hostels, setHostels, initialFilter = 'all' }) => {
+  const [statusFilter, setStatusFilter] = useState(initialFilter)
+
+  useEffect(() => {
+    setStatusFilter(initialFilter)
+  }, [initialFilter])
 
   const filteredBookings = statusFilter === 'all'
     ? bookings
@@ -960,6 +1024,7 @@ const pageTitles = {
   dashboard: 'Hostel Manager - Unified UI',
   halls: 'Halls Management',
   bookings: 'Bookings Management',
+  pendingRequests: 'Pending Requests Queue',
 }
 
 const HostelManagerDashboard = ({ user, onLogout }) => {
@@ -971,6 +1036,7 @@ const HostelManagerDashboard = ({ user, onLogout }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [hostels, setHostels] = useState(initialHostels)
   const [bookings, setBookings] = useState(initialBookings)
+  const pendingRequestCount = useMemo(() => bookings.filter((b) => b.status === 'pending').length, [bookings])
 
   useEffect(() => {
     const onResize = () => { if (window.innerWidth >= 1024) setSidebarOpen(false) }
@@ -978,42 +1044,24 @@ const HostelManagerDashboard = ({ user, onLogout }) => {
     return () => window.removeEventListener('resize', onResize)
   }, [])
 
-  const handleApproveFromDashboard = (bookingId) => {
-    const booking = bookings.find((b) => b.id === bookingId)
-    if (!booking) return
-
-    setBookings((prev) => prev.map((b) => (b.id === bookingId ? { ...b, status: 'approved' } : b)))
-
-    setHostels((prev) => prev.map((h) => {
-      if (h.id !== booking.hostelId) return h
-      return {
-        ...h,
-        floors: h.floors.map((floor) => ({
-          ...floor,
-          rooms: floor.rooms.map((room) => {
-            if (room.roomNumber !== booking.roomNumber) return room
-            return {
-              ...room,
-              beds: room.beds.map((bed) =>
-                bed.bedId === booking.bedId
-                  ? { ...bed, status: 'occupied', studentName: booking.studentName, studentId: booking.studentId }
-                  : bed
-              ),
-            }
-          }),
-        })),
-      }
-    }))
-  }
-
   const renderContent = () => {
     switch (activePage) {
       case 'dashboard':
-        return <DashboardStats hostels={hostels} bookings={bookings} onApproveRequest={handleApproveFromDashboard} onToggleSidebar={() => setSidebarOpen(true)} />
+        return (
+          <DashboardStats
+            hostels={hostels}
+            bookings={bookings}
+            onOpenRequests={() => setActivePage('pendingRequests')}
+            onOpenRooms={() => setActivePage('halls')}
+            onToggleSidebar={() => setSidebarOpen(true)}
+          />
+        )
       case 'halls':
         return <HallsManagement hostels={hostels} setHostels={setHostels} />
       case 'bookings':
         return <BookingsManagement bookings={bookings} setBookings={setBookings} hostels={hostels} setHostels={setHostels} />
+      case 'pendingRequests':
+        return <BookingsManagement bookings={bookings} setBookings={setBookings} hostels={hostels} setHostels={setHostels} initialFilter="pending" />
       default:
         return <DashboardStats hostels={hostels} bookings={bookings} />
     }
@@ -1023,7 +1071,15 @@ const HostelManagerDashboard = ({ user, onLogout }) => {
 
   return (
     <div className="min-h-screen bg-[#f3f5fb] flex" style={unifiedFont}>
-      <ManagerSidebar user={user} activePage={activePage} onNavigate={setActivePage} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <ManagerSidebar
+        user={user}
+        activePage={activePage}
+        onNavigate={setActivePage}
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        pendingRequests={pendingRequestCount}
+        totalRequests={bookings.length}
+      />
       <div className="flex-1 flex flex-col min-w-0">
         {activePage !== 'dashboard' && (
           <ManagerTopbar user={user} pageTitle={pageTitles[activePage] || 'Dashboard'} onToggleSidebar={() => setSidebarOpen(true)} onLogout={onLogout} />
