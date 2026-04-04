@@ -1,9 +1,11 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import {
   managerHostels as initialHostels,
   managerBookings as initialBookings,
 } from './data/dummyHostelManagerData'
 import ManagerFooter from './ManagerFooter'
+import ManagerProfilePage from './ManagerProfilePage'
+import { useAuth } from '../../context/AuthContext'
 
 // 
 // INLINE SVG ICON COMPONENTS
@@ -81,6 +83,15 @@ function ClockIcon({ className }) {
   return (
     <svg className={className} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l2.5 1.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+  )
+}
+
+function BellIcon({ className }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor" strokeWidth="1.8">
+      <path d="M6.8 9.5a5.2 5.2 0 1 1 10.4 0v3.1c0 .9.3 1.8.9 2.5l1.1 1.3H4.8l1.1-1.3c.6-.7.9-1.6.9-2.5V9.5Z" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M10 18a2 2 0 0 0 4 0" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   )
 }
@@ -257,32 +268,276 @@ const ManagerSidebar = ({ user, activePage, onNavigate, isOpen, onClose, pending
 // TOP NAVBAR COMPONENT
 // 
 
-const ManagerTopbar = ({ user, pageTitle, onToggleSidebar, onLogout }) => (
-  <header className="bg-white border-b border-gray-200 sticky top-0 z-30">
-    <div className="px-4 sm:px-6 lg:px-8">
-      <div className="flex items-center justify-between h-16">
-        <div className="flex items-center gap-3">
-          <button onClick={onToggleSidebar} className="lg:hidden w-10 h-10 flex items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors">
-            <MenuIcon className="h-6 w-6" />
-          </button>
-          <h2 className="text-lg font-semibold text-gray-800">{pageTitle}</h2>
-        </div>
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2">
-            <div className="w-9 h-9 rounded-full bg-emerald-600 flex items-center justify-center text-sm font-bold text-white shadow-sm">
-              {user.name ? user.name.charAt(0).toUpperCase() : 'M'}
-            </div>
-            <div className="hidden sm:block">
-              <p className="text-sm font-medium text-gray-700 leading-tight">{user.name}</p>
-              <p className="text-[11px] text-emerald-600 leading-tight font-medium uppercase tracking-wide">Hostel Manager</p>
-            </div>
+const notificationToneClasses = {
+  amber: 'bg-[#fff4dd] text-[#9a6e22] border-[#f7dba2]',
+  blue: 'bg-[#e7edff] text-[#3550c9] border-[#bfd0ff]',
+  green: 'bg-[#dff7e6] text-[#2f7b49] border-[#a9e4bc]',
+  red: 'bg-[#ffe6e8] text-[#b44f59] border-[#f3bfc5]',
+}
+
+const managerQuickActions = [
+  { id: 'manager-overview', label: 'Manager Overview', action: 'dashboard' },
+  { id: 'manager-rooms', label: 'Rooms', action: 'halls' },
+  { id: 'manager-requests', label: 'Requests', action: 'bookings' },
+  { id: 'manager-pending', label: 'Pending Queue', action: 'pendingRequests' },
+  { id: 'manager-profile', label: 'Edit Profile', action: 'profile' },
+]
+
+const ManagerTopbar = ({
+  user,
+  pageTitle,
+  onToggleSidebar,
+  onLogout,
+  notifications = [],
+  onNotificationAction,
+  onNavigate,
+}) => {
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false)
+  const [isProfileOpen, setIsProfileOpen] = useState(false)
+  const [readNotificationIds, setReadNotificationIds] = useState(new Set())
+
+  const notificationsRef = useRef(null)
+  const profileRef = useRef(null)
+
+  const displayName = user?.fullName || user?.name || 'Manager'
+
+  useEffect(() => {
+    const handleOutsideClick = (event) => {
+      if (notificationsRef.current && !notificationsRef.current.contains(event.target)) {
+        setIsNotificationsOpen(false)
+      }
+
+      if (profileRef.current && !profileRef.current.contains(event.target)) {
+        setIsProfileOpen(false)
+      }
+    }
+
+    const handleEscClose = (event) => {
+      if (event.key === 'Escape') {
+        setIsNotificationsOpen(false)
+        setIsProfileOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleOutsideClick)
+    document.addEventListener('keydown', handleEscClose)
+
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick)
+      document.removeEventListener('keydown', handleEscClose)
+    }
+  }, [])
+
+  useEffect(() => {
+    setReadNotificationIds((previous) => {
+      const next = new Set()
+
+      notifications.forEach((notification) => {
+        if (previous.has(notification.id)) {
+          next.add(notification.id)
+        }
+      })
+
+      return next
+    })
+  }, [notifications])
+
+  const unreadCount = useMemo(
+    () => notifications.filter((notification) => !readNotificationIds.has(notification.id)).length,
+    [notifications, readNotificationIds]
+  )
+
+  const markAllAsRead = () => {
+    setReadNotificationIds(new Set(notifications.map((notification) => notification.id)))
+  }
+
+  const handleNotificationClick = (notification) => {
+    setReadNotificationIds((previous) => {
+      const next = new Set(previous)
+      next.add(notification.id)
+      return next
+    })
+
+    if (notification.action && onNotificationAction) {
+      onNotificationAction(notification.action)
+    }
+
+    setIsNotificationsOpen(false)
+  }
+
+  const handleQuickAction = (action) => {
+    if (onNavigate && action) {
+      onNavigate(action)
+    }
+
+    setIsProfileOpen(false)
+  }
+
+  const toggleNotifications = () => {
+    setIsNotificationsOpen((previous) => !previous)
+    setIsProfileOpen(false)
+  }
+
+  const toggleProfileMenu = () => {
+    setIsProfileOpen((previous) => !previous)
+    setIsNotificationsOpen(false)
+  }
+
+  return (
+    <header className="bg-white border-b border-gray-200 sticky top-0 z-30">
+      <div className="px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16">
+          <div className="flex items-center gap-3 min-w-0">
+            <button
+              onClick={onToggleSidebar}
+              className="lg:hidden w-10 h-10 flex items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors"
+            >
+              <MenuIcon className="h-6 w-6" />
+            </button>
+            <h2 className="text-base sm:text-lg font-semibold text-gray-800 truncate">{pageTitle}</h2>
           </div>
-          <button onClick={onLogout} className="ml-2 text-xs text-gray-400 hover:text-red-500 transition-colors font-medium">Logout</button>
+
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div ref={notificationsRef} className="relative">
+              <button
+                className="relative w-10 h-10 rounded-full flex items-center justify-center transition-colors text-[#5f688f] hover:bg-[#f0f2ff]"
+                type="button"
+                aria-label="notifications"
+                onClick={toggleNotifications}
+              >
+                <BellIcon className="w-5 h-5" />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-[#f56a84] text-white text-[10px] font-bold flex items-center justify-center">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
+              </button>
+
+              {isNotificationsOpen && (
+                <div className="absolute right-0 top-full mt-3 w-[320px] max-w-[88vw] rounded-2xl border border-[#d2dcff] bg-white shadow-[0_24px_45px_-28px_rgba(32,49,134,0.7)] overflow-hidden z-40">
+                  <div className="px-4 py-3 border-b border-[#e3e9ff] flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-semibold text-[#27305f]">Notifications</p>
+                      <p className="text-xs text-[#6f79ad]">{notifications.length} item(s)</p>
+                    </div>
+                    {unreadCount > 0 && (
+                      <button
+                        type="button"
+                        onClick={markAllAsRead}
+                        className="text-xs font-semibold text-[#3a52cc] hover:text-[#2d41a6]"
+                      >
+                        Mark all read
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="max-h-[320px] overflow-y-auto p-2 space-y-1">
+                    {notifications.length === 0 && (
+                      <div className="px-3 py-8 text-center text-sm text-[#7a84b5]">
+                        No new notifications right now.
+                      </div>
+                    )}
+
+                    {notifications.map((notification) => {
+                      const isUnread = !readNotificationIds.has(notification.id)
+                      const toneClass = notificationToneClasses[notification.tone] || notificationToneClasses.blue
+
+                      return (
+                        <button
+                          key={notification.id}
+                          type="button"
+                          onClick={() => handleNotificationClick(notification)}
+                          className="w-full text-left rounded-xl p-3 hover:bg-[#f3f6ff] transition-colors"
+                        >
+                          <div className="flex items-start gap-3">
+                            <div className={`shrink-0 mt-0.5 h-8 w-8 rounded-lg border flex items-center justify-center text-sm ${toneClass}`}>
+                              {notification.icon || '•'}
+                            </div>
+
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm font-semibold text-[#27305f] leading-tight">{notification.title}</p>
+                              {notification.description && (
+                                <p className="text-xs text-[#6f79ad] mt-1 leading-relaxed">{notification.description}</p>
+                              )}
+                              {notification.actionLabel && (
+                                <p className="text-xs font-semibold text-[#3a52cc] mt-1.5">{`${notification.actionLabel} ->`}</p>
+                              )}
+                            </div>
+
+                            {isUnread && <span className="mt-2 h-2 w-2 rounded-full bg-[#f56a84]" />}
+                          </div>
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div ref={profileRef} className="relative">
+              <button
+                type="button"
+                onClick={toggleProfileMenu}
+                className="flex items-center gap-2 rounded-full px-1.5 py-1 hover:bg-[#f0f2ff] transition-colors"
+              >
+                <div className="w-10 h-10 rounded-full overflow-hidden ring-2 ring-[#dce2ff] shadow-sm bg-[#e8edff] flex items-center justify-center text-sm font-bold text-[#2c3f9f]">
+                  {user?.avatar ? (
+                    <img src={user.avatar} alt={displayName} className="w-full h-full object-cover" />
+                  ) : (
+                    displayName.charAt(0).toUpperCase()
+                  )}
+                </div>
+
+                <div className="text-[#5f688f] hidden sm:flex items-center">
+                  <ChevronDownIcon className={`w-4 h-4 transition-transform ${isProfileOpen ? 'rotate-180' : ''}`} />
+                </div>
+              </button>
+
+              {isProfileOpen && (
+                <div className="absolute right-0 top-full mt-3 w-64 rounded-2xl border border-[#d2dcff] bg-white shadow-[0_24px_45px_-28px_rgba(32,49,134,0.7)] overflow-hidden z-40">
+                  <div className="px-4 py-3 border-b border-[#e3e9ff]">
+                    <p className="text-sm font-semibold text-[#27305f] truncate">{displayName}</p>
+                    <p className="text-xs text-[#6f79ad] truncate">Hostel Manager</p>
+                  </div>
+
+                  <div className="p-2 space-y-1">
+                    {managerQuickActions.map((item) => (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => handleQuickAction(item.action)}
+                        className="w-full text-left text-sm font-medium text-[#33406d] px-3 py-2.5 rounded-xl hover:bg-[#f3f6ff] transition-colors"
+                      >
+                        {item.label}
+                      </button>
+                    ))}
+                  </div>
+
+                  <div className="p-2 border-t border-[#e3e9ff]">
+                    <button
+                      type="button"
+                      onClick={onLogout}
+                      className="w-full text-left text-sm font-semibold text-[#b44f59] px-3 py-2.5 rounded-xl hover:bg-[#ffe9ec] transition-colors"
+                    >
+                      Logout
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <button
+              onClick={onLogout}
+              className="text-xs font-semibold text-[#7f84a9] hover:text-[#4c527d] transition-colors hidden sm:inline-flex"
+            >
+              Logout
+            </button>
+          </div>
         </div>
       </div>
-    </div>
-  </header>
-)
+    </header>
+  )
+}
 
 // 
 // DASHBOARD OVERVIEW
@@ -353,7 +608,7 @@ const DashboardStats = ({ hostels, bookings, onOpenRequests, onOpenRooms, onTogg
         >
           <MenuIcon className="w-5 h-5" />
         </button>
-        <h1 className="text-3xl md:text-4xl lg:text-[42px] font-bold tracking-[-0.02em] text-[#0f1220]">Hostel Manager - Unified UI</h1>
+        <h1 className="text-3xl md:text-4xl lg:text-[42px] font-bold tracking-[-0.02em] text-[#0f1220]">Hostel Manager Dashboard</h1>
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
@@ -1022,13 +1277,16 @@ const BookingsManagement = ({ bookings, setBookings, hostels, setHostels, initia
 // 
 
 const pageTitles = {
-  dashboard: 'Hostel Manager - Unified UI',
+  dashboard: 'Hostel Manager',
   halls: 'Halls Management',
   bookings: 'Bookings Management',
   pendingRequests: 'Pending Requests Queue',
+  profile: 'Edit Profile',
 }
 
 const HostelManagerDashboard = ({ user, onLogout }) => {
+  const { updateProfile } = useAuth()
+
   if (!user || (user.role !== 'hostel_manager' && user.role !== 'manager')) {
     return <Unauthorized onGoBack={onLogout} />
   }
@@ -1037,6 +1295,7 @@ const HostelManagerDashboard = ({ user, onLogout }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [hostels, setHostels] = useState(initialHostels)
   const [bookings, setBookings] = useState(initialBookings)
+  const [managerProfile, setManagerProfile] = useState(user)
   const pendingRequestCount = useMemo(() => bookings.filter((b) => b.status === 'pending').length, [bookings])
 
   useEffect(() => {
@@ -1044,6 +1303,67 @@ const HostelManagerDashboard = ({ user, onLogout }) => {
     window.addEventListener('resize', onResize)
     return () => window.removeEventListener('resize', onResize)
   }, [])
+
+  useEffect(() => {
+    setManagerProfile(user)
+  }, [user])
+
+  const notificationItems = useMemo(() => {
+    const pendingRequests = bookings.filter((booking) => booking.status === 'pending').length
+    const approvedRequests = bookings.filter((booking) => booking.status === 'approved').length
+    const closedHostels = hostels.filter((hostel) => !hostel.isOpen).length
+
+    const items = []
+
+    if (pendingRequests > 0) {
+      items.push({
+        id: 'manager-pending-requests',
+        icon: '⏳',
+        title: `${pendingRequests} request${pendingRequests > 1 ? 's' : ''} pending approval`,
+        description: 'Open Pending Queue and process student requests quickly.',
+        actionLabel: 'Open queue',
+        action: 'pendingRequests',
+        tone: 'amber',
+      })
+    }
+
+    if (closedHostels > 0) {
+      items.push({
+        id: 'manager-closed-hostels',
+        icon: '🏠',
+        title: `${closedHostels} hostel${closedHostels > 1 ? 's are' : ' is'} currently closed`,
+        description: 'Review room availability and reopen hostels when ready.',
+        actionLabel: 'Open rooms',
+        action: 'halls',
+        tone: 'red',
+      })
+    }
+
+    items.push({
+      id: 'manager-approved-summary',
+      icon: '✅',
+      title: `${approvedRequests} request${approvedRequests > 1 ? 's' : ''} approved`,
+      description: 'Track all booking decisions from the Requests page.',
+      actionLabel: 'View requests',
+      action: 'bookings',
+      tone: 'green',
+    })
+
+    return items
+  }, [bookings, hostels])
+
+  const handleTopbarNavigate = (action) => {
+    if (!action) return
+
+    setActivePage(action)
+    setSidebarOpen(false)
+  }
+
+  const handleSaveProfile = async (profileData) => {
+    const updated = await updateProfile(profileData)
+    setManagerProfile(updated)
+    return updated
+  }
 
   const renderContent = () => {
     switch (activePage) {
@@ -1063,8 +1383,18 @@ const HostelManagerDashboard = ({ user, onLogout }) => {
         return <BookingsManagement bookings={bookings} setBookings={setBookings} hostels={hostels} setHostels={setHostels} />
       case 'pendingRequests':
         return <BookingsManagement bookings={bookings} setBookings={setBookings} hostels={hostels} setHostels={setHostels} initialFilter="pending" />
+      case 'profile':
+        return <ManagerProfilePage manager={managerProfile} onSaveProfile={handleSaveProfile} />
       default:
-        return <DashboardStats hostels={hostels} bookings={bookings} />
+        return (
+          <DashboardStats
+            hostels={hostels}
+            bookings={bookings}
+            onOpenRequests={() => setActivePage('pendingRequests')}
+            onOpenRooms={() => setActivePage('halls')}
+            onToggleSidebar={() => setSidebarOpen(true)}
+          />
+        )
     }
   }
 
@@ -1073,7 +1403,7 @@ const HostelManagerDashboard = ({ user, onLogout }) => {
   return (
     <div className="min-h-screen bg-[#f3f5fb] flex" style={unifiedFont}>
       <ManagerSidebar
-        user={user}
+        user={managerProfile}
         activePage={activePage}
         onNavigate={setActivePage}
         isOpen={sidebarOpen}
@@ -1082,14 +1412,20 @@ const HostelManagerDashboard = ({ user, onLogout }) => {
         totalRequests={bookings.length}
       />
       <div className="flex-1 flex flex-col min-w-0">
-        {activePage !== 'dashboard' && (
-          <ManagerTopbar user={user} pageTitle={pageTitles[activePage] || 'Dashboard'} onToggleSidebar={() => setSidebarOpen(true)} onLogout={onLogout} />
-        )}
+        <ManagerTopbar
+          user={managerProfile}
+          pageTitle={pageTitles[activePage] || 'Dashboard'}
+          onToggleSidebar={() => setSidebarOpen(true)}
+          onLogout={onLogout}
+          notifications={notificationItems}
+          onNotificationAction={handleTopbarNavigate}
+          onNavigate={handleTopbarNavigate}
+        />
         <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-auto">
           <div className="max-w-[1400px] mx-auto animate-[fadeIn_0.3s_ease-out]">
             {renderContent()}
           </div>
-          <ManagerFooter onNavigate={setActivePage} />
+          <ManagerFooter onNavigate={handleTopbarNavigate} />
         </main>
       </div>
     </div>
