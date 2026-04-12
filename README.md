@@ -1,4 +1,4 @@
-# 🏠 DIU Student Smart Home Finder
+# DIU Student Smart Home Finder
 
 A web-based platform for **Daffodil International University (DIU)** students to find 
 verified hostels and rental homes near campus.
