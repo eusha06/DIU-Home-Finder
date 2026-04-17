@@ -112,3 +112,35 @@ export const contactsAPI = {
 
   getReceived:   () => request('/contacts/received'),
 };
+
+// ─── Upload API ───────────────────────────────────────────────────────────────
+
+export const uploadAPI = {
+  // propertyId = the property to attach images to
+  // files = FileList or array of File objects from an <input type="file">
+  uploadImages: async (propertyId, files) => {
+    const token = localStorage.getItem('token');
+
+    // Images must be sent as FormData — NOT JSON
+    const formData = new FormData();
+    Array.from(files).forEach((file) => {
+      formData.append('images', file);
+    });
+
+    const response = await fetch(`/api/upload/property/${propertyId}`, {
+      method: 'POST',
+      headers: {
+        // DO NOT set Content-Type here — browser sets it automatically with boundary
+        Authorization: `Bearer ${token}`,
+      },
+      body: formData,
+    });
+
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.message || 'Upload failed');
+    return data;
+  },
+
+  deleteImage: (imageId) =>
+    request(`/upload/image/${imageId}`, { method: 'DELETE' }),
+};

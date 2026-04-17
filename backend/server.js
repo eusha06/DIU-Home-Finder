@@ -8,6 +8,7 @@ import authRoutes      from './routes/auth.routes.js';
 import propertyRoutes  from './routes/properties.routes.js';
 import bookmarkRoutes  from './routes/bookmarks.routes.js';
 import contactRoutes   from './routes/contacts.routes.js';
+import uploadRoutes    from './routes/upload.routes.js'; 
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -34,6 +35,7 @@ app.use('/api/auth',       authRoutes);
 app.use('/api/properties', propertyRoutes);
 app.use('/api/bookmarks',  bookmarkRoutes);
 app.use('/api/contacts',   contactRoutes);
+app.use('/api/upload',     uploadRoutes);
 
 app.use((req, res) => {
   res.status(404).json({

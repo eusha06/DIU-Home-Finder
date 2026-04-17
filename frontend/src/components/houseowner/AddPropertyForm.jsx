@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { propertiesAPI } from '../../api/index.js'
+import { propertiesAPI, uploadAPI } from '../../api/index.js'
 
 /**
  * AddPropertyForm.jsx
@@ -51,6 +52,7 @@ const Field = ({ label, name, type = 'text', placeholder, value, error, onChange
 const AddPropertyForm = ({ onAddProperty }) => {
   const [formData, setFormData] = useState({ ...initialFormState })
   const [imagePreviews, setImagePreviews] = useState([])
+  const [imageFiles, setImageFiles]       = useState([])
   const [errors, setErrors] = useState({})
   const [submitSuccess, setSubmitSuccess] = useState(false)
   const [submitting, setSubmitting] = useState(false)
@@ -70,15 +72,17 @@ const AddPropertyForm = ({ onAddProperty }) => {
     }))
   }
 
-  const handleImageUpload = (e) => {
-    const files = Array.from(e.target.files)
-    const previews = files.map((file) => URL.createObjectURL(file))
-    setImagePreviews((prev) => [...prev, ...previews])
-  }
+const handleImageUpload = (e) => {
+  const files = Array.from(e.target.files)
+  const previews = files.map((file) => URL.createObjectURL(file))
+  setImagePreviews((prev) => [...prev, ...previews])
+  setImageFiles((prev) => [...prev, ...files])   
+}
 
-  const removeImage = (index) => {
-    setImagePreviews((prev) => prev.filter((_, i) => i !== index))
-  }
+const removeImage = (index) => {
+  setImagePreviews((prev) => prev.filter((_, i) => i !== index))
+  setImageFiles((prev) => prev.filter((_, i) => i !== index))  
+}
 
   const handleAvailabilityToggle = () => {
     setFormData((prev) => ({ ...prev, available: !prev.available }))
@@ -121,6 +125,15 @@ const AddPropertyForm = ({ onAddProperty }) => {
       gender_preference: formData.gender,
       amenities:        formData.facilities,
     })
+    // Step 2 — Upload images if any were selected
+if (imageFiles.length > 0) {
+  try {
+    await uploadAPI.uploadImages(data.property.id, imageFiles)
+  } catch (uploadErr) {
+    console.error('Image upload failed:', uploadErr.message)
+    // Don't block the whole form — property was created, images just failed
+  }
+}
 
     // Also call parent callback if it exists (for local state update)
     if (onAddProperty) {
