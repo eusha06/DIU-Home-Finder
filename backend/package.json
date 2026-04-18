@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "start": "node server.js",
-    "dev": "nodemon server.js"
+    "dev": "node ../scripts/free-backend-port.cjs && nodemon server.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
@@ -16,11 +16,12 @@
     "express": "^4.19.2",
     "express-validator": "^7.0.1",
     "jsonwebtoken": "^9.0.2",
-    "multer": "^2.1.1",
+    "multer": "^1.4.5-lts.1",
     "multer-storage-cloudinary": "^4.0.0",
     "pg": "^8.11.3"
   },
   "devDependencies": {
+    "kill-port": "^2.0.1",
     "nodemon": "^3.1.0"
   }
 }

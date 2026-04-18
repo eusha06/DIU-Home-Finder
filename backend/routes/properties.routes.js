@@ -132,25 +132,25 @@ router.post(
     try {
       const {
         title, description, type, rent, address, area,
-        distance_from_diu, total_seats, gender_preference, amenities,
+        distance_from_diu, total_seats, is_available, gender_preference, amenities,
       } = req.body;
 
       const result = await pool.query(
         `INSERT INTO properties
           (owner_id, title, description, type, rent, address, area,
-           distance_from_diu, total_seats, available_seats, gender_preference, amenities)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$9,$10,$11)
+           distance_from_diu, total_seats, available_seats, is_available, is_verified, gender_preference, amenities)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$9,$10,$11,$12,$13)
          RETURNING *`,
         [
           req.user.id, title, description, type, rent, address, area,
-          distance_from_diu, total_seats || 1, gender_preference || 'any',
-          amenities || [],
+          distance_from_diu, total_seats || 1, is_available ?? true, true,
+          gender_preference || 'any', amenities || [],
         ]
       );
 
       res.status(201).json({
         success: true,
-        message: 'Property listed successfully. Pending admin verification.',
+        message: 'Property listed successfully.',
         property: result.rows[0],
       });
 

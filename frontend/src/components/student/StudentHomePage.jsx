@@ -281,7 +281,7 @@ const fetchProperties = useCallback(async () => {
       floor:       1,                     // not in DB yet — default 1
       distance:    p.distance_from_diu,
       amenities:   p.amenities || [],
-      image:       p.primary_image || null,
+      images:      p.primary_image ? [p.primary_image] : [],
       postedAt:    p.created_at,
       ownerName:   p.owner_name,
       ownerPhone:  p.owner_phone,

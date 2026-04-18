@@ -1,16 +1,31 @@
 import { useState } from "react";
 
-const PropertyCard = ({ property, onClick }) => {
+const DEFAULT_IMAGE = "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=600";
+
+const PropertyCard = ({ property, onClick, onViewDetails }) => {
+  // Support both onClick and onViewDetails props
+  const handleClick = () => {
+    if (onViewDetails) onViewDetails(property);
+    else if (onClick) onClick(property.id);
+  };
+
+  // Get the first image from images array, or use image field, or fallback
+  const imageSrc = 
+    (Array.isArray(property.images) && property.images.length > 0 && property.images[0]) ||
+    property.image ||
+    DEFAULT_IMAGE;
+
   return (
     <div 
       className="bg-white rounded-[12px] shadow-[0_4px_12px_rgba(0,0,0,0.05)] border border-[#E5E7EB] overflow-hidden flex flex-col h-full hover:shadow-[0_8px_24px_rgba(0,0,0,0.1)] transition-shadow cursor-pointer" 
-      onClick={() => onClick(property.id)}
+      onClick={handleClick}
     >
       <div className="relative h-[200px] w-full">
         <img 
-          src={property.images ? property.images[0] : "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267"} 
+          src={imageSrc} 
           alt={property.title} 
-          className="w-full h-full object-cover" 
+          className="w-full h-full object-cover"
+          onError={(e) => { e.target.src = DEFAULT_IMAGE; }}
         />
         <div className={`absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-semibold ${property.available ? "bg-[#D3F5E1] text-[#1E7B44]" : "bg-[#FFE6D5] text-[#C45E1A]"}`}>          
           {property.available ? "Available" : "Booked"}
@@ -54,3 +69,4 @@ const PropertyCard = ({ property, onClick }) => {
 };
 
 export default PropertyCard;
+

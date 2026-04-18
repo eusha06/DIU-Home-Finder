@@ -127,11 +127,11 @@ export const uploadAPI = {
       formData.append('images', file);
     });
 
-    const response = await fetch(`/api/upload/property/${propertyId}`, {
+    const response = await fetch(`${BASE_URL}/upload/property/${propertyId}`, {
       method: 'POST',
       headers: {
         // DO NOT set Content-Type here — browser sets it automatically with boundary
-        Authorization: `Bearer ${token}`,
+        ...(token && { Authorization: `Bearer ${token}` }),
       },
       body: formData,
     });

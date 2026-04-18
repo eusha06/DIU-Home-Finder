@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import pool from '../db/pool.js';
 import protect from '../middleware/auth.js';
-import { upload } from '../config/cloudinary.js';
+import { upload } from '../src/config/cloudinary.js';
 
 const router = Router();
 
@@ -13,7 +13,17 @@ const router = Router();
 router.post(
   '/property/:propertyId',
   protect,                          // must be logged in
-  upload.array('images', 5),        // accept up to 5 files, field name = "images"
+  (req, res, next) => {
+    upload.array('images', 5)(req, res, (err) => {
+      if (err) {
+        return res.status(400).json({
+          success: false,
+          message: err.message || 'Image upload failed validation',
+        });
+      }
+      next();
+    });
+  },
   async (req, res) => {
     try {
       const { propertyId } = req.params;
@@ -51,7 +61,14 @@ router.post(
       const savedImages = [];
 
       for (let i = 0; i < req.files.length; i++) {
-        const imageUrl = req.files[i].path;  // Cloudinary URL
+        const imageUrl = req.files[i].secure_url || req.files[i].path;
+        if (!imageUrl) {
+          return res.status(500).json({
+            success: false,
+            message: 'Cloudinary did not return a valid image URL',
+          });
+        }
+
         // First image becomes primary if no primary exists yet
         const isPrimary = !hasPrimary && i === 0;
 
@@ -73,7 +90,7 @@ router.post(
 
     } catch (error) {
       console.error('Upload error:', error);
-      res.status(500).json({ success: false, message: 'Upload failed' });
+      res.status(500).json({ success: false, message: error.message || 'Upload failed' });
     }
   }
 );

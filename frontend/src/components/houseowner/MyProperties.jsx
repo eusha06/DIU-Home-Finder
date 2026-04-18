@@ -138,6 +138,7 @@ const MyProperties = ({ properties, onUpdateProperty, onDeleteProperty, onAddPro
                 src={property.images?.[0] || 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=600'}
                 alt={property.title}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=600'; }}
               />
               {/* Availability badge */}
               <span
@@ -149,9 +150,19 @@ const MyProperties = ({ properties, onUpdateProperty, onDeleteProperty, onAddPro
               {/* Gender badge */}
               <span
                 className={`absolute top-3 right-3 text-xs font-semibold px-2.5 py-1 rounded-full
-                  ${property.gender === 'male' ? 'bg-blue-100 text-blue-700' : 'bg-pink-100 text-pink-700'}`}
+                  ${property.gender === 'male'
+                    ? 'bg-blue-100 text-blue-700'
+                    : property.gender === 'female'
+                      ? 'bg-pink-100 text-pink-700'
+                      : 'bg-violet-100 text-violet-700'
+                  }`}
               >
-                {property.gender === 'male' ? '👨 Male' : '👩 Female'}
+                {property.gender === 'male'
+                  ? '👨 Male'
+                  : property.gender === 'female'
+                    ? '👩 Female'
+                    : '🌐 Any'
+                }
               </span>
             </div>
 

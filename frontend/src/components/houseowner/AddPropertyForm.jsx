@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { propertiesAPI } from '../../api/index.js'
 import { propertiesAPI, uploadAPI } from '../../api/index.js'
 
 /**
@@ -23,7 +22,7 @@ const initialFormState = {
   title: '',
   location: '',
   rent: '',
-  gender: 'male',
+  gender: 'any',
   rooms: '',
   bathrooms: '',
   floor: '',
@@ -54,6 +53,7 @@ const AddPropertyForm = ({ onAddProperty }) => {
   const [imagePreviews, setImagePreviews] = useState([])
   const [imageFiles, setImageFiles]       = useState([])
   const [errors, setErrors] = useState({})
+  const [uploadWarning, setUploadWarning] = useState('')
   const [submitSuccess, setSubmitSuccess] = useState(false)
   const [submitting, setSubmitting] = useState(false)
 
@@ -112,6 +112,7 @@ const removeImage = (index) => {
 
   try {
     setSubmitting(true)
+    setUploadWarning('')
 
     // Call real backend API to create the property
     const data = await propertiesAPI.create({
@@ -122,16 +123,23 @@ const removeImage = (index) => {
       address:          formData.location,
       area:             formData.location,
       total_seats:      Number(formData.availableSeats) || 1,
+      is_available:     formData.available,
       gender_preference: formData.gender,
       amenities:        formData.facilities,
     })
+
+    let uploadedImageUrls = []
+
     // Step 2 — Upload images if any were selected
 if (imageFiles.length > 0) {
   try {
-    await uploadAPI.uploadImages(data.property.id, imageFiles)
+    const uploadResult = await uploadAPI.uploadImages(data.property.id, imageFiles)
+    uploadedImageUrls = (uploadResult.images || [])
+      .map((img) => img.image_url)
+      .filter(Boolean)
   } catch (uploadErr) {
     console.error('Image upload failed:', uploadErr.message)
-    // Don't block the whole form — property was created, images just failed
+    setUploadWarning(uploadErr.message || 'Property was added, but image upload failed.')
   }
 }
 
@@ -145,7 +153,9 @@ if (imageFiles.length > 0) {
         bathrooms:      Number(formData.bathrooms),
         floor:          Number(formData.floor),
         availableSeats: Number(formData.availableSeats),
-        images:         imagePreviews.length > 0
+        images:         uploadedImageUrls.length > 0
+                          ? uploadedImageUrls
+                          : imagePreviews.length > 0
                           ? imagePreviews
                           : ['https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=600'],
         postedAt:       new Date().toISOString().split('T')[0],
@@ -155,6 +165,7 @@ if (imageFiles.length > 0) {
     // Reset form on success
     setFormData({ ...initialFormState })
     setImagePreviews([])
+    setImageFiles([])
     setErrors({})
     setSubmitSuccess(true)
     setTimeout(() => setSubmitSuccess(false), 3000)
@@ -184,7 +195,11 @@ if (imageFiles.length > 0) {
             <div>
               <label className="block text-sm font-semibold text-[#303760] mb-1.5">Gender Allowed</label>
               <div className="flex rounded-xl bg-[#eef1ff] border border-[#d3dcff] p-1">
-                {[{ key: 'male', label: '👨 Male' }, { key: 'female', label: '👩 Female' }].map(({ key, label }) => (
+                {[
+                  { key: 'any', label: '🌐 Any' },
+                  { key: 'male', label: '👨 Male' },
+                  { key: 'female', label: '👩 Female' },
+                ].map(({ key, label }) => (
                   <button
                     key={key}
                     type="button"
@@ -297,6 +312,12 @@ if (imageFiles.length > 0) {
         {errors.api && (
   <div className="mb-4 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-4 py-3">
     {errors.api}
+  </div>
+)}
+
+{uploadWarning && (
+  <div className="mb-4 text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-4 py-3">
+    Property added, but image upload failed: {uploadWarning}
   </div>
 )}
 

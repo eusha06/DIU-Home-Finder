@@ -39,10 +39,23 @@ const PropertyDetailModal = ({ property, onClose, onRequestBooking }) => {
 
   if (!property) return null
 
+  const DEFAULT_IMAGE = 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=600'
+
   const {
-    id, title, location, description, gender, rent, rooms, bathrooms,
-    floor, availableSeats, available, owner, contact, images, rules, facilities,
+    id, title, location, description, gender = 'any', rent, rooms, bathrooms,
+    floor, availableSeats, available,
+    owner = property.ownerName || 'Owner',
+    contact = property.ownerPhone || 'N/A',
+    rules = [],
+    facilities = property.amenities || [],
   } = property
+
+  // Build images array from various possible sources
+  const images = Array.isArray(property.images) && property.images.length > 0
+    ? property.images
+    : property.image
+      ? [property.image]
+      : [DEFAULT_IMAGE]
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
