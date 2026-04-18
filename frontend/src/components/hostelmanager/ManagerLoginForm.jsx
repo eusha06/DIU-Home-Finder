@@ -12,7 +12,7 @@ import { EmailIcon, LockIcon } from '../shared/Icons'
  *   onSwitchToSignup – callback to switch to the Sign Up tab
  *   onManagerLogin   – callback(managerData) to navigate to manager dashboard
  */
-const ManagerLoginForm = ({ onSwitchToSignup, onManagerLogin }) => {
+const ManagerLoginForm = ({ onSwitchToSignup, onManagerLogin, onForgotPassword }) => {
   // ── Form state ──────────────────────────────────────────────────────────
   const [formData, setFormData] = useState({ email: '', password: '' })
   const [errors, setErrors] = useState({})
@@ -89,7 +89,7 @@ const ManagerLoginForm = ({ onSwitchToSignup, onManagerLogin }) => {
           <button
             type="button"
             className="text-xs text-emerald-600 hover:text-emerald-700 transition-colors"
-            onClick={() => console.log('Manager forgot password clicked')}
+            onClick={onForgotPassword}
           >
             Forgot Password?
           </button>

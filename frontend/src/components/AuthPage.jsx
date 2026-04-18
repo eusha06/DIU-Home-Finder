@@ -63,6 +63,9 @@ const onManagerLogin = async (email, password) => {
   const [signupStep, setSignupStep] = useState(1)   // 1 = choose role, 2 = form
   const [signupRole, setSignupRole] = useState('')   // 'student' | 'owner' | 'manager'
 
+  // ── Forgot Password Modal ───────────────────────────────────────────────
+  const [showForgotModal, setShowForgotModal] = useState(false)
+
   // ── Tab switch handler (resets signup to step 1) ────────────────────────
   const switchTab = (tab) => {
     setActiveTab(tab)
@@ -153,13 +156,25 @@ const onManagerLogin = async (email, password) => {
 
             {/* Render the appropriate login form based on role */}
             {loginRole === 'student' && (
-              <StudentLoginForm onSwitchToSignup={() => switchTab('signup')} onStudentLogin={onStudentLogin} />
+              <StudentLoginForm 
+                onSwitchToSignup={() => switchTab('signup')} 
+                onStudentLogin={onStudentLogin} 
+                onForgotPassword={() => setShowForgotModal(true)} 
+              />
             )}
             {loginRole === 'owner' && (
-              <OwnerLoginForm onSwitchToSignup={() => switchTab('signup')} onOwnerLogin={onOwnerLogin} />
+              <OwnerLoginForm 
+                onSwitchToSignup={() => switchTab('signup')} 
+                onOwnerLogin={onOwnerLogin} 
+                onForgotPassword={() => setShowForgotModal(true)} 
+              />
             )}
             {loginRole === 'manager' && (
-              <ManagerLoginForm onSwitchToSignup={() => switchTab('signup')} onManagerLogin={onManagerLogin} />
+              <ManagerLoginForm 
+                onSwitchToSignup={() => switchTab('signup')} 
+                onManagerLogin={onManagerLogin} 
+                onForgotPassword={() => setShowForgotModal(true)} 
+              />
             )}
           </div>
 
@@ -269,6 +284,33 @@ const onManagerLogin = async (email, password) => {
           </p>
         </div>
       </div>
+
+      {/* ── Forgot Password Modal ──────────────────────────────────── */}
+      {showForgotModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-[fadeIn_0.2s_ease-out]">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 text-center animate-[slideUp_0.3s_ease-out]">
+            <div className="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-bold text-gray-900 mb-2" style={sora}>Reset Password</h3>
+            <p className="text-sm text-gray-600 mb-6">
+              To reset your password, please contact the DIU Home Finder support team directly at:
+              <br />
+              <a href="mailto:support@studenthomefinder.app" className="text-indigo-600 font-semibold hover:underline block mt-2">
+                support@studenthomefinder.app
+              </a>
+            </p>
+            <button
+              onClick={() => setShowForgotModal(false)}
+              className="w-full py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold rounded-lg transition-colors"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

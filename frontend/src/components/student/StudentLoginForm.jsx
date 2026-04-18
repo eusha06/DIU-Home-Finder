@@ -11,7 +11,7 @@ import { EmailIcon, LockIcon } from '../shared/Icons'
  * Props:
  *   onSwitchToSignup – callback to switch to the Sign Up tab
  */
-const StudentLoginForm = ({ onSwitchToSignup, onStudentLogin }) => {
+const StudentLoginForm = ({ onSwitchToSignup, onStudentLogin, onForgotPassword }) => {
   // ── Form state ──────────────────────────────────────────────────────────
   const [formData, setFormData] = useState({
     email: '',
@@ -118,7 +118,7 @@ const StudentLoginForm = ({ onSwitchToSignup, onStudentLogin }) => {
           <button
             type="button"
             className="text-xs text-violet-500 hover:text-violet-700 transition-colors"
-            onClick={() => console.log('Student forgot password clicked')}
+            onClick={onForgotPassword}
           >
             Forgot Password?
           </button>

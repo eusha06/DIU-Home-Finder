@@ -11,7 +11,7 @@ import { EmailIcon, LockIcon } from '../shared/Icons'
  * Props:
  *   onSwitchToSignup – callback to switch to the Sign Up tab
  */
-const OwnerLoginForm = ({ onSwitchToSignup, onOwnerLogin }) => {
+const OwnerLoginForm = ({ onSwitchToSignup, onOwnerLogin, onForgotPassword }) => {
   // ── Form state ──────────────────────────────────────────────────────────
   const [formData, setFormData] = useState({ email: '', password: '' })
   const [errors, setErrors] = useState({})
@@ -88,7 +88,7 @@ const OwnerLoginForm = ({ onSwitchToSignup, onOwnerLogin }) => {
           <button
             type="button"
             className="text-xs text-blue-700 hover:text-blue-800 transition-colors"
-            onClick={() => console.log('Owner forgot password clicked')}
+            onClick={onForgotPassword}
           >
             Forgot Password?
           </button>
