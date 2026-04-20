@@ -10,7 +10,7 @@
  *   activeFilter    – optional status filter (all | pending | approved | rejected)
  *   onFilterChange  – optional callback to update filter
  */
-const BookingsTable = ({ bookings, onUpdateBooking, activeFilter = 'all', onFilterChange }) => {
+const BookingsTable = ({ bookings = [], onUpdateBooking, activeFilter = 'all', onFilterChange }) => {
   const statusStyles = {
     pending: 'bg-yellow-100 text-yellow-700',
     approved: 'bg-green-100 text-green-700',
@@ -112,17 +112,18 @@ const BookingsTable = ({ bookings, onUpdateBooking, activeFilter = 'all', onFilt
                 <td className="px-5 py-4">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-full bg-[#e7edff] flex items-center justify-center text-xs font-bold text-[#3550c9]">
-                      {booking.studentName.charAt(0)}
+                      {booking.studentName ? booking.studentName.charAt(0).toUpperCase() : '?'}
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-[#2e3768]">{booking.studentName}</p>
-                      <p className="text-xs text-[#7681b4]">{booking.studentEmail}</p>
+                      <p className="text-sm font-medium text-[#2e3768]">{booking.studentName || 'Student'}</p>
+                      <p className="text-xs text-[#7681b4]">{booking.studentEmail || 'No Email'}</p>
                     </div>
                   </div>
                 </td>
                 {/* Property */}
                 <td className="px-5 py-4">
-                  <p className="text-sm text-[#34406f]">{booking.propertyTitle}</p>
+                  <p className="text-sm text-[#34406f]">{booking.property || booking.propertyTitle || 'Unknown'}</p>
+                  {booking.message && <span className="text-xs text-gray-400 block truncate max-w-[150px]">{booking.message}</span>}
                 </td>
                 {/* Date */}
                 <td className="px-5 py-4">
@@ -170,11 +171,11 @@ const BookingsTable = ({ bookings, onUpdateBooking, activeFilter = 'all', onFilt
             <div className="flex items-start justify-between mb-3">
               <div className="flex items-center gap-2">
                 <div className="w-9 h-9 rounded-full bg-[#e7edff] flex items-center justify-center text-xs font-bold text-[#3550c9]">
-                  {booking.studentName.charAt(0)}
+                  {booking.studentName ? booking.studentName.charAt(0).toUpperCase().toUpperCase() : '?'}
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-[#2e3768]">{booking.studentName}</p>
-                  <p className="text-[11px] text-[#7681b4]">{booking.studentEmail}</p>
+                  <p className="text-sm font-medium text-[#2e3768]">{booking.studentName || 'Student'}</p>
+                  <p className="text-[11px] text-[#7681b4]">{booking.studentEmail || 'No Email'}</p>
                 </div>
               </div>
               <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${statusStyles[booking.status]}`}>
@@ -182,9 +183,12 @@ const BookingsTable = ({ bookings, onUpdateBooking, activeFilter = 'all', onFilt
               </span>
             </div>
 
-            <div className="flex items-center justify-between text-xs text-[#6d79ac] mb-3 bg-[#f3f6ff] border border-[#d9e1ff] rounded-xl px-3 py-2">
-              <span>{booking.propertyTitle}</span>
-              <span>{booking.date}</span>
+            <div className="flex flex-col text-xs text-[#6d79ac] mb-3 bg-[#f3f6ff] border border-[#d9e1ff] rounded-xl px-3 py-2">
+              <div className="flex justify-between items-center mb-1">
+                <span className="font-medium text-[#2e3768]">{booking.property || booking.propertyTitle || 'Unknown'}</span>
+                <span>{booking.date}</span>
+              </div>
+              {booking.message && <div className="italic text-gray-500">"{booking.message}"</div>}
             </div>
 
             {booking.status === 'pending' && (

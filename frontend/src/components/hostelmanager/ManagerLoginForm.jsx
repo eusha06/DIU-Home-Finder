@@ -51,7 +51,12 @@ const ManagerLoginForm = ({ onSwitchToSignup, onManagerLogin, onForgotPassword }
           await onManagerLogin(formData.email, formData.password)
         }
       } catch (err) {
-        setErrors({ api: err.message || 'Login failed' })
+        const errorMsg = err.message || 'Wrong email/password';
+        if (errorMsg.toLowerCase().includes('failed to fetch') || errorMsg.toLowerCase().includes('json')) {
+          setErrors({ api: 'Wrong email/password' })
+        } else {
+          setErrors({ api: errorMsg })
+        }
       } finally {
         setLoading(false)
       }

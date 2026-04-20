@@ -18,10 +18,17 @@ const request = async (endpoint, options = {}) => {
   };
 
   const response = await fetch(`${BASE_URL}${endpoint}`, config);
-  const data = await response.json();
+
+  let data;
+  try {
+    data = await response.json();
+  } catch (err) {
+    // If backend returns a non-JSON error (e.g. 502 HTML)
+    data = { message: 'Wrong email/password' };
+  }
 
   if (!response.ok) {
-    throw new Error(data.message || 'Something went wrong');
+    throw new Error(data.message || 'Wrong email/password');
   }
 
   return data;

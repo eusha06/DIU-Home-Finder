@@ -66,6 +66,35 @@ router.get('/', async (req, res) => {
     res.status(500).json({ success: false, message: 'Failed to fetch properties' });
   }
 });
+// GET /api/properties/my-listings
+// Owner sees only their own properties
+// ─────────────────────────────────────────────────────────────────────────────
+router.get('/my-listings', protect, restrictTo('owner', 'admin'), async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT
+         p.*,
+         img.image_url AS primary_image,
+         COUNT(cr.id)  AS contact_count
+       FROM properties p
+       LEFT JOIN property_images img ON img.property_id = p.id AND img.is_primary = true
+       LEFT JOIN contact_requests cr ON cr.property_id = p.id
+       WHERE p.owner_id = $1
+       GROUP BY p.id, img.image_url
+       ORDER BY p.created_at DESC`,
+      [req.user.id]
+    );
+
+    res.json({
+      success: true,
+      count: result.rows.length,
+      properties: result.rows,
+    });
+  } catch (error) {
+    console.error('Get my listings error:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch your listings' });
+  }
+});
 
 // ─────────────────────────────────────────────────────────────────────────────
 // GET /api/properties/:id
@@ -162,36 +191,6 @@ router.post(
 );
 
 // ─────────────────────────────────────────────────────────────────────────────
-// GET /api/properties/my-listings
-// Owner sees only their own properties
-// ─────────────────────────────────────────────────────────────────────────────
-router.get('/my-listings', protect, restrictTo('owner', 'admin'), async (req, res) => {
-  try {
-    const result = await pool.query(
-      `SELECT
-         p.*,
-         img.image_url AS primary_image,
-         COUNT(cr.id)  AS contact_count
-       FROM properties p
-       LEFT JOIN property_images img ON img.property_id = p.id AND img.is_primary = true
-       LEFT JOIN contact_requests cr ON cr.property_id = p.id
-       WHERE p.owner_id = $1
-       GROUP BY p.id, img.image_url
-       ORDER BY p.created_at DESC`,
-      [req.user.id]
-    );
-
-    res.json({
-      success: true,
-      count: result.rows.length,
-      properties: result.rows,
-    });
-  } catch (error) {
-    console.error('Get my listings error:', error);
-    res.status(500).json({ success: false, message: 'Failed to fetch your listings' });
-  }
-});
-
 // ─────────────────────────────────────────────────────────────────────────────
 // PATCH /api/properties/:id
 // Owner updates their own property

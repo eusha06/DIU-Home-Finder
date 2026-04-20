@@ -83,14 +83,15 @@ const MyProperties = ({ properties, onUpdateProperty, onDeleteProperty, onAddPro
     lift: '🛗 Lift',
   }
 
-  const availableCount = properties.filter((property) => property.available).length
-  const unavailableCount = properties.length - availableCount
+  const safeProperties = properties || []
+  const availableCount = safeProperties.filter((property) => property.available).length
+  const unavailableCount = safeProperties.length - availableCount
 
-  if (properties.length === 0) {
+  if (safeProperties.length === 0) {
     return (
       <div className="rounded-[24px] border border-[#c8d3ff] bg-[linear-gradient(160deg,#f8f9ff_0%,#eef2ff_100%)] shadow-[0_20px_40px_-34px_rgba(37,55,145,0.8)] text-center py-16 px-6">
         <span className="text-5xl mb-4 block">🏚️</span>
-        <h3 className="text-xl font-semibold text-[#2b3365] mb-1">No properties listed yet</h3>
+        <h3 className="text-xl font-semibold text-[#2b3365] mb-1">There is no listing at this moment</h3>
         <p className="text-sm text-[#6d77ab] mb-5 max-w-sm mx-auto">Add your first property to start receiving bookings.</p>
         <button
           type="button"
@@ -109,7 +110,7 @@ const MyProperties = ({ properties, onUpdateProperty, onDeleteProperty, onAddPro
       <div className="rounded-2xl border border-[#cfdaff] bg-white/85 px-4 sm:px-5 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 shadow-[0_14px_30px_-28px_rgba(45,64,149,0.65)]">
         <div>
           <h3 className="text-lg sm:text-xl font-semibold text-[#27305f]">
-            My Properties <span className="text-sm font-normal text-[#7480b3]">({properties.length})</span>
+            My Properties <span className="text-sm font-normal text-[#7480b3]">({safeProperties.length})</span>
           </h3>
           <div className="flex items-center gap-2 mt-2 text-xs">
             <span className="bg-[#dbf5e2] text-[#2a6d40] px-2.5 py-1 rounded-full font-semibold">{availableCount} Available</span>
@@ -127,7 +128,7 @@ const MyProperties = ({ properties, onUpdateProperty, onDeleteProperty, onAddPro
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-        {properties.map((property) => (
+        {safeProperties.map((property) => (
           <div
             key={property.id}
             className="bg-white/90 rounded-2xl border border-[#ccd8ff] shadow-[0_18px_34px_-26px_rgba(34,52,143,0.7)] overflow-hidden hover:shadow-[0_24px_44px_-28px_rgba(34,52,143,0.78)] transition-shadow duration-200 group"

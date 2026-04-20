@@ -7,11 +7,9 @@ import MyProperties from './MyProperties'
 import BookingsTable from './BookingsTable'
 import OwnerFooter from './OwnerFooter'
 import OwnerProfilePage from './OwnerProfilePage'
-import { propertiesAPI } from '../../api/index.js'
+import { propertiesAPI, contactsAPI } from '../../api/index.js'
 import { useAuth } from '../../context/AuthContext'
 
-// Bookings still use dummy data — will connect in a later phase
-import { ownerBookings as initialBookings } from './data/dummyOwnerData'
 
 const pageTitles = {
   dashboard: 'Owner Dashboard',
@@ -32,7 +30,7 @@ const OwnerDashboard = ({ owner, onLogout }) => {
 
   // ── Data state ────────────────────────────────────────────────────────
   const [properties, setProperties] = useState([])
-  const [bookings, setBookings] = useState(initialBookings)
+  const [bookings, setBookings] = useState([])
   const [loadingProps, setLoadingProps] = useState(true)
   const [propsError, setPropsError] = useState(null)
 
@@ -40,15 +38,15 @@ const OwnerDashboard = ({ owner, onLogout }) => {
     setOwnerProfile(owner)
   }, [owner])
 
-  // ── Fetch owner's own properties from real API ────────────────────────
-  const fetchMyProperties = useCallback(async () => {
+  // ── Fetch owner's own properties & bookings from real API ──────────────
+  const fetchMyData = useCallback(async () => {
     try {
       setLoadingProps(true)
       setPropsError(null)
-      const data = await propertiesAPI.getMyListings()
 
-      // Map DB fields to what MyProperties component expects
-      const mapped = data.properties.map((p) => ({
+      // Fetch properties
+      const data = await propertiesAPI.getMyListings()
+      const mapped = (data.properties || []).map((p) => ({
         id: p.id,
         title: p.title,
         location: p.area || p.address,
@@ -65,10 +63,27 @@ const OwnerDashboard = ({ owner, onLogout }) => {
         contactCount: Number(p.contact_count) || 0,
         postedAt: p.created_at,
       }))
-
       setProperties(mapped)
+
+      // Fetch received bookings/contacts
+      const contacts = await contactsAPI.getReceived()
+      // contacts should return an array from the backend
+      if (contacts && contacts.contacts) {
+        const mappedBookings = contacts.contacts.map((c) => ({
+           id: c.id,
+           property: c.property_title || 'Unknown Property',
+           studentName: c.student_name,
+           studentEmail: c.student_email,
+           date: c.created_at?.slice(0, 10),
+           status: c.status || 'pending',
+           message: c.message
+        }))
+        setBookings(mappedBookings)
+      } else {
+        setBookings([])
+      }
     } catch (err) {
-      console.error('Failed to fetch properties:', err)
+      console.error('Failed to fetch data:', err)
       setPropsError(err.message)
     } finally {
       setLoadingProps(false)
@@ -77,15 +92,15 @@ const OwnerDashboard = ({ owner, onLogout }) => {
 
   // Fetch on mount
   useEffect(() => {
-    fetchMyProperties()
-  }, [fetchMyProperties])
+    fetchMyData()
+  }, [fetchMyData])
 
   // ── Property actions ──────────────────────────────────────────────────
   const handleAddProperty = (newProperty) => {
     // Add to local state immediately (optimistic update)
     setProperties((prev) => [newProperty, ...prev])
-    // Refresh from server to get the real DB data
-    fetchMyProperties()
+    // Refresh from server to get the real DB data & links
+    fetchMyData()
     setActivePage('properties')
   }
 
@@ -100,7 +115,8 @@ const OwnerDashboard = ({ owner, onLogout }) => {
   }
 
   // ── Booking actions ───────────────────────────────────────────────────
-  const handleUpdateBooking = (bookingId, newStatus) => {
+  const handleUpdateBooking = async (bookingId, newStatus) => {
+    // In future: Add contactsAPI.updateStatus(bookingId, newStatus) here
     setBookings((prev) =>
       prev.map((booking) =>
         booking.id === bookingId
@@ -117,6 +133,7 @@ const OwnerDashboard = ({ owner, onLogout }) => {
   }
 
   const notificationItems = useMemo(() => {
+    // Also use the actual bookings here, removing dummy data integration completely
     const pendingBookings = bookings.filter((booking) => booking.status === 'pending').length
     const approvedBookings = bookings.filter((booking) => booking.status === 'approved').length
     const activeListings = properties.filter((property) => property.available).length
@@ -188,12 +205,14 @@ const OwnerDashboard = ({ owner, onLogout }) => {
     if (!action) return
 
     if (action === 'retry-properties') {
-      fetchMyProperties()
+      fetchMyData()
       return
     }
 
     if (action === 'bookings') {
       setBookingFilter('all')
+      setActivePage('bookings')
+      return
     }
 
     setActivePage(action)
@@ -237,7 +256,7 @@ const OwnerDashboard = ({ owner, onLogout }) => {
             <div className="bg-red-50 border border-red-200 rounded-xl px-5 py-4 flex items-center justify-between">
               <p className="text-sm text-red-600">Failed to load properties: {propsError}</p>
               <button
-                onClick={fetchMyProperties}
+                onClick={fetchMyData}
                 className="text-xs text-red-600 font-medium underline hover:no-underline ml-4"
               >
                 Try again

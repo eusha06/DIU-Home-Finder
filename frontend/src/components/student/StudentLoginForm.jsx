@@ -56,11 +56,16 @@ const StudentLoginForm = ({ onSwitchToSignup, onStudentLogin, onForgotPassword }
 
       // Delegate auth to AuthPage/AuthContext so state stays in one place
       if (onStudentLogin) {
-      await onStudentLogin(formData.email, formData.password, formData.gender || 'any')
-  }
+        await onStudentLogin(formData.email, formData.password, formData.gender || 'any')
+      }
     } catch (err) {
       // Show backend error (e.g. "Invalid email or password")
-      setErrors({ api: err.message || 'Login failed' })
+      const errorMsg = err.message || 'Wrong email/password';
+      if (errorMsg.toLowerCase().includes('failed to fetch') || errorMsg.toLowerCase().includes('json')) {
+        setErrors({ api: 'Wrong email/password' })
+      } else {
+        setErrors({ api: errorMsg })
+      }
     } finally {
       setLoading(false)
     }
