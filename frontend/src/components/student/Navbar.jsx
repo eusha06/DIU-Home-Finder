@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { contactsAPI } from '../../api/index.js'
 
 const BellIcon = () => (
   <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5" stroke="currentColor" strokeWidth="1.8">
@@ -39,8 +40,40 @@ const Navbar = ({ student, onLogout, onNavigate }) => {
     ? student.role.replace('_', ' ').replace(/\b\w/g, (ch) => ch.toUpperCase())
     : 'Student'
 
+  const [dbNotifications, setDbNotifications] = useState([])
+
+  useEffect(() => {
+    // Fetch actual contact request statuses for notifications
+    const fetchMyRequests = async () => {
+      try {
+        const data = await contactsAPI.getMyRequests()
+        if (data && data.requests) {
+          const notificationsFromDb = data.requests
+            .filter(req => req.status === 'approved' || req.status === 'rejected')
+            .map(req => ({
+              id: req.id.toString(),
+              icon: req.status === 'approved' ? '✅' : '❌',
+              title: `Booking ${req.status.charAt(0).toUpperCase() + req.status.slice(1)}!`,
+              description: `Your request for "${req.property_title}" was ${req.status}.`,
+              tone: req.status === 'approved' ? 'green' : 'amber',
+            }))
+          
+          setDbNotifications(notificationsFromDb)
+        }
+      } catch (err) {
+        console.error('Failed to fetch student requests', err)
+      }
+    }
+    fetchMyRequests()
+    
+    // Set up a quick polling to keep notifications fresh (every 30s)
+    const interval = setInterval(fetchMyRequests, 30000)
+    return () => clearInterval(interval)
+  }, [])
+
   const notifications = useMemo(
     () => [
+      ...dbNotifications,
       {
         id: 'new-listings',
         icon: '🏠',
@@ -63,7 +96,7 @@ const Navbar = ({ student, onLogout, onNavigate }) => {
         tone: 'amber',
       },
     ],
-    []
+    [dbNotifications]
   )
 
   useEffect(() => {

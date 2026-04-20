@@ -118,6 +118,12 @@ export const contactsAPI = {
   getMyRequests: () => request('/contacts/my-requests'),
 
   getReceived:   () => request('/contacts/received'),
+
+  updateStatus:  (contactId, status) =>
+    request(`/contacts/${contactId}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status }),
+    }),
 };
 
 // ─── Upload API ───────────────────────────────────────────────────────────────

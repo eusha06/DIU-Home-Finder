@@ -66,11 +66,12 @@ const OwnerDashboard = ({ owner, onLogout }) => {
       setProperties(mapped)
 
       // Fetch received bookings/contacts
-      const contacts = await contactsAPI.getReceived()
-      // contacts should return an array from the backend
-      if (contacts && contacts.contacts) {
-        const mappedBookings = contacts.contacts.map((c) => ({
+      const contactsResponse = await contactsAPI.getReceived()
+      // contacts should return an array from the backend (property 'requests')
+      if (contactsResponse && contactsResponse.requests) {
+        const mappedBookings = contactsResponse.requests.map((c) => ({
            id: c.id,
+           propertyId: c.property_id,
            property: c.property_title || 'Unknown Property',
            studentName: c.student_name,
            studentEmail: c.student_email,
@@ -116,14 +117,19 @@ const OwnerDashboard = ({ owner, onLogout }) => {
 
   // ── Booking actions ───────────────────────────────────────────────────
   const handleUpdateBooking = async (bookingId, newStatus) => {
-    // In future: Add contactsAPI.updateStatus(bookingId, newStatus) here
-    setBookings((prev) =>
-      prev.map((booking) =>
-        booking.id === bookingId
-          ? { ...booking, status: newStatus }
-          : booking
+    try {
+      await contactsAPI.updateStatus(bookingId, newStatus)
+      setBookings((prev) =>
+        prev.map((booking) =>
+          booking.id === bookingId
+            ? { ...booking, status: newStatus }
+            : booking
+        )
       )
-    )
+    } catch (err) {
+      console.error('Failed to update booking status', err)
+      alert(err.message)
+    }
   }
 
   const handleSaveProfile = async (profileData) => {

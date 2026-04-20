@@ -10,7 +10,7 @@ import PropertyDetailModal from './PropertyDetailModal'
 import BookingConfirmModal from './BookingConfirmModal'
 import StudentProfilePage from './StudentProfilePage'
 import StudentFooter from './StudentFooter'
-import { propertiesAPI } from '../../api/index.js'
+import { propertiesAPI, contactsAPI } from '../../api/index.js'
 import { useAuth } from '../../context/AuthContext'
 import dummyHostels from './data/dummyHostelData'
 // ── Hostel browsing components ────────────────────────────────────────────
@@ -524,10 +524,18 @@ useEffect(() => {
     }
   }
 
-  const handleBookingConfirm = () => {
-    setBookingProperty(null)
-    setBookingSuccess(true)
-    setTimeout(() => setBookingSuccess(false), 3000)
+  const handleBookingConfirm = async () => {
+    if (!bookingProperty) return
+    try {
+      const message = `Hi, I am interested in booking your property "${bookingProperty.title}". Please let me know the pending status.`
+      await contactsAPI.send(bookingProperty.id, message)
+      setBookingProperty(null)
+      setBookingSuccess(true)
+      setTimeout(() => setBookingSuccess(false), 3000)
+    } catch (err) {
+      console.error('Failed to send booking request:', err)
+      alert('Failed to send request: ' + err.message)
+    }
   }
 
   // ── Handle going back to category selection ─────────────────────────────

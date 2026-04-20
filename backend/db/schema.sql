@@ -81,7 +81,7 @@ CREATE TABLE contact_requests (
   property_id   INTEGER     NOT NULL REFERENCES properties(id) ON DELETE CASCADE,
   message       TEXT        NOT NULL,
   status        VARCHAR(20) DEFAULT 'pending'
-                CHECK (status IN ('pending', 'seen', 'replied')),
+                CHECK (status IN ('pending', 'seen', 'replied', 'approved', 'rejected')),
   created_at    TIMESTAMP   DEFAULT NOW()
 );
 

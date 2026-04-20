@@ -39,6 +39,7 @@ const statusStyles = {
   Pending: 'bg-[#f8e4b8] text-[#956a1f]',
   Approved: 'bg-[#cfeccc] text-[#2f6e38]',
   'In Progress': 'bg-[#cde4f8] text-[#2f6d9c]',
+  Rejected: 'bg-[#ffcdd2] text-[#b71c1c]',
   Completed: 'bg-[#c6e8ca] text-[#296b35]',
 }
 
@@ -50,23 +51,27 @@ const DashboardOverview = ({ properties = [], bookings = [], onStatusClick }) =>
     return sum + (property?.rent || 0)
   }, 0)
 
-  const rows = bookings.slice(0, 5).map((booking, index) => {
+  const rows = bookings.slice(0, 5).map((booking) => {
     const statusLookup = {
       pending: 'Pending',
-      approved: index === 1 ? 'Approved' : 'Completed',
-      rejected: 'In Progress',
+      seen: 'In Progress',
+      replied: 'In Progress',
+      approved: 'Approved',
+      rejected: 'Rejected',
     }
 
     const actionLookup = {
-      pending: `Application Submitted by ${booking.studentName}`,
-      approved: `Lease Signed by ${booking.studentName}`,
-      rejected: `Follow Up Required with ${booking.studentName}`,
+      pending: `Booking requested by ${booking.studentName}`,
+      seen: `Booking seen by you`,
+      replied: `You replied to ${booking.studentName}`,
+      approved: `Booking approved for ${booking.studentName}`,
+      rejected: `Booking rejected for ${booking.studentName}`,
     }
 
     return {
       id: booking.id,
       date: booking.date,
-      property: booking.propertyTitle || booking.property,
+      property: booking.property,
       action: actionLookup[booking.status] || `Activity from ${booking.studentName}`,
       status: statusLookup[booking.status] || 'Pending',
       filterStatus: booking.status,

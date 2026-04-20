@@ -121,14 +121,14 @@ router.get('/received', protect, restrictTo('owner', 'admin'), async (req, res) 
 
 // ─────────────────────────────────────────────────────────────────────────────
 // PATCH /api/contacts/:id/status
-// Owner marks a request as 'seen' or 'replied'
+// Owner marks a request as 'seen', 'replied', 'approved', or 'rejected'
 // ─────────────────────────────────────────────────────────────────────────────
 router.patch(
   '/:id/status',
   protect,
   restrictTo('owner', 'admin'),
   [
-    body('status').isIn(['seen', 'replied']).withMessage('Status must be seen or replied'),
+    body('status').isIn(['seen', 'replied', 'approved', 'rejected']).withMessage('Status must be seen, replied, approved, or rejected'),
   ],
   async (req, res) => {
     const errors = validationResult(req);
@@ -151,7 +151,25 @@ router.patch(
         return res.status(404).json({ success: false, message: 'Request not found' });
       }
 
-      res.json({ success: true, message: `Marked as ${status}`, request: result.rows[0] });
+      const requestRow = result.rows[0];
+
+      // Auto-update availability if approved
+      if (status === 'approved') {
+        try {
+          await pool.query(
+            `UPDATE properties 
+             SET available_seats = GREATEST(available_seats - 1, 0),
+                 is_available = CASE WHEN available_seats - 1 <= 0 THEN false ELSE true END
+             WHERE id = $1`,
+            [requestRow.property_id]
+          );
+        } catch (updateErr) {
+          console.error('Failed to auto-update property availability:', updateErr);
+          // Non-fatal, so we don't throw, but log it.
+        }
+      }
+
+      res.json({ success: true, message: `Marked as ${status}`, request: requestRow });
 
     } catch (error) {
       console.error('Update status error:', error);
