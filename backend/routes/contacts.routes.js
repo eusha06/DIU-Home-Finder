@@ -178,4 +178,30 @@ router.patch(
   }
 );
 
+// ─────────────────────────────────────────────────────────────────────────────
+// DELETE /api/contacts/:id
+// Student cancels their pending booking request
+// ─────────────────────────────────────────────────────────────────────────────
+router.delete('/:id', protect, restrictTo('student'), async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const result = await pool.query(
+      `DELETE FROM contact_requests
+       WHERE id = $1 AND student_id = $2 AND status = 'pending'
+       RETURNING *`,
+      [id, req.user.id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, message: 'Request not found or cannot be cancelled' });
+    }
+
+    res.json({ success: true, message: 'Booking request cancelled successfully' });
+  } catch (error) {
+    console.error('Delete request error:', error);
+    res.status(500).json({ success: false, message: 'Failed to cancel the booking request' });
+  }
+});
+
 export default router;

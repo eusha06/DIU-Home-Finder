@@ -257,12 +257,17 @@ const StudentHomePage = ({ student, onLogout }) => {
   // (used only for rental homes now; hostels use their own hierarchical data)
 // ── Real properties from the backend API ────────────────────────────────
 const [allProperties, setAllProperties] = useState([])
+const [myRequests, setMyRequests] = useState({}) // { propertyId: contactRequestId }
 const [apiError, setApiError] = useState(null)
 
 const fetchProperties = useCallback(async () => {
   try {
     setApiError(null)
-    const data = await propertiesAPI.getAll({ available: true })
+    const [data, requestsData] = await Promise.all([
+      propertiesAPI.getAll({ available: true }),
+      contactsAPI.getMyRequests()
+    ])
+    
     // Map API response fields to match what the existing UI components expect
     const mapped = data.properties.map((p) => ({
       id:          p.id,
@@ -287,6 +292,19 @@ const fetchProperties = useCallback(async () => {
       ownerPhone:  p.owner_phone,
     }))
     setAllProperties(mapped)
+
+    // Map my requests
+    if (requestsData && requestsData.requests) {
+      const requestMap = {}
+      requestsData.requests.forEach(r => {
+        // We only care about pending/unresolved requests to block re-booking
+        if (r.status === 'pending' || r.status === 'seen') {
+          requestMap[r.property_id] = r.id
+        }
+      })
+      setMyRequests(requestMap)
+    }
+
   } catch (err) {
     console.error('Failed to fetch properties:', err)
     setApiError(err.message)
@@ -524,11 +542,40 @@ useEffect(() => {
     }
   }
 
+  const handleCancelBooking = async (propertyId) => {
+    const contactRequestId = myRequests[propertyId]
+    if (!contactRequestId) return
+    
+    try {
+      await contactsAPI.cancelRequest(contactRequestId)
+      
+      // Remove it from our local myRequests map
+      setMyRequests((prev) => {
+        const next = { ...prev }
+        delete next[propertyId]
+        return next
+      })
+      alert('Booking request cancelled successfully.')
+    } catch (err) {
+      console.error('Failed to cancel request:', err)
+      alert(err.message)
+    }
+  }
+
   const handleBookingConfirm = async () => {
     if (!bookingProperty) return
     try {
       const message = `Hi, I am interested in booking your property "${bookingProperty.title}". Please let me know the pending status.`
-      await contactsAPI.send(bookingProperty.id, message)
+      const res = await contactsAPI.send(bookingProperty.id, message)
+      
+      // Update myRequests state immediately so "Cancel" appears
+      if (res.contact && res.contact.id) {
+        setMyRequests((prev) => ({
+          ...prev,
+          [bookingProperty.id]: res.contact.id
+        }))
+      }
+
       setBookingProperty(null)
       setBookingSuccess(true)
       setTimeout(() => setBookingSuccess(false), 3000)
@@ -794,8 +841,10 @@ useEffect(() => {
       {selectedProperty && (
         <PropertyDetailModal
           property={selectedProperty}
+          hasRequested={!!myRequests[selectedProperty.id]}
           onClose={() => setSelectedProperty(null)}
           onRequestBooking={handleRequestBooking}
+          onCancelBooking={handleCancelBooking}
         />
       )}
 

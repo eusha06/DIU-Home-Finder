@@ -33,7 +33,7 @@ const facilityLabels = {
   gym: { icon: '💪', label: 'Gym' },
 }
 
-const PropertyDetailModal = ({ property, onClose, onRequestBooking }) => {
+const PropertyDetailModal = ({ property, hasRequested, onCancelBooking, onClose, onRequestBooking }) => {
   // ── Image gallery state ─────────────────────────────────────────────────
   const [activeImage, setActiveImage] = useState(0)
 
@@ -199,18 +199,28 @@ const PropertyDetailModal = ({ property, onClose, onRequestBooking }) => {
           </div>
 
           {/* Request Booking button */}
-          <button
-            onClick={() => onRequestBooking(id)}
-            disabled={!available}
-            className={`
-              w-full py-3 rounded-xl font-semibold text-sm transition-all duration-200
-              ${available
-                ? 'bg-indigo-600 text-white hover:bg-indigo-700 active:scale-[0.98] shadow-md hover:shadow-lg'
-                : 'bg-gray-200 text-gray-400 cursor-not-allowed'}
-            `}
-          >
-            {available ? '🏠 Request Booking' : 'Not Available'}
-          </button>
+          {hasRequested ? (
+            <button
+              onClick={() => onCancelBooking(id)}
+              className="w-full py-3 rounded-xl font-semibold text-sm transition-all duration-200 
+                         bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 active:scale-[0.98] shadow-sm"
+            >
+              ❌ Cancel Booking Request
+            </button>
+          ) : (
+            <button
+              onClick={() => onRequestBooking(id)}
+              disabled={!available}
+              className={`
+                w-full py-3 rounded-xl font-semibold text-sm transition-all duration-200
+                ${available
+                  ? 'bg-indigo-600 text-white hover:bg-indigo-700 active:scale-[0.98] shadow-md hover:shadow-lg'
+                  : 'bg-gray-200 text-gray-400 cursor-not-allowed'}
+              `}
+            >
+              {available ? '🏠 Request Booking' : 'Not Available'}
+            </button>
+          )}
         </div>
       </div>
     </div>

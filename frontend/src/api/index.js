@@ -119,6 +119,9 @@ export const contactsAPI = {
 
   getReceived:   () => request('/contacts/received'),
 
+  cancelRequest: (contactId) => 
+    request(`/contacts/${contactId}`, { method: 'DELETE' }),
+
   updateStatus:  (contactId, status) =>
     request(`/contacts/${contactId}/status`, {
       method: 'PATCH',
