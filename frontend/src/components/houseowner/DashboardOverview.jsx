@@ -42,13 +42,6 @@ const statusStyles = {
   Completed: 'bg-[#c6e8ca] text-[#296b35]',
 }
 
-const fallbackStatusFilter = {
-  Pending: 'pending',
-  Approved: 'approved',
-  'In Progress': 'pending',
-  Completed: 'approved',
-}
-
 const DashboardOverview = ({ properties = [], bookings = [], onStatusClick }) => {
   const totalProperties = properties.length
   const approvedBookings = bookings.filter((b) => b.status === 'approved')
@@ -57,50 +50,7 @@ const DashboardOverview = ({ properties = [], bookings = [], onStatusClick }) =>
     return sum + (property?.rent || 0)
   }, 0)
 
-  const fallbackRows = [
-    {
-      id: 'f1',
-      date: '2024-10-26',
-      property: 'Sunrise Apartments, Unit 3B',
-      action: 'Application Submitted by Liam C.',
-      status: 'Pending',
-      filterStatus: 'pending',
-    },
-    {
-      id: 'f2',
-      date: '2024-10-25',
-      property: 'University Lofts, Apt 101',
-      action: 'Lease Signed by Emma R.',
-      status: 'Approved',
-      filterStatus: 'approved',
-    },
-    {
-      id: 'f3',
-      date: '2024-10-24',
-      property: 'The Commons, Room 2A',
-      action: 'Booking Request from Noah K.',
-      status: 'Pending',
-      filterStatus: 'pending',
-    },
-    {
-      id: 'f4',
-      date: '2024-10-23',
-      property: 'Oakwood Residence, Unit 5C',
-      action: 'Maintenance Request: Plumbing',
-      status: 'In Progress',
-      filterStatus: 'pending',
-    },
-    {
-      id: 'f5',
-      date: '2024-10-22',
-      property: 'The Lofts, Apt 404',
-      action: 'Rent Payment Received',
-      status: 'Completed',
-      filterStatus: 'approved',
-    },
-  ]
-
-  const generatedRows = bookings.slice(0, 5).map((booking, index) => {
+  const rows = bookings.slice(0, 5).map((booking, index) => {
     const statusLookup = {
       pending: 'Pending',
       approved: index === 1 ? 'Approved' : 'Completed',
@@ -116,14 +66,12 @@ const DashboardOverview = ({ properties = [], bookings = [], onStatusClick }) =>
     return {
       id: booking.id,
       date: booking.date,
-      property: booking.propertyTitle,
+      property: booking.propertyTitle || booking.property,
       action: actionLookup[booking.status] || `Activity from ${booking.studentName}`,
       status: statusLookup[booking.status] || 'Pending',
       filterStatus: booking.status,
     }
   })
-
-  const rows = generatedRows.length > 0 ? generatedRows : fallbackRows
 
   const approvedBookingsCount = bookings.filter((b) => b.status === 'approved').length
 
@@ -154,25 +102,33 @@ const DashboardOverview = ({ properties = [], bookings = [], onStatusClick }) =>
                 </tr>
               </thead>
               <tbody>
-                {rows.map((row) => (
-                  <tr key={row.id} className="border-t border-[#c8b9e8]">
-                    <td className="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap">{formatDate(row.date)}</td>
-                    <td className="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap">{row.property}</td>
-                    <td className="px-4 sm:px-6 py-3 sm:py-4">{row.action}</td>
-                    <td className="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
-                      <button
-                        type="button"
-                        onClick={() => onStatusClick?.(row.filterStatus || fallbackStatusFilter[row.status] || 'pending')}
-                        className={`inline-flex items-center rounded-full px-3 sm:px-4 py-1 sm:py-1.5 text-xs sm:text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5f6fe0] focus-visible:ring-offset-2 ${
-                          statusStyles[row.status] || statusStyles.Pending
-                        } ${onStatusClick ? 'cursor-pointer hover:brightness-95 active:scale-[0.98]' : 'cursor-default'}`}
-                        title="Open Booking Request with this status filter"
-                      >
-                        {row.status}
-                      </button>
+                {rows.length > 0 ? (
+                  rows.map((row) => (
+                    <tr key={row.id} className="border-t border-[#c8b9e8]">
+                      <td className="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap">{formatDate(row.date)}</td>
+                      <td className="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap">{row.property}</td>
+                      <td className="px-4 sm:px-6 py-3 sm:py-4">{row.action}</td>
+                      <td className="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
+                        <button
+                          type="button"
+                          onClick={() => onStatusClick?.(row.filterStatus || 'pending')}
+                          className={`inline-flex items-center rounded-full px-3 sm:px-4 py-1 sm:py-1.5 text-xs sm:text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5f6fe0] focus-visible:ring-offset-2 ${
+                            statusStyles[row.status] || statusStyles.Pending
+                          } ${onStatusClick ? 'cursor-pointer hover:brightness-95 active:scale-[0.98]' : 'cursor-default'}`}
+                          title="Open Booking Request with this status filter"
+                        >
+                          {row.status}
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="4" className="px-4 sm:px-6 py-6 sm:py-8 text-center text-[#555a7a]">
+                      No recent activity. Booking requests and updates will appear here.
                     </td>
                   </tr>
-                ))}
+                )}
               </tbody>
             </table>
           </div>
