@@ -69,7 +69,7 @@ router.get('/', async (req, res) => {
 // GET /api/properties/my-listings
 // Owner sees only their own properties
 // ─────────────────────────────────────────────────────────────────────────────
-router.get('/my-listings', protect, restrictTo('owner', 'admin'), async (req, res) => {
+router.get('/my-listings', protect, restrictTo('owner', 'admin', 'hostel_manager'), async (req, res) => {
   try {
     const result = await pool.query(
       `SELECT
@@ -145,7 +145,7 @@ router.get('/:id', async (req, res) => {
 router.post(
   '/',
   protect,
-  restrictTo('owner', 'admin'),
+  restrictTo('owner', 'admin', 'hostel_manager'),
   [
     body('title').trim().notEmpty().withMessage('Title is required'),
     body('type').isIn(['hostel', 'room', 'flat', 'seat']).withMessage('Invalid property type'),
@@ -195,7 +195,7 @@ router.post(
 // PATCH /api/properties/:id
 // Owner updates their own property
 // ─────────────────────────────────────────────────────────────────────────────
-router.patch('/:id', protect, restrictTo('owner', 'admin'), async (req, res) => {
+router.patch('/:id', protect, restrictTo('owner', 'admin', 'hostel_manager'), async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -217,10 +217,7 @@ router.patch('/:id', protect, restrictTo('owner', 'admin'), async (req, res) => 
     const allowed = [
       'title', 'description', 'type', 'rent', 'address',
       'area', 'distance_from_diu', 'total_seats', 'available_seats',
-      'is_available', 'gender_preference', 'amenities',
-    ];
-
-    const updates = [];
+        'is_available', 'gender_preference', 'amenities', 'hostel_info',
     const values  = [];
     let   idx     = 1;
 
@@ -256,7 +253,7 @@ router.patch('/:id', protect, restrictTo('owner', 'admin'), async (req, res) => 
 // DELETE /api/properties/:id
 // Owner deletes their own property
 // ─────────────────────────────────────────────────────────────────────────────
-router.delete('/:id', protect, restrictTo('owner', 'admin'), async (req, res) => {
+router.delete('/:id', protect, restrictTo('owner', 'admin', 'hostel_manager'), async (req, res) => {
   try {
     const { id } = req.params;
 

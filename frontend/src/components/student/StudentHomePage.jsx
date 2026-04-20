@@ -272,24 +272,29 @@ const fetchProperties = useCallback(async () => {
     const mapped = data.properties.map((p) => ({
       id:          p.id,
       title:       p.title,
+      name:        p.title, // For hostel card compatibility
       type:        p.type === 'room' || p.type === 'flat' || p.type === 'seat'
                      ? 'home'
                      : p.type,
       listingType: p.type,
       location:    p.area || p.address,
+      description: p.description,
       address:     p.address,
       rent:        p.rent,
-      gender:      p.gender_preference,   // 'male' | 'female' | 'any'
+      gender:      p.gender_preference,
       available:   p.is_available,
       rooms:       p.total_seats || 1,
-      bathrooms:   1,                     // not in DB yet — default 1
-      floor:       1,                     // not in DB yet — default 1
+      bathrooms:   1,
+      floor:       1,
       distance:    p.distance_from_diu,
       amenities:   p.amenities || [],
+      facilities:  p.amenities || [], // maps to facilities for hostel modal
       images:      p.primary_image ? [p.primary_image] : [],
+      image:       p.primary_image, // for hostel card
       postedAt:    p.created_at,
       ownerName:   p.owner_name,
       ownerPhone:  p.owner_phone,
+      floors:      p.hostel_info?.floors || [], // hostel beds structure
     }))
     setAllProperties(mapped)
 
@@ -356,16 +361,16 @@ useEffect(() => {
 
   // ── Hostels filtered by student gender ──────────────────────────────────
   const filteredHostels = useMemo(() => {
-    let result = dummyHostels.filter((h) => h.gender === studentGender)
+    let result = allProperties.filter((p) => p.type === 'hostel' && (p.gender === studentGender || p.gender === 'any'))
     // Text search on hostel name and location
     if (hostelSearchQuery.trim()) {
       const q = hostelSearchQuery.toLowerCase()
       result = result.filter(
-        (h) => h.name.toLowerCase().includes(q) || h.location.toLowerCase().includes(q)
+        (h) => (h.title && h.title.toLowerCase().includes(q)) || (h.location && h.location.toLowerCase().includes(q))
       )
     }
     return result
-  }, [studentGender, hostelSearchQuery])
+  }, [allProperties, studentGender, hostelSearchQuery])
 
   // ── Simulate loading whenever category changes ──────────────────────────
   // This gives a realistic skeleton-card experience while "fetching" data.

@@ -43,8 +43,8 @@ const HostelCard = ({ hostel, onViewHostel }) => {
       {/* Image section */}
       <div className="relative h-52 overflow-hidden">
         <img
-          src={hostel.image}
-          alt={hostel.name}
+          src={hostel.images?.[0] || hostel.image || 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=600&h=400&fit=crop'}
+          alt={hostel.title || hostel.name}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
         />
 

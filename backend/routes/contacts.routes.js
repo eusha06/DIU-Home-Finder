@@ -93,7 +93,7 @@ router.get('/my-requests', protect, restrictTo('student'), async (req, res) => {
 // GET /api/contacts/received
 // Owner sees all contact requests for their properties
 // ─────────────────────────────────────────────────────────────────────────────
-router.get('/received', protect, restrictTo('owner', 'admin'), async (req, res) => {
+router.get('/received', protect, restrictTo('owner', 'admin', 'hostel_manager'), async (req, res) => {
   try {
     const result = await pool.query(
       `SELECT
@@ -126,7 +126,7 @@ router.get('/received', protect, restrictTo('owner', 'admin'), async (req, res) 
 router.patch(
   '/:id/status',
   protect,
-  restrictTo('owner', 'admin'),
+  restrictTo('owner', 'admin', 'hostel_manager'),
   [
     body('status').isIn(['seen', 'replied', 'approved', 'rejected']).withMessage('Status must be seen, replied, approved, or rejected'),
   ],

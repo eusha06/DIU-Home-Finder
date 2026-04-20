@@ -1,10 +1,12 @@
-import { useState, useEffect, useMemo, useRef } from 'react'
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import {
   managerHostels as initialHostels,
   managerBookings as initialBookings,
 } from './data/dummyHostelManagerData'
 import ManagerFooter from './ManagerFooter'
 import ManagerProfilePage from './ManagerProfilePage'
+import AddHostelForm from './AddHostelForm'
+import { propertiesAPI, contactsAPI } from '../../api/index.js'
 import { useAuth } from '../../context/AuthContext'
 
 // 
@@ -118,17 +120,23 @@ const roomFacilityIcons = {
 
 function computeHostelStats(hostel) {
   let totalRooms = 0, totalBeds = 0, availableBeds = 0, occupiedBeds = 0
-  hostel.floors.forEach((floor) => {
-    totalRooms += floor.rooms.length
-    floor.rooms.forEach((room) => {
-      totalBeds += room.beds.length
-      room.beds.forEach((bed) => {
-        if (bed.status === 'available') availableBeds++
-        else occupiedBeds++
-      })
+  if (hostel?.floors) {
+    hostel.floors.forEach((floor) => {
+      totalRooms += floor.rooms?.length || 0
+      if (floor.rooms) {
+        floor.rooms.forEach((room) => {
+          totalBeds += room.beds?.length || 0
+          if (room.beds) {
+            room.beds.forEach((bed) => {
+              if (bed.status === 'available') availableBeds++
+              else occupiedBeds++
+            })
+          }
+        })
+      }
     })
-  })
-  return { totalFloors: hostel.floors.length, totalRooms, totalBeds, availableBeds, occupiedBeds }
+  }
+  return { totalFloors: hostel?.floors?.length || 0, totalRooms, totalBeds, availableBeds, occupiedBeds }
 }
 
 function computeAllStats(hostels) {
@@ -173,7 +181,8 @@ const Unauthorized = ({ onGoBack }) => (
 
 const navItems = [
   { id: 'overview', route: 'dashboard', label: 'Overview', icon: DashboardIcon },
-  { id: 'rooms', route: 'halls', label: 'Rooms', icon: HallsIcon },
+  { id: 'rooms', route: 'halls', label: 'Hostel Manage', icon: HallsIcon },
+  { id: 'add_hostel', route: 'add_hostel', label: 'Add Hostel', icon: HallsIcon },
   { id: 'requests', route: 'bookings', label: 'Requests', icon: BookingsIcon },
   { id: 'settings', route: null, label: 'Settings', icon: LockIcon },
 ]
@@ -748,10 +757,12 @@ const HallsManagement = ({ hostels, setHostels }) => {
   }
 
   // Toggle bed status between available/occupied
-  const toggleBedStatus = (hostelId, floorIdx, roomIdx, bedIdx) => {
-    setHostels((prev) => prev.map((h) => {
-      if (h.id !== hostelId) return h
-      const newFloors = h.floors.map((floor, fi) => {
+  const toggleBedStatus = async (hostelId, floorIdx, roomIdx, bedIdx) => {
+    try {
+      const hostelToUpdate = hostels.find(h => h.id === hostelId);
+      if (!hostelToUpdate) return;
+      
+      const newFloors = hostelToUpdate.floors.map((floor, fi) => {
         if (fi !== floorIdx) return floor
         return {
           ...floor,
@@ -768,8 +779,18 @@ const HallsManagement = ({ hostels, setHostels }) => {
           })
         }
       })
-      return { ...h, floors: newFloors }
-    }))
+
+      // Update backend using propertiesAPI. Note: backend expects hostel_info
+      await propertiesAPI.update(hostelToUpdate.id, {
+        hostel_info: { floors: newFloors }
+      })
+
+      setHostels((prev) => prev.map((h) => h.id === hostelId ? { ...h, floors: newFloors } : h))
+      showToast('Bed status updated successfully')
+    } catch (err) {
+      console.error(err)
+      showToast('Failed to update bed status')
+    }
   }
 
   // Edit hostel info
@@ -930,17 +951,21 @@ const HallsManagement = ({ hostels, setHostels }) => {
   }
 
   //  HOSTEL DETAIL VIEW (Floor -> Room -> Bed) 
-  const currentFloor = selectedHostel.floors[activeFloor]
+  const currentFloor = selectedHostel?.floors?.[activeFloor]
   const hostelStats = computeHostelStats(selectedHostel)
 
   // Floor-level stats
-  const floorStats = selectedHostel.floors.map((floor) => {
+  const floorStats = (selectedHostel?.floors || []).map((floor) => {
     let beds = 0, available = 0
-    floor.rooms.forEach((room) => {
-      beds += room.beds.length
-      available += room.beds.filter((b) => b.status === 'available').length
-    })
-    return { rooms: floor.rooms.length, beds, available }
+    if (floor.rooms) {
+      floor.rooms.forEach((room) => {
+        if (room.beds) {
+          beds += room.beds.length
+          available += room.beds.filter((b) => b.status === 'available').length
+        }
+      })
+    }
+    return { rooms: floor.rooms ? floor.rooms.length : 0, beds, available }
   })
 
   return (
@@ -1428,10 +1453,49 @@ const HostelManagerDashboard = ({ user, onLogout }) => {
 
   const [activePage, setActivePage] = useState('dashboard')
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [hostels, setHostels] = useState(initialHostels)
-  const [bookings, setBookings] = useState(initialBookings)
+  const [hostels, setHostels] = useState([])
+  const [bookings, setBookings] = useState([])
   const [bookingsInitialFilter, setBookingsInitialFilter] = useState('all')
   const [managerProfile, setManagerProfile] = useState(user)
+
+  const fetchData = useCallback(async () => {
+    try {
+      const data = await propertiesAPI.getMyListings()
+      const mapped = (data.properties || []).map((p) => {
+        const info = p.hostel_info || { floors: [] }
+          return {
+             id: p.id,
+             name: p.title,
+             address: p.address,
+             isOpen: p.is_available,
+             totalCapacity: p.total_seats || 0,
+             availableBeds: p.available_seats || 0,
+             floors: info.floors || [],
+             // add more if necessary to accommodate existing UI
+          }
+      })
+      setHostels(mapped)
+      
+      const contactsRes = await contactsAPI.getReceived()
+      if (contactsRes && contactsRes.requests) {
+         setBookings(contactsRes.requests.map(c => ({
+            id: c.id,
+            guest: c.student_name,
+            hostelId: c.property_id,
+            hostelName: c.property_title,
+            room: '-', 
+            dates: c.created_at?.slice(0, 10),
+            status: c.status || 'pending'
+         })))
+      }
+    } catch (e) {
+      console.error(e)
+    }
+  }, [])
+
+  useEffect(() => {
+    fetchData()
+  }, [fetchData])
 
   useEffect(() => {
     const onResize = () => { if (window.innerWidth >= 1024) setSidebarOpen(false) }
@@ -1540,6 +1604,8 @@ const HostelManagerDashboard = ({ user, onLogout }) => {
         )
       case 'halls':
         return <HallsManagement hostels={hostels} setHostels={setHostels} />
+      case 'add_hostel':
+        return <AddHostelForm onAddHostel={() => { setActivePage('halls'); fetchData(); }} />
       case 'bookings':
         return <BookingsManagement bookings={bookings} setBookings={setBookings} hostels={hostels} setHostels={setHostels} initialFilter={bookingsInitialFilter} />
       case 'profile':
