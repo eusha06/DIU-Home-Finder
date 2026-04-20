@@ -17,6 +17,11 @@ CREATE TABLE users (
                   CHECK (role IN ('student', 'owner', 'hostel_manager', 'admin')),
   diu_student_id  VARCHAR(50),        -- only for students e.g. "221-15-4567"
   phone           VARCHAR(20),
+  national_id     VARCHAR(50),
+  building_name   VARCHAR(150),
+  location        VARCHAR(200),
+  bio             TEXT,
+  avatar          TEXT,
   is_active       BOOLEAN             DEFAULT true,
   created_at      TIMESTAMP           DEFAULT NOW(),
   updated_at      TIMESTAMP           DEFAULT NOW()

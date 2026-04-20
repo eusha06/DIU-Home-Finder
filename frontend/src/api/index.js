@@ -24,11 +24,11 @@ const request = async (endpoint, options = {}) => {
     data = await response.json();
   } catch (err) {
     // If backend returns a non-JSON error (e.g. 502 HTML)
-    data = { message: 'Wrong email/password' };
+    data = { message: `Server error: ${response.status} ${response.statusText}` };
   }
 
   if (!response.ok) {
-    throw new Error(data.message || 'Wrong email/password');
+    throw new Error(data.message || 'Request failed');
   }
 
   return data;

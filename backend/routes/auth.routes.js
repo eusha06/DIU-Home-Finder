@@ -38,7 +38,7 @@ router.post(
     if (handleValidation(req, res)) return;
 
     try {
-      const { name, email, password, role = 'student', diu_student_id, phone } = req.body;
+      const { name, email, password, role = 'student', diu_student_id, phone, national_id, building_name, location } = req.body;
       const normalizedRole = role === 'manager' ? 'hostel_manager' : role;
 
       // Check if email already exists in the database
@@ -58,10 +58,10 @@ router.post(
 
       // Insert the new user into the database
       const result = await pool.query(
-        `INSERT INTO users (name, email, password_hash, role, diu_student_id, phone)
-         VALUES ($1, $2, $3, $4, $5, $6)
-         RETURNING id, name, email, role, diu_student_id, phone, created_at`,
-        [name, email, password_hash, normalizedRole, diu_student_id || null, phone || null]
+        `INSERT INTO users (name, email, password_hash, role, diu_student_id, phone, national_id, building_name, location)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+         RETURNING id, name, email, role, diu_student_id, phone, national_id as "nationalId", building_name as "buildingName", location, created_at`,
+        [name, email, password_hash, normalizedRole, diu_student_id || null, phone || null, national_id || null, building_name || null, location || null]
       );
 
       const user = result.rows[0];
@@ -148,7 +148,7 @@ import protect from '../middleware/auth.js';
 router.get('/me', protect, async (req, res) => {
   try {
     const result = await pool.query(
-      'SELECT id, name, email, role, diu_student_id, phone, created_at FROM users WHERE id = $1',
+      'SELECT id, name, email, role, diu_student_id, phone, national_id as "nationalId", building_name as "buildingName", location, bio, avatar, created_at, updated_at FROM users WHERE id = $1',
       [req.user.id]
     );
     res.json({ success: true, user: result.rows[0] });
@@ -179,7 +179,7 @@ router.patch(
     if (handleValidation(req, res)) return;
 
     try {
-      const { name, email, phone } = req.body;
+      const { name, email, phone, nationalId, buildingName, location, bio, avatar } = req.body;
       const updates = {};
 
       if (name !== undefined) {
@@ -194,6 +194,12 @@ router.patch(
         const normalized = String(phone ?? '').trim();
         updates.phone = normalized === '' ? null : normalized;
       }
+      
+      if (nationalId !== undefined) updates.national_id = nationalId === '' ? null : nationalId.trim();
+      if (buildingName !== undefined) updates.building_name = buildingName === '' ? null : buildingName.trim();
+      if (location !== undefined) updates.location = location === '' ? null : location.trim();
+      if (bio !== undefined) updates.bio = bio === '' ? null : bio.trim();
+      if (avatar !== undefined) updates.avatar = avatar === '' ? null : avatar.trim();
 
       if (Object.keys(updates).length === 0) {
         return res.status(400).json({
@@ -233,7 +239,7 @@ router.patch(
         `UPDATE users
          SET ${setClauses.join(', ')}
          WHERE id = $${idx}
-         RETURNING id, name, email, role, diu_student_id, phone, created_at, updated_at`,
+         RETURNING id, name, email, role, diu_student_id, phone, national_id as "nationalId", building_name as "buildingName", location, bio, avatar, created_at, updated_at`,
         values
       );
 

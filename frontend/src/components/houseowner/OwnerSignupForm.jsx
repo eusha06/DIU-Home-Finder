@@ -93,6 +93,9 @@ const OwnerSignupForm = ({ onSwitchToLogin, onOwnerLogin }) => {
           password: formData.password,
           role: 'owner',
           phone: formData.phone,
+          national_id: formData.nationalId,
+          building_name: formData.buildingName,
+          location: formData.location,
         })
 
         if (onOwnerLogin) {
