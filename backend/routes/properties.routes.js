@@ -161,19 +161,19 @@ router.post(
     try {
       const {
         title, description, type, rent, address, area,
-        distance_from_diu, total_seats, is_available, gender_preference, amenities,
+        distance_from_diu, total_seats, available_seats, is_available, gender_preference, amenities, hostel_info
       } = req.body;
 
       const result = await pool.query(
         `INSERT INTO properties
           (owner_id, title, description, type, rent, address, area,
-           distance_from_diu, total_seats, available_seats, is_available, is_verified, gender_preference, amenities)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$9,$10,$11,$12,$13)
+           distance_from_diu, total_seats, available_seats, is_available, is_verified, gender_preference, amenities, hostel_info)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)
          RETURNING *`,
         [
           req.user.id, title, description, type, rent, address, area,
-          distance_from_diu, total_seats || 1, is_available ?? true, true,
-          gender_preference || 'any', amenities || [],
+          distance_from_diu, total_seats || 1, available_seats || total_seats || 1, is_available ?? true, true,
+          gender_preference || 'any', amenities || [], hostel_info || null
         ]
       );
 
@@ -217,7 +217,8 @@ router.patch('/:id', protect, restrictTo('owner', 'admin', 'hostel_manager'), as
     const allowed = [
       'title', 'description', 'type', 'rent', 'address',
       'area', 'distance_from_diu', 'total_seats', 'available_seats',
-        'is_available', 'gender_preference', 'amenities', 'hostel_info',
+      'is_available', 'gender_preference', 'amenities', 'hostel_info'
+    ];
     const values  = [];
     let   idx     = 1;
 

@@ -1465,13 +1465,18 @@ const HostelManagerDashboard = ({ user, onLogout }) => {
         const info = p.hostel_info || { floors: [] }
           return {
              id: p.id,
-             name: p.title,
-             address: p.address,
-             isOpen: p.is_available,
+             name: p.title || 'Untitled',
+             location: p.address || 'Unknown Location',
+             isOpen: p.is_available ?? true,
              totalCapacity: p.total_seats || 0,
              availableBeds: p.available_seats || 0,
              floors: info.floors || [],
-             // add more if necessary to accommodate existing UI
+             gender: p.gender || info.gender || 'male',
+             wardenName: info.wardenName || p.owner_name || 'Not Assigned',
+             wardenPhone: info.wardenPhone || p.owner_phone || 'N/A',
+             image: p.images && p.images.length > 0 ? p.images[0] : 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=600&h=400&fit=crop',
+             facilities: Array.isArray(p.facilities) ? p.facilities : (Array.isArray(info.facilities) ? info.facilities : []),
+             rent: p.price || info.rent || 0,
           }
       })
       setHostels(mapped)
