@@ -1632,15 +1632,23 @@ const HostelManagerDashboard = ({ user, onLogout }) => {
       
       const contactsRes = await contactsAPI.getReceived()
       if (contactsRes && contactsRes.requests) {
-         setBookings(contactsRes.requests.map(c => ({
-            id: c.id,
-            guest: c.student_name,
-            hostelId: c.property_id,
-            hostelName: c.property_title,
-            room: '-', 
-            dates: c.created_at?.slice(0, 10),
-            status: c.status || 'pending'
-         })))
+         setBookings(contactsRes.requests.map(c => {
+            const msg = c.message || '';
+            const seatMatch = msg.match(/Seat\/Bed:\s+([\w-]+)/i);
+            const roomMatch = msg.match(/Room:\s+([\w-]+)/i);
+            
+            return {
+              id: c.id,
+              studentName: c.student_name || 'Guest',
+              studentId: c.student_id?.toString() || 'N/A',
+              hostelId: c.property_id,
+              hostelName: c.property_title,
+              roomNumber: roomMatch ? roomMatch[1] : '-', 
+              bedId: seatMatch ? seatMatch[1] : '-', 
+              date: c.created_at?.slice(0, 10),
+              status: c.status || 'pending'
+            };
+         }))
       }
     } catch (e) {
       console.error(e)

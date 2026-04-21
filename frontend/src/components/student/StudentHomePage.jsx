@@ -603,6 +603,28 @@ useEffect(() => {
     }
   }
 
+  const handleSeatConfirm = async () => {
+    if (!seatRequest || !seatRequest.hostel) return
+    try {
+      const message = `Hi, I am interested in requesting a seat: Room ${seatRequest.room.roomNumber}, Bed ${seatRequest.bed.bedId} in your hostel "${seatRequest.hostel.name}". Please confirm.`
+      const res = await contactsAPI.send(seatRequest.hostel.id, message)
+      
+      if (res.contact && res.contact.id) {
+        setMyRequests((prev) => ({
+          ...prev,
+          [seatRequest.hostel.id]: res.contact.id
+        }))
+      }
+
+      setSeatRequest(null)
+      setBookingSuccess(true)
+      setTimeout(() => setBookingSuccess(false), 3000)
+    } catch (err) {
+      console.error('Failed to send seat request:', err)
+      alert('Failed to send seat request: ' + err.message)
+    }
+  }
+
   // ── Handle going back to category selection ─────────────────────────────
   const handleBackToCategories = () => {
     setSelectedCategory(null)
@@ -888,10 +910,29 @@ useEffect(() => {
           room={seatRequest.room}
           hostel={seatRequest.hostel}
           onClose={() => setSeatRequest(null)}
-          onConfirm={() => {
-            setSeatRequest(null)
-            setBookingSuccess(true)
-            setTimeout(() => setBookingSuccess(false), 3000)
+          onConfirm={async () => {
+            try {
+              const b = seatRequest.bed
+              const r = seatRequest.room
+              const h = seatRequest.hostel
+              const message = `Hi, I am requesting to book Seat/Bed: ${b.bedId} in Room: ${r.roomNumber} at your hostel "${h.name}". Please let me know.`
+              
+              const res = await contactsAPI.send(h.id, message)
+              
+              if (res.contact && res.contact.id) {
+                setMyRequests((prev) => ({
+                  ...prev,
+                  [h.id]: res.contact.id
+                }))
+              }
+              
+              setSeatRequest(null)
+              setBookingSuccess(true)
+              setTimeout(() => setBookingSuccess(false), 3000)
+            } catch (err) {
+              console.error('Failed to send seat request:', err)
+              alert('Failed to send request: ' + err.message)
+            }
           }}
         />
       )}
