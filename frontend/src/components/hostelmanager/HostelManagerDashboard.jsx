@@ -780,9 +780,24 @@ const HallsManagement = ({ hostels, setHostels }) => {
         }
       })
 
-      // Update backend using propertiesAPI. Note: backend expects hostel_info
+      // Update backend using propertiesAPI. Note: backend expects hostel_info. UI uses camelCase, so we must map back to snake_case for DB consistency
+      const snakeCaseFloors = newFloors.map(f => ({
+        floor_number: f.floorNumber,
+        rooms: f.rooms.map(r => ({
+          room_number: r.roomNumber,
+          type: r.type,
+          facilities: r.facilities,
+          beds: r.beds.map(b => ({
+            bed_number: b.bedId,
+            status: b.status,
+            student_name: b.studentName,
+            student_id: b.studentId
+          }))
+        }))
+      }))
+
       await propertiesAPI.update(hostelToUpdate.id, {
-        hostel_info: { floors: newFloors }
+        hostel_info: { floors: snakeCaseFloors }
       })
 
       setHostels((prev) => prev.map((h) => h.id === hostelId ? { ...h, floors: newFloors } : h))
@@ -790,6 +805,106 @@ const HallsManagement = ({ hostels, setHostels }) => {
     } catch (err) {
       console.error(err)
       showToast('Failed to update bed status')
+    }
+  }
+
+  const handleAddFloor = async () => {
+    try {
+      const hostelToUpdate = hostels.find(h => h.id === selectedHostelId);
+      if (!hostelToUpdate) return;
+      const newFloorNum = String((hostelToUpdate.floors || []).length + 1)
+      const newFloors = [...(hostelToUpdate.floors || []), { floorNumber: newFloorNum, rooms: [] }]
+      
+      const snakeCaseFloors = newFloors.map(f => ({
+        floor_number: f.floorNumber,
+        rooms: (f.rooms || []).map(r => ({
+          room_number: r.roomNumber,
+          type: r.type,
+          facilities: r.facilities,
+          beds: (r.beds || []).map(b => ({
+            bed_number: b.bedId,
+            status: b.status,
+            student_name: b.studentName,
+            student_id: b.studentId
+          }))
+        }))
+      }))
+
+      await propertiesAPI.update(selectedHostelId, { hostel_info: { floors: snakeCaseFloors } })
+      setHostels((prev) => prev.map((h) => h.id === selectedHostelId ? { ...h, floors: newFloors } : h))
+      showToast('Floor added')
+    } catch (err) {
+      showToast('Failed to add floor')
+    }
+  }
+
+  const handleAddRoom = async (floorIdx) => {
+    try {
+      const hostelToUpdate = hostels.find(h => h.id === selectedHostelId);
+      if (!hostelToUpdate) return;
+      const newFloors = JSON.parse(JSON.stringify(hostelToUpdate.floors || []))
+      const floor = newFloors[floorIdx]
+      const newRoomNum = floor.rooms && floor.rooms.length > 0 
+        ? String(Number(floor.rooms[floor.rooms.length - 1].roomNumber) + 1) 
+        : `${floor.floorNumber}01`
+      
+      const newRoom = { roomNumber: newRoomNum, type: 'Double', facilities: [], beds: [] }
+      floor.rooms = [...(floor.rooms || []), newRoom]
+
+      const snakeCaseFloors = newFloors.map(f => ({
+        floor_number: f.floorNumber,
+        rooms: (f.rooms || []).map(r => ({
+          room_number: r.roomNumber,
+          type: r.type,
+          facilities: r.facilities,
+          beds: (r.beds || []).map(b => ({
+            bed_number: b.bedId,
+            status: b.status,
+            student_name: b.studentName,
+            student_id: b.studentId
+          }))
+        }))
+      }))
+
+      await propertiesAPI.update(selectedHostelId, { hostel_info: { floors: snakeCaseFloors } })
+      setHostels((prev) => prev.map((h) => h.id === selectedHostelId ? { ...h, floors: newFloors } : h))
+      showToast('Room added')
+    } catch (err) {
+      showToast('Failed to add room')
+    }
+  }
+
+  const handleAddBed = async (floorIdx, roomIdx) => {
+    try {
+      const hostelToUpdate = hostels.find(h => h.id === selectedHostelId);
+      if (!hostelToUpdate) return;
+      const newFloors = JSON.parse(JSON.stringify(hostelToUpdate.floors || []))
+      const room = newFloors[floorIdx].rooms[roomIdx]
+      const nextChar = String.fromCharCode(65 + (room.beds?.length || 0)) // A, B, C...
+      const newBed = { bedId: `${room.roomNumber}-${nextChar}`, status: 'available' }
+      
+      room.beds = [...(room.beds || []), newBed]
+
+      const snakeCaseFloors = newFloors.map(f => ({
+        floor_number: f.floorNumber,
+        rooms: (f.rooms || []).map(r => ({
+          room_number: r.roomNumber,
+          type: r.type,
+          facilities: r.facilities,
+          beds: (r.beds || []).map(b => ({
+            bed_number: b.bedId,
+            status: b.status,
+            student_name: b.studentName,
+            student_id: b.studentId
+          }))
+        }))
+      }))
+
+      await propertiesAPI.update(selectedHostelId, { hostel_info: { floors: snakeCaseFloors } })
+      setHostels((prev) => prev.map((h) => h.id === selectedHostelId ? { ...h, floors: newFloors } : h))
+      showToast('Bed added')
+    } catch (err) {
+      showToast('Failed to add bed')
     }
   }
 
@@ -1042,29 +1157,45 @@ const HallsManagement = ({ hostels, setHostels }) => {
       </div>
 
       {/* Floor Tabs */}
-      <div className="mb-6">
-        <h3 className="text-sm font-semibold text-gray-700 mb-3">Select Floor</h3>
-        <div className="flex flex-wrap gap-2">
-          {selectedHostel.floors.map((floor, idx) => {
-            const fs = floorStats[idx]
-            const isActive = idx === activeFloor
-            return (
-              <button key={floor.floorNumber} onClick={() => { setActiveFloor(idx); setExpandedRooms({}) }}
-                className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 border ${isActive ? 'bg-emerald-600 text-white border-emerald-600 shadow-md' : 'bg-white text-gray-600 border-gray-200 hover:border-emerald-300 hover:bg-emerald-50'}`}>
-                Floor {floor.floorNumber}
-                <span className={`ml-2 text-xs ${isActive ? 'text-emerald-100' : 'text-gray-400'}`}>
-                  {fs.available}/{fs.beds}
-                </span>
-              </button>
-            )
-          })}
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h3 className="text-sm font-semibold text-gray-700 mb-2">Select Floor</h3>
+          <div className="flex flex-wrap gap-2">
+            {(selectedHostel.floors || []).length === 0 && (
+              <p className="text-sm text-gray-500 italic py-2">No floors available</p>
+            )}
+            {selectedHostel.floors?.map((floor, idx) => {
+              const fs = floorStats[idx]
+              const isActive = idx === activeFloor
+              return (
+                <button key={floor.floorNumber} onClick={() => { setActiveFloor(idx); setExpandedRooms({}) }}
+                  className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 border ${isActive ? 'bg-emerald-600 text-white border-emerald-600 shadow-md' : 'bg-white text-gray-600 border-gray-200 hover:border-emerald-300 hover:bg-emerald-50'}`}>
+                  Floor {floor.floorNumber}
+                  <span className={`ml-2 text-xs ${isActive ? 'text-emerald-100' : 'text-gray-400'}`}>
+                    {fs.available}/{fs.beds}
+                  </span>
+                </button>
+              )
+            })}
+          </div>
         </div>
+        <button onClick={handleAddFloor} className="px-4 py-2 bg-indigo-50 text-indigo-600 rounded-lg text-sm font-medium hover:bg-indigo-100 transition-colors">
+          + Add Floor
+        </button>
       </div>
 
       {/* Room Cards */}
       <div className="space-y-4">
-        {currentFloor.rooms.map((room, roomIdx) => {
-          const availBeds = room.beds.filter((b) => b.status === 'available').length
+        {currentFloor && (
+          <div className="flex justify-end mb-2">
+            <button onClick={() => handleAddRoom(activeFloor)} className="px-4 py-2 bg-emerald-50 text-emerald-700 rounded-lg text-sm font-medium hover:bg-emerald-100 transition-colors">
+              + Add Room to Floor {currentFloor.floorNumber}
+            </button>
+          </div>
+        )}
+        
+        {currentFloor?.rooms?.map((room, roomIdx) => {
+          const availBeds = (room.beds || []).filter((b) => b.status === 'available').length
           const isExpanded = expandedRooms[room.roomNumber]
 
           return (
@@ -1082,7 +1213,7 @@ const HallsManagement = ({ hostels, setHostels }) => {
                       <span className="text-[11px] px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 font-medium">{room.type}</span>
                     </div>
                     <div className="flex items-center gap-2 mt-0.5">
-                      {room.facilities.map((f) => (
+                      {(room.facilities || []).map((f) => (
                         <span key={f} className="text-[11px] text-gray-400">{roomFacilityIcons[f] || ''} {f}</span>
                       ))}
                     </div>
@@ -1090,7 +1221,7 @@ const HallsManagement = ({ hostels, setHostels }) => {
                 </div>
                 <div className="flex items-center gap-3">
                   <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${availBeds > 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-600'}`}>
-                    {availBeds}/{room.beds.length} available
+                    {availBeds}/{(room.beds || []).length} available
                   </span>
                   <ChevronDownIcon className={`w-5 h-5 text-gray-400 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
                 </div>
@@ -1099,15 +1230,20 @@ const HallsManagement = ({ hostels, setHostels }) => {
               {/* Expanded: Bed grid */}
               {isExpanded && (
                 <div className="px-4 pb-4 border-t border-gray-100 pt-3">
-                  <div className="flex items-center gap-4 mb-3">
-                    <span className="text-xs text-gray-500 font-medium">Beds:</span>
-                    <div className="flex items-center gap-3 text-[11px] text-gray-400">
-                      <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-emerald-100 border border-emerald-400 inline-block" /> Available</span>
-                      <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-red-100 border border-red-400 inline-block" /> Occupied</span>
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-4">
+                      <span className="text-xs text-gray-500 font-medium">Beds:</span>
+                      <div className="flex items-center gap-3 text-[11px] text-gray-400">
+                        <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-emerald-100 border border-emerald-400 inline-block" /> Available</span>
+                        <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-red-100 border border-red-400 inline-block" /> Occupied</span>
+                      </div>
                     </div>
+                    <button onClick={() => handleAddBed(activeFloor, roomIdx)} className="px-3 py-1 bg-blue-50 text-blue-600 rounded text-xs font-medium hover:bg-blue-100 transition-colors">
+                      + Add Bed
+                    </button>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-                    {room.beds.map((bed, bedIdx) => {
+                    {(room.beds || []).map((bed, bedIdx) => {
                       const isAvailable = bed.status === 'available'
                       return (
                         <div key={bed.bedId}
@@ -1470,7 +1606,20 @@ const HostelManagerDashboard = ({ user, onLogout }) => {
              isOpen: p.is_available ?? true,
              totalCapacity: p.total_seats || 0,
              availableBeds: p.available_seats || 0,
-             floors: info.floors || [],
+             floors: (info.floors || []).map(f => ({
+               floorNumber: f.floor_number || f.floorNumber,
+               rooms: (f.rooms || []).map(r => ({
+                 roomNumber: r.room_number || r.roomNumber,
+                 type: r.type || 'Standard',
+                 facilities: r.facilities || [],
+                 beds: (r.beds || []).map(b => ({
+                   bedId: b.bed_number || b.bedId,
+                   status: b.status || 'available',
+                   studentName: b.student_name || b.studentName,
+                   studentId: b.student_id || b.studentId
+                 }))
+               }))
+             })),
              gender: p.gender || info.gender || 'male',
              wardenName: info.wardenName || p.owner_name || 'Not Assigned',
              wardenPhone: info.wardenPhone || p.owner_phone || 'N/A',

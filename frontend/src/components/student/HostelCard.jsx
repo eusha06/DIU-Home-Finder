@@ -21,16 +21,16 @@ const facilityIcons = {
 const HostelCard = ({ hostel, onViewHostel }) => {
   // Derive stats from nested data
   const stats = useMemo(() => {
-    const totalFloors = hostel.floors.length
+    const totalFloors = (hostel.floors || []).length
     let totalRooms = 0
     let totalBeds = 0
     let availableBeds = 0
 
-    hostel.floors.forEach((floor) => {
-      totalRooms += floor.rooms.length
-      floor.rooms.forEach((room) => {
-        totalBeds += room.beds.length
-        availableBeds += room.beds.filter((b) => b.status === 'available').length
+    ;(hostel.floors || []).forEach((floor) => {
+      totalRooms += (floor.rooms || []).length
+      ;(floor.rooms || []).forEach((room) => {
+        totalBeds += (room.beds || []).length
+        availableBeds += (room.beds || []).filter((b) => b.status === 'available').length
       })
     })
 
@@ -115,14 +115,14 @@ const HostelCard = ({ hostel, onViewHostel }) => {
 
         {/* Facilities row */}
         <div className="flex flex-wrap gap-1.5 mb-4">
-          {hostel.facilities.slice(0, 5).map((f) => (
+          {(hostel.facilities || []).slice(0, 5).map((f) => (
             <span key={f} className="text-[10px] bg-violet-50 text-violet-600 font-medium px-2 py-1 rounded-md">
               {facilityIcons[f] || '✅'} {f}
             </span>
           ))}
-          {hostel.facilities.length > 5 && (
+          {(hostel.facilities || []).length > 5 && (
             <span className="text-[10px] bg-gray-100 text-gray-500 font-medium px-2 py-1 rounded-md">
-              +{hostel.facilities.length - 5} more
+              +{(hostel.facilities || []).length - 5} more
             </span>
           )}
         </div>

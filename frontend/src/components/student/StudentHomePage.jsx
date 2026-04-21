@@ -294,7 +294,20 @@ const fetchProperties = useCallback(async () => {
       postedAt:    p.created_at,
       ownerName:   p.owner_name,
       ownerPhone:  p.owner_phone,
-      floors:      p.hostel_info?.floors || [], // hostel beds structure
+      floors:      (p.hostel_info?.floors || []).map(f => ({
+        floorNumber: f.floor_number || f.floorNumber,
+        rooms: (f.rooms || []).map(r => ({
+          roomNumber: r.room_number || r.roomNumber,
+          type: r.type || 'Standard',
+          facilities: r.facilities || [],
+          beds: (r.beds || []).map(b => ({
+            bedId: b.bed_number || b.bedId,
+            status: b.status || 'available',
+            studentName: b.student_name || b.studentName,
+            studentId: b.student_id || b.studentId
+          }))
+        }))
+      })),
     }))
     setAllProperties(mapped)
 

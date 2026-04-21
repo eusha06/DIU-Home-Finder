@@ -54,11 +54,11 @@ const HostelDetailView = ({ hostel, onBack, onRequestBed }) => {
   // Compute hostel-wide stats
   const hostelStats = useMemo(() => {
     let totalRooms = 0, totalBeds = 0, availableBeds = 0
-    hostel.floors.forEach((floor) => {
-      totalRooms += floor.rooms.length
-      floor.rooms.forEach((room) => {
-        totalBeds += room.beds.length
-        availableBeds += room.beds.filter((b) => b.status === 'available').length
+    ;(hostel.floors || []).forEach((floor) => {
+      totalRooms += (floor.rooms || []).length
+      ;(floor.rooms || []).forEach((room) => {
+        totalBeds += (room.beds || []).length
+        availableBeds += (room.beds || []).filter((b) => b.status === 'available').length
       })
     })
     return { totalRooms, totalBeds, availableBeds }
@@ -66,13 +66,13 @@ const HostelDetailView = ({ hostel, onBack, onRequestBed }) => {
 
   // Compute per-floor stats for floor tabs
   const floorStats = useMemo(() => {
-    return hostel.floors.map((floor) => {
+    return (hostel.floors || []).map((floor) => {
       let beds = 0, available = 0
-      floor.rooms.forEach((room) => {
-        beds += room.beds.length
-        available += room.beds.filter((b) => b.status === 'available').length
+      ;(floor.rooms || []).forEach((room) => {
+        beds += (room.beds || []).length
+        available += (room.beds || []).filter((b) => b.status === 'available').length
       })
-      return { rooms: floor.rooms.length, beds, available }
+      return { rooms: (floor.rooms || []).length, beds, available }
     })
   }, [hostel])
 
@@ -145,7 +145,7 @@ const HostelDetailView = ({ hostel, onBack, onRequestBed }) => {
           {/* Stats strip */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
             {[
-              { icon: '🏢', label: 'Floors', value: hostel.floors.length },
+              { icon: '🏢', label: 'Floors', value: (hostel.floors || []).length },
               { icon: '🚪', label: 'Total Rooms', value: hostelStats.totalRooms },
               { icon: '🛏️', label: 'Total Beds', value: hostelStats.totalBeds },
               { icon: '✅', label: 'Available', value: hostelStats.availableBeds, highlight: true },
@@ -163,7 +163,7 @@ const HostelDetailView = ({ hostel, onBack, onRequestBed }) => {
 
           {/* Facilities */}
           <div className="flex flex-wrap gap-2">
-            {hostel.facilities.map((f) => {
+            {(hostel.facilities || []).map((f) => {
               const info = facilityLabels[f] || { icon: '✅', label: f }
               return (
                 <span key={f} className="flex items-center gap-1.5 bg-violet-50 border border-violet-100
@@ -182,7 +182,10 @@ const HostelDetailView = ({ hostel, onBack, onRequestBed }) => {
           <span className="text-lg">🏢</span> Select Floor
         </h3>
         <div className="flex flex-wrap gap-2">
-          {hostel.floors.map((floor, idx) => {
+          {(hostel.floors || []).length === 0 && (
+            <p className="text-sm text-gray-500 italic py-2">No floors available</p>
+          )}
+          {(hostel.floors || []).map((floor, idx) => {
             const isActive = activeFloor === idx
             const fs = floorStats[idx]
             return (
@@ -215,16 +218,17 @@ const HostelDetailView = ({ hostel, onBack, onRequestBed }) => {
       </div>
 
       {/* ── Room List for Selected Floor ────────────────────────── */}
-      <div className="mb-4">
-        <h3 className="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
-          <span className="text-lg">🚪</span>
-          Floor {currentFloor.floorNumber} — {currentFloor.rooms.length} Rooms
-        </h3>
+      {currentFloor && (
+        <div className="mb-4">
+          <h3 className="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
+            <span className="text-lg">🚪</span>
+            Floor {currentFloor.floorNumber} — {(currentFloor.rooms || []).length} Rooms
+          </h3>
 
-        <div className="space-y-4">
-          {currentFloor.rooms.map((room) => {
-            const availableBeds = room.beds.filter((b) => b.status === 'available').length
-            const isExpanded = expandedRooms[room.roomNumber]
+          <div className="space-y-4">
+            {(currentFloor.rooms || []).map((room) => {
+              const availableBeds = (room.beds || []).filter((b) => b.status === 'available').length
+              const isExpanded = expandedRooms[room.roomNumber]
 
             return (
               <div
@@ -253,7 +257,7 @@ const HostelDetailView = ({ hostel, onBack, onRequestBed }) => {
 
                       {/* Room facilities */}
                       <div className="flex flex-wrap gap-1.5">
-                        {room.facilities.map((f) => (
+                        {(room.facilities || []).map((f) => (
                           <span key={f} className="text-[10px] bg-gray-50 text-gray-600 border border-gray-100
                                                    px-2 py-0.5 rounded-md font-medium">
                             {roomFacilityIcons[f] || '✅'} {f}
@@ -292,7 +296,7 @@ const HostelDetailView = ({ hostel, onBack, onRequestBed }) => {
                       🛏️ Beds in Room {room.roomNumber}
                     </p>
                     <div className="flex flex-wrap gap-3">
-                      {room.beds.map((bed) => {
+                      {(room.beds || []).map((bed) => {
                         const isAvailable = bed.status === 'available'
                         return (
                           <button
@@ -357,6 +361,7 @@ const HostelDetailView = ({ hostel, onBack, onRequestBed }) => {
           })}
         </div>
       </div>
+      )}
     </div>
   )
 }

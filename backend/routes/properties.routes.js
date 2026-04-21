@@ -219,6 +219,7 @@ router.patch('/:id', protect, restrictTo('owner', 'admin', 'hostel_manager'), as
       'area', 'distance_from_diu', 'total_seats', 'available_seats',
       'is_available', 'gender_preference', 'amenities', 'hostel_info'
     ];
+    const updates = [];
     const values  = [];
     let   idx     = 1;
 
