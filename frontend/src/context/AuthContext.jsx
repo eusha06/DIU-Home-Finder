@@ -58,7 +58,8 @@ export function AuthProvider({ children }) {
   // ── login: primary login flow used by AuthPage/forms ─────────────────────
   async function login(email, password, extraUserData = {}) {
     const data = await authAPI.login(email, password)
-    const mergedUser = { ...(data.user || {}), ...extraUserData }
+    // ONLY apply extraUserData fields if the backend user doesn't have them
+    const mergedUser = { ...extraUserData, ...(data.user || {}) }
     persistAuth(data.token, mergedUser)
     return data
   }
@@ -75,16 +76,10 @@ export function AuthProvider({ children }) {
       throw new Error('You must be logged in to update profile')
     }
 
-    const apiPayload = {}
-    if (Object.prototype.hasOwnProperty.call(profileUpdates, 'name')) {
-      apiPayload.name = profileUpdates.name
-    }
-    if (Object.prototype.hasOwnProperty.call(profileUpdates, 'email')) {
-      apiPayload.email = profileUpdates.email
-    }
-    if (Object.prototype.hasOwnProperty.call(profileUpdates, 'phone')) {
-      apiPayload.phone = profileUpdates.phone
-    }
+    const apiPayload = { ...profileUpdates }
+    // Remove local-only fields that shouldn't go to backend if any, 
+    // but the backend will ignore unknown keys or we explicitly pass specific keys.
+    // Let's pass the whole profileUpdates. The backend maps them correctly.
 
     let nextUser = { ...user }
 
@@ -94,10 +89,7 @@ export function AuthProvider({ children }) {
     }
 
     const localOnlyFields = { ...profileUpdates }
-    delete localOnlyFields.name
-    delete localOnlyFields.email
-    delete localOnlyFields.phone
-
+    // Local fields overwrite if backend doesn't return them for some reason
     nextUser = { ...nextUser, ...localOnlyFields }
     persistAuth(token, nextUser)
     return nextUser

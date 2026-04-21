@@ -374,7 +374,7 @@ useEffect(() => {
 
   // ── Hostels filtered by student gender ──────────────────────────────────
   const filteredHostels = useMemo(() => {
-    let result = allProperties.filter((p) => p.type === 'hostel' && (p.gender === studentGender || p.gender === 'any'))
+    let result = allProperties.filter((p) => p.type === 'hostel' && (studentGender === 'any' || p.gender === studentGender || p.gender === 'any'))
     // Text search on hostel name and location
     if (hostelSearchQuery.trim()) {
       const q = hostelSearchQuery.toLowerCase()
@@ -429,7 +429,7 @@ useEffect(() => {
     }
 
     // 1) Gender filter (auto from student profile)
-    result = result.filter((p) => p.gender === studentGender || p.gender === 'any')
+    result = result.filter((p) => studentGender === 'any' || p.gender === studentGender || p.gender === 'any')
 
     // 2) Text search (title + location)
     if (searchQuery.trim()) {
